@@ -6,6 +6,15 @@ export default function Login() {
       <div className="overflow-x-hidden w-screen h-screen p-10 place-items-center place-content-center bg-gray-100">
         <form className="flex flex-col items-start border-1 border-gray-300 rounded-lg w-1/3 p-10 bg-white">
             <div className="text-5xl mb-3 font-bold">Log in</div>
+            <div className="my-3">
+            Belum mempunyai akun?{" "}
+            <Link
+              href={"/pages/register-pembeli"}
+              className="text-blue-400 underline hover:text-blue-500"
+            >
+              Daftar disini!
+            </Link>
+          </div>
             <div className="my-3 w-full">
                 <div className="mb-1">Email</div>
                 <input type="text" className="border-1 border-gray-400 rounded-sm h-10 w-full px-2"/>
