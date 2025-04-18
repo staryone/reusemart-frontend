@@ -21,10 +21,12 @@ export default function ProductDetails() {
                 <label htmlFor="choosePenitip" className="ml-5 font-bold">Penitip Beuh</label>
             </div>
             <div className="flex">
-                <input type="checkbox" name="chooseProduk" id=""className="w-5 h-5" />
+                <input type="checkbox" name="chooseProduk" id="" className="w-5 h-5" />
                 <div className="flex justify-between ml-5 w-full">
                     <Link href={"/pages/product-details"} className="flex gap-5">
-                        <Image src={"/product.png"} alt="" width={"12"} height={"12"} className="w-20 rounded-xl"/>
+                        <div className="w-18">
+                            <Image src={"/product.png"} alt="" fill style={{ objectFit: "cover" }} className="rounded-xl relative!"/>
+                        </div>
                         <div>Apple watch keren bagus mahal</div>
                     </Link>
                     <div className="flex flex-col items-end justify-between">
