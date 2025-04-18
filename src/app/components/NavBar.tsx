@@ -6,6 +6,7 @@ import { FaCartShopping } from "react-icons/fa6";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  
 
   return (
     <nav className="bg-white border-b border-gray-200">

@@ -12,7 +12,7 @@ export default function Home() {
         <h2 className="text-4xl mb-4 mt-10">Barang Terbaru</h2>
         <div className="flex gap-3">
           <div className="w-full max-w-3xs bg-white border border-gray-200 rounded-lg shadow-sm">
-            <a href="#">
+            <a href="/pages/product-details">
               <img
                 className="p-8 rounded-t-lg"
                 src="product.png"
