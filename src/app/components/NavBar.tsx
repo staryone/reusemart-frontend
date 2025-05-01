@@ -18,7 +18,7 @@ export default function Navbar() {
         </Link>
 
         <ul className="space-x-2 hidden md:flex">
-          {["Produk", "Transaksi", "Tentang", "Kontak", "Profil"].map(
+          {["Produk", "Transaksi", "Profil"].map(
             (item) => (
               <li key={item}>
                 <Link

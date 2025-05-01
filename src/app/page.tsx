@@ -33,6 +33,30 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <h2 className="text-4xl mb-4 mt-10">Semua Produk</h2>
+        <div className="flex gap-3">
+          <div className="w-full max-w-3xs bg-white border border-gray-200 rounded-lg shadow-sm">
+            <a href="/pages/product-details">
+              <img
+                className="p-8 rounded-t-lg"
+                src="product.png"
+                alt="product image"
+              />
+            </a>
+            <div className="px-5 pb-5">
+              <a href="#">
+                <h5 className="text-lg tracking-tight text-gray-900">
+                  Apple Watch Series 7 GPS, Aluminium Case
+                </h5>
+              </a>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xl font-bold text-gray-900">
+                  Rp2.500.000
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

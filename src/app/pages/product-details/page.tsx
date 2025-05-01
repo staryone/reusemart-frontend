@@ -14,7 +14,7 @@ export default function ProductDetails() {
   return (
     <div className="overflow-x-hidden">
       <Navbar />
-      <div className="overflow-x-hidden w-screen py-10 px-24">
+      <div className="overflow-x-hidden w-screen pt-30 pb-10 px-24">
         <div className="flex justify-center gap-20 h-fit w-full">
           <div className="w-1/3 place-items-center">
             {/* <Carousel
@@ -98,6 +98,10 @@ export default function ProductDetails() {
             <div className="flex justify-between w-72">
               <div>Etalase: </div>
               <div>Dell Monitor</div>
+            </div>
+            <div className="flex justify-between w-72">
+              <div>Garansi: </div>
+              <div>23 Juli 2025</div>
             </div>
           </div>
           <div className="text-2xl my-5 font-bold">Deskripsi</div>
