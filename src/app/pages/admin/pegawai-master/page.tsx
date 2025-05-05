@@ -18,7 +18,7 @@ import {
   ModalHeader,
   TextInput,
 } from "flowbite-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { HiSearch } from "react-icons/hi";
 
@@ -26,9 +26,32 @@ export default function PegawaiMaster() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
+  const [data, setData] = useState(null);
+  // const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/api/pegawai/lists", {
+          headers: {
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjQyODcwNywiZXhwIjoxNzQ3MDMzNTA3fQ.MoeYbRjrD1aLqNv06-YGs1Ig4dYLrkXkVs953EjPmuQ`,
+          },
+        });
+
+        const json = await res.json();
+        setData(json);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   function onCloseModal() {
     setOpenModal(false);
   }
+  // if (isLoading) return <p>Loading...</p>;
   return (
     <div className="flex">
       <Modal show={openModal} size="md" onClose={onCloseModal} popup>
@@ -116,6 +139,7 @@ export default function PegawaiMaster() {
       <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Pegawai</h1>
+        <h1 className="text-4xl font-bold mt-12 mb-4">{data}</h1>
         <form className="flex gap-3 my-5">
           <input
             type="text"
