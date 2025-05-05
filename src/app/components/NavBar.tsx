@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { FaCartShopping } from "react-icons/fa6";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10">
       <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-3">
@@ -16,7 +18,7 @@ export default function Navbar() {
         </Link>
 
         <ul className="space-x-2 hidden md:flex">
-          {["Produk", "Transaksi", "Tentang", "Kontak", "Profil"].map(
+          {["Produk", "Transaksi", "Profil"].map(
             (item) => (
               <li key={item}>
                 <Link
