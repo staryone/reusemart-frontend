@@ -17,6 +17,33 @@ export default function Navbar() {
           <span className="text-2xl font-semibold">ReUseMart</span>
         </Link>
 
+        {/* Desktop Search */}
+        <div className="flex gap-3">
+          <div className="hidden md:block relative w-80">
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                />
+              </svg>
+            </div>
+          </div>
+          <Link
+            href="#"
+            className="hidden md:block px-3 py-2 text-gray-700 rounded hover:bg-gray-100 text-xl"
+          >
+            <FaCartShopping />
+          </Link>
+        </div>
         <ul className="space-x-2 hidden md:flex">
           {["Produk", "Transaksi", "Profil"].map(
             (item) => (
@@ -31,31 +58,7 @@ export default function Navbar() {
             )
           )}
         </ul>
-        {/* Desktop Search */}
-        <div className="hidden md:block relative w-80">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-              />
-            </svg>
-          </div>
-        </div>
-        <Link
-          href="#"
-          className="hidden md:block px-3 py-2 text-gray-700 rounded hover:bg-gray-100 text-xl"
-        >
-          <FaCartShopping />
-        </Link>
+        
 
         {/* Toggle Button */}
         <button
@@ -112,12 +115,10 @@ export default function Navbar() {
           {/* Navigation Links */}
           <ul className="space-y-2">
             {[
+              "Keranjang",
               "Produk",
               "Transaksi",
-              "Tentang",
-              "Kontak",
               "Profil",
-              "Keranjang",
             ].map((item) => (
               <li key={item}>
                 <Link
