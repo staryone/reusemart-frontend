@@ -1,12 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("token");
+    setIsLoggedIn(!!user);
+  }, []);
+
+  const navLinks = [
+    { label: "Produk", path: "/pages-produk" },
+    { label: "Transaksi", path: "/pages-transaksi" },
+    isLoggedIn
+      ? { label: "Profil", path: "/pages/profil-pembeli" }
+      : { label: "Login", path: "/pages/login" },
+    isLoggedIn
+      ? { label: "Logout", path: "#" }
+      : { label: "Register", path: "/pages/register" },
+  ];
 
   return (
     <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10">
@@ -45,20 +61,17 @@ export default function Navbar() {
           </Link>
         </div>
         <ul className="space-x-2 hidden md:flex">
-          {["Produk", "Transaksi", "Profil"].map(
-            (item) => (
-              <li key={item}>
-                <Link
-                  href="#"
-                  className="block px-3 py-2 text-gray-700 rounded hover:bg-gray-100"
-                >
-                  {item}
-                </Link>
-              </li>
-            )
-          )}
+          {navLinks.map(({ label, path }) => (
+            <li key={label}>
+              <Link
+                href={path}
+                className="block px-3 py-2 text-gray-700 rounded hover:bg-gray-100"
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
         </ul>
-        
 
         {/* Toggle Button */}
         <button
@@ -114,18 +127,13 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <ul className="space-y-2">
-            {[
-              "Keranjang",
-              "Produk",
-              "Transaksi",
-              "Profil",
-            ].map((item) => (
-              <li key={item}>
+            {navLinks.map(({ label, path }) => (
+              <li key={label}>
                 <Link
-                  href="#"
+                  href={path}
                   className="block px-3 py-2 text-gray-700 rounded hover:bg-gray-100"
                 >
-                  {item}
+                  {label}
                 </Link>
               </li>
             ))}
