@@ -1,4 +1,4 @@
-import Navbar from "@/app/components/NavBar";
+import Navbar from "@/components/utama/navbar";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -24,11 +24,11 @@ export default function ProfilePage() {
         <div className="col-span-2 space-y-6">
           {/* Phone */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">Nomor Telepon</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              Nomor Telepon
+            </h2>
             <p className="text-gray-700 mt-1">08123123123</p>
           </div>
-
-          
 
           {/* Address */}
           <div>
@@ -36,15 +36,23 @@ export default function ProfilePage() {
             <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 mt-2">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold text-gray-800">Rumah</h3>
-                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Utama</span>
+                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                  Utama
+                </span>
               </div>
               <p className="text-gray-700">Frendy</p>
               <p className="text-gray-700">08123123123</p>
               <p className="text-gray-700">
-                Jl. Brigjend Konoha, Gg. Dukuh, No. 20, Depok, Sleman, D. I. Yogyakarta, 52218
+                Jl. Brigjend Konoha, Gg. Dukuh, No. 20, Depok, Sleman, D. I.
+                Yogyakarta, 52218
               </p>
             </div>
-            <Link href={"/"} className="text-[#2662d9] text-md hover:underline hover:text-blue-500">Daftar alamat</Link>
+            <Link
+              href={"/"}
+              className="text-[#2662d9] text-md hover:underline hover:text-blue-500"
+            >
+              Daftar alamat
+            </Link>
           </div>
         </div>
       </div>

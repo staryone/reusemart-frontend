@@ -1,5 +1,5 @@
 "use client";
-import Navbar from "./components/NavBar";
+import Navbar from "../components/utama/navbar";
 
 export default function Home() {
   return (

@@ -1,5 +1,5 @@
 "use client";
-import Navbar from "@/app/components/NavBar";
+import Navbar from "@/components/utama/navbar";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,17 +24,29 @@ export default function HistoryPembelian() {
                   />
                 </div>
                 <div className="flex flex-col">
-                    <div className="text-sm text-gray-400">Nomor nota: 25.04.202</div>
-                    <div>Apple watch keren bagus mahal <span className="text-gray-500">(+ 1 barang lainnya)</span></div>
-                    <div className="text-gray-400 text-sm">20 April 2025</div>
+                  <div className="text-sm text-gray-400">
+                    Nomor nota: 25.04.202
+                  </div>
+                  <div>
+                    Apple watch keren bagus mahal{" "}
+                    <span className="text-gray-500">(+ 1 barang lainnya)</span>
+                  </div>
+                  <div className="text-gray-400 text-sm">20 April 2025</div>
                 </div>
               </Link>
               <div className="flex flex-col gap-3 items-end justify-between">
                 <div className="flex items-center gap-5">
-                    <div className="px-2 py-1 rounded-lg bg-amber-200 text-orange-500 font-bold text-sm">Diproses</div>
-                    <div className="text-xl font-semibold">Rp2.500.000</div>
+                  <div className="px-2 py-1 rounded-lg bg-amber-200 text-orange-500 font-bold text-sm">
+                    Diproses
+                  </div>
+                  <div className="text-xl font-semibold">Rp2.500.000</div>
                 </div>
-                <Link href={"/"} className="my-3 rounded-lg py-2 px-8 bg-blue-500 text-white hover:bg-white hover:text-blue-500 hover:border-1 hover:border-blue-500 transition-colors">Lihat detail</Link>
+                <Link
+                  href={"/"}
+                  className="my-3 rounded-lg py-2 px-8 bg-blue-500 text-white hover:bg-white hover:text-blue-500 hover:border-1 hover:border-blue-500 transition-colors"
+                >
+                  Lihat detail
+                </Link>
               </div>
             </div>
           </div>

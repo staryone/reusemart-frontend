@@ -1,5 +1,5 @@
 "use client";
-import Navbar from "@/app/components/NavBar";
+import Navbar from "@/components/utama/navbar";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Image from "next/image";
 import Link from "next/link";
