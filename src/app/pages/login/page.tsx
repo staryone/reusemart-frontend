@@ -10,7 +10,7 @@ export default function Login() {
             Belum mempunyai akun?{" "}
             <Link
               href={"/pages/register-pembeli"}
-              className="text-blue-400 underline hover:text-blue-500"
+              className="text-[#1980e6]/80 underline hover:text-[#1980e6]"
             >
               Daftar disini!
             </Link>
@@ -23,9 +23,9 @@ export default function Login() {
                 <div className="mb-1">Password</div>
                 <input type="password" className="border-1 border-gray-400 rounded-sm h-10 w-full px-2"/>
             </div>
-            <button type="submit" className="my-3 rounded-full py-2 px-8 bg-blue-500 text-white hover:bg-white hover:text-blue-500 hover:border-1 hover:border-blue-500 transition-colors">Log in</button>
+            <button type="submit" className="my-3 rounded-[0.5rem] py-2 px-8 bg-[#1980e6] text-white hover:bg-white hover:text-[#1980e6] border-1 hover:border-[#1980e6] transition-colors">Log in</button>
             <div className="my-3">
-                <Link href={"#"} className="text-blue-400 underline hover:text-blue-500">Forgot Password</Link>
+                <Link href={"#"} className="text-[#1980e6]/80 underline hover:text-[#1980e6]">Forgot Password</Link>
             </div>
         </form>
       </div>

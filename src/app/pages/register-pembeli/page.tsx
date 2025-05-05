@@ -5,12 +5,12 @@ export default function Register() {
     <div>
       <div className="overflow-x-hidden w-screen h-screen p-10 place-items-center place-content-center bg-gray-100">
         <form className="border-1 border-gray-300 rounded-lg w-1/2 p-10 bg-white">
-          <div className="text-4xl mb-3 font-bold">Registrasi Pembeli</div>
+          <div className="text-5xl mb-3 font-bold">Registrasi Pembeli</div>
           <div className="my-3">
             Ingin mendaftarkan organisasi sosial?{" "}
             <Link
               href={"/pages/register-organisasi"}
-              className="text-blue-400 underline hover:text-blue-500"
+              className="text-[#1980e6]/80 underline hover:text-[#1980e6]"
             >
               Daftar disini!
             </Link>
@@ -56,14 +56,14 @@ export default function Register() {
               </div>
               <button
                 type="submit"
-                className="my-3 rounded-full py-2 px-8 bg-blue-500 text-white hover:bg-white hover:text-blue-500 hover:border-1 hover:border-blue-500 transition-colors"
+                className="my-3 rounded-[0.5rem] py-2 px-8 bg-[#1980e6] text-white hover:bg-white hover:text-[#1980e6] border-1 hover:border-[#1980e6] transition-colors"
               >
                 Registrasi
               </button>
               <div className="my-3">
                 <Link
                   href={"/pages/login"}
-                  className="text-blue-400 underline hover:text-blue-500"
+                  className="text-[#1980e6]/80 underline hover:text-[#1980e6]"
                 >
                   Saya sudah punya akun
                 </Link>
