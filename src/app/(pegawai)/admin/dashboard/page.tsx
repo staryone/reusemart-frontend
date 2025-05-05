@@ -12,7 +12,7 @@ type Pegawai = {
   };
 };
 
-import SideBar from "@/app/components/SideBar";
+import SideBar from "@/components/admin/sidebar";
 import {
   Table,
   TableBody,
@@ -44,8 +44,6 @@ export default function PegawaiMaster() {
   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
   // const router = useRouter();
 
-
-
   const fetchData = async () => {
     try {
       const queryParams = new URLSearchParams({
@@ -64,13 +62,12 @@ export default function PegawaiMaster() {
 
       const json = await res.json();
       setData(json.data);
-      setTotalItems(json.totalItems);
+      setTotalItems(json.totalItems || 0);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
   useEffect(() => {
-
     fetchData();
   }, [page, searchQuery]);
 
@@ -160,7 +157,6 @@ export default function PegawaiMaster() {
         onCloseModal();
       } else {
         console.error("Failed to update pegawai");
-
       }
     } catch (error) {
       console.error("Error updating pegawai:", error);
@@ -313,7 +309,7 @@ export default function PegawaiMaster() {
               </TableRow>
             </TableHead>
             <TableBody className="divide-y">
-              {data.map((pegawai: Pegawai, index: number) => (
+              {data?.map((pegawai: Pegawai, index: number) => (
                 <TableRow
                   key={pegawai.id_pegawai}
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"

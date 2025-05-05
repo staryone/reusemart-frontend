@@ -1,5 +1,5 @@
 "use client";
-import Navbar from "@/app/components/NavBar";
+import Navbar from "@/components/utama/navbar";
 // import { Carousel } from "flowbite-react";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -68,7 +68,13 @@ export default function ProductDetails() {
             <Carousel useKeyboardArrows={true}>
               {images.map((URL, index) => (
                 <div key={index} className="slide relative w-full h-full">
-                  <img alt="sample_file" src={URL} key={index} style={{ objectFit: "contain" }} className="w-4/5!"/>
+                  <img
+                    alt="sample_file"
+                    src={URL}
+                    key={index}
+                    style={{ objectFit: "contain" }}
+                    className="w-4/5!"
+                  />
                 </div>
               ))}
             </Carousel>
@@ -108,10 +114,11 @@ export default function ProductDetails() {
           <div className="text-md">
             Lorem ipsum dolor sit amet consectetur adipisicing elit.
             Exercitationem ex laudantium eos pariatur numquam, sit quis
-            provident perferendis animi. Facilis saepe asperiores a eaque
-            quo numquam rem amet fuga exercitationem! Lorem ipsum dolor sit amet, 
-            consectetur adipisicing elit. Consequuntur nemo quaerat deleniti magni odit neque ut excepturi 
-            itaque laborum quas. Similique quisquam odio maiores, non velit esse veniam totam animi?
+            provident perferendis animi. Facilis saepe asperiores a eaque quo
+            numquam rem amet fuga exercitationem! Lorem ipsum dolor sit amet,
+            consectetur adipisicing elit. Consequuntur nemo quaerat deleniti
+            magni odit neque ut excepturi itaque laborum quas. Similique
+            quisquam odio maiores, non velit esse veniam totam animi?
           </div>
         </div>
         <div>
