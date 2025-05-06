@@ -1,18 +1,12 @@
 "use client";
-type Pegawai = {
-  id_pegawai: string;
-  email: string;
-  nama: string;
-  nomor_telepon: string;
-  komisi: number;
-  tgl_lahir: string;
-  jabatan: {
-    id_jabatan: number;
-    nama_jabatan: string;
-  };
-};
 
 import SideBar from "@/components/admin/sidebar";
+import {
+  deletePegawai,
+  getListPegawai,
+  updatePegawai,
+} from "@/lib/api/pegawai.api";
+import { Pegawai } from "@/lib/interface/pegawai.interface";
 import {
   Table,
   TableBody,
@@ -29,58 +23,62 @@ import {
   ModalHeader,
   TextInput,
 } from "flowbite-react";
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
-// import { useRouter } from "next/navigation";
+import useSWR from "swr";
+
+const fetcher = async ([params, token]: [URLSearchParams, string]) =>
+  await getListPegawai(params, token);
 
 export default function PegawaiMaster() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [data, setData] = useState<Pegawai[]>([]);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
-  // const router = useRouter();
 
-  const fetchData = async () => {
-    try {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        ...(searchQuery && { search: searchQuery }),
-      });
-      const res = await fetch(
-        `http://localhost:3001/api/pegawai/lists?${queryParams}`,
-        {
-          headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjQyODcwNywiZXhwIjoxNzQ3MDMzNTA3fQ.MoeYbRjrD1aLqNv06-YGs1Ig4dYLrkXkVs953EjPmuQ`,
-          },
-        }
-      );
-
-      const json = await res.json();
-      setData(json.data);
-      setTotalItems(json.totalItems || 0);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+  const queryParams = useMemo(() => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (searchQuery) {
+      params.append("search", searchQuery);
     }
-  };
-  useEffect(() => {
-    fetchData();
+    return params;
   }, [page, searchQuery]);
+
+  // ini nanti diganti sama token yang di session
+  const token =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjUxMjMzNiwiZXhwIjoxNzQ3MTE3MTM2fQ.vPUpNycspP7eGNAyOEMfcTbNTHqFD9FPBFKVZi1nhH4";
+
+  // ini penting
+  const { data, error, isLoading, mutate } = useSWR(
+    [queryParams, token],
+    fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+
+  useMemo(() => {
+    if (data && data[1] !== undefined) {
+      setTotalItems(data[1]);
+    }
+  }, [data]);
 
   function onCloseModal() {
     setOpenModal(false);
     setSelectedPegawai(null);
-    fetchData();
   }
 
   function onCloseDeleteModal() {
     setOpenDeleteModal(false);
     setSelectedPegawai(null);
-    fetchData();
   }
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -100,18 +98,10 @@ export default function PegawaiMaster() {
     if (!selectedPegawai) return;
 
     try {
-      const res = await fetch(
-        `http://localhost:3001/api/pegawai/${selectedPegawai.id_pegawai}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjQyODcwNywiZXhwIjoxNzQ3MDMzNTA3fQ.MoeYbRjrD1aLqNv06-YGs1Ig4dYLrkXkVs953EjPmuQ`,
-          },
-        }
-      );
+      const res = await deletePegawai(selectedPegawai.id_pegawai, token);
 
-      if (res.ok) {
-        setTotalItems(totalItems - 1);
+      if (res) {
+        mutate(); // Revalidate data after deletion
         onCloseDeleteModal();
       } else {
         console.error("Failed to delete pegawai");
@@ -126,34 +116,33 @@ export default function PegawaiMaster() {
     if (!selectedPegawai) return;
 
     const formData = new FormData(e.currentTarget);
-    const updateData = {
-      id_pegawai: selectedPegawai.id_pegawai,
-      nama: formData.get("nama") as string,
-      email: formData.get("email") as string,
-      nomor_telepon: formData.get("telp") as string,
-      id_jabatan: parseInt(formData.get("jabatan") as string),
-    };
+    let updateData = new FormData();
+
+    if (formData.get("nama")) {
+      updateData.set("nama", formData.get("nama") as string);
+    }
+
+    if (formData.get("email")) {
+      updateData.set("email", formData.get("email") as string);
+    }
+
+    if (formData.get("telp")) {
+      updateData.set("nomor_telepon", formData.get("telp") as string);
+    }
+
+    if (formData.get("jabatan")) {
+      updateData.set("id_jabatan", formData.get("jabatan") as string);
+    }
 
     try {
-      const res = await fetch(
-        `http://localhost:3001/api/pegawai/${selectedPegawai.id_pegawai}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjQyODcwNywiZXhwIjoxNzQ3MDMzNTA3fQ.MoeYbRjrD1aLqNv06-YGs1Ig4dYLrkXkVs953EjPmuQ`,
-          },
-          body: JSON.stringify(updateData),
-        }
+      const res = await updatePegawai(
+        selectedPegawai.id_pegawai,
+        updateData,
+        token
       );
 
-      if (res.ok) {
-        const updatedPegawai = await res.json();
-        setData(
-          data.map((p) =>
-            p.id_pegawai === updatedPegawai.id_pegawai ? updatedPegawai : p
-          )
-        );
+      if (res) {
+        mutate();
         onCloseModal();
       } else {
         console.error("Failed to update pegawai");
@@ -309,42 +298,62 @@ export default function PegawaiMaster() {
               </TableRow>
             </TableHead>
             <TableBody className="divide-y">
-              {data?.map((pegawai: Pegawai, index: number) => (
-                <TableRow
-                  key={pegawai.id_pegawai}
-                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                >
-                  <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
-                  <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                    {pegawai.id_pegawai}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                    {pegawai.nama}
-                  </TableCell>
-                  <TableCell>{pegawai.jabatan?.nama_jabatan}</TableCell>
-                  <TableCell>{pegawai.email}</TableCell>
-                  <TableCell>{pegawai.nomor_telepon}</TableCell>
-                  <TableCell>
-                    <button
-                      className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                      onClick={() => handleEdit(pegawai)}
-                    >
-                      Edit
-                    </button>
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => {
-                        setSelectedPegawai(pegawai);
-                        setOpenDeleteModal(true);
-                      }}
-                      className="font-medium text-red-600 hover:underline dark:text-red-500"
-                    >
-                      Delete
-                    </button>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center">
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center">
+                    Error loading data
+                  </TableCell>
+                </TableRow>
+              ) : data && data[0].length > 0 ? (
+                data[0].map((pegawai: Pegawai, index: number) => (
+                  <TableRow
+                    key={pegawai.id_pegawai}
+                    className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  >
+                    <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
+                    <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      {pegawai.id_pegawai}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      {pegawai.nama}
+                    </TableCell>
+                    <TableCell>{pegawai.jabatan?.nama_jabatan}</TableCell>
+                    <TableCell>{pegawai.email}</TableCell>
+                    <TableCell>{pegawai.nomor_telepon}</TableCell>
+                    <TableCell>
+                      <button
+                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                        onClick={() => handleEdit(pegawai)}
+                      >
+                        Edit
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => {
+                          setSelectedPegawai(pegawai);
+                          setOpenDeleteModal(true);
+                        }}
+                        className="font-medium text-red-600 hover:underline dark:text-red-500"
+                      >
+                        Delete
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center">
+                    No data found
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
