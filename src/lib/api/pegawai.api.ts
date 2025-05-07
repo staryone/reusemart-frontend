@@ -1,4 +1,5 @@
 import { Pegawai } from "../interface/pegawai.interface";
+import { ResponseAPI } from "../interface/response.interface";
 import { GET, POST, PATCH, DELETE } from "./fetch";
 
 export async function getPegawai(
@@ -22,7 +23,7 @@ export async function getListPegawai(
 export async function createPegawai(
   data: FormData,
   accessToken?: string
-): Promise<Pegawai> {
+): Promise<ResponseAPI> {
   return await POST(`/pegawai`, data, accessToken);
 }
 
@@ -30,20 +31,20 @@ export async function updatePegawai(
   id: string,
   data: FormData,
   accessToken?: string
-): Promise<Pegawai> {
+): Promise<ResponseAPI> {
   return await PATCH(`/pegawai/${id}`, data, accessToken);
 }
 
 export async function deletePegawai(
   id: string,
   accessToken?: string
-): Promise<Pegawai> {
+): Promise<ResponseAPI> {
   return await DELETE(`/pegawai/${id}`, accessToken);
 }
 
 export async function resetPasswordPegawai(
   id: string,
   accessToken?: string
-): Promise<Pegawai> {
+): Promise<ResponseAPI> {
   return await PATCH(`/pegawai/${id}/reset-password`, undefined, accessToken);
 }
