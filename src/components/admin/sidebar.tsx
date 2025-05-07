@@ -11,16 +11,16 @@ export default function SideBar() {
           <SidebarItem href="#" icon={HiChartPie}>
             Dashboard
           </SidebarItem>
-          <SidebarItem href="#" icon={HiUser}>
+          <SidebarItem href="/admin/pegawai-master" icon={HiUser}>
             Pegawai
           </SidebarItem>
-          <SidebarItem href="/pages/admin/pegawai-master" icon={HiBriefcase}>
+          <SidebarItem href="/admin/jabatan-master" icon={HiBriefcase}>
             Jabatan
           </SidebarItem>
-          <SidebarItem href="#" icon={HiOfficeBuilding}>
+          <SidebarItem href="/admin/organisasi-master" icon={HiOfficeBuilding}>
             Organisasi
           </SidebarItem>
-          <SidebarItem href="#" icon={HiGift}>
+          <SidebarItem href="/admin/merch-master" icon={HiGift}>
             Merchandise
           </SidebarItem>
         </SidebarItemGroup>

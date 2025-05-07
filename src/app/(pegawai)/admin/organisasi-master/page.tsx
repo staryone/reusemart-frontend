@@ -2,12 +2,12 @@
 
 import SideBar from "@/components/admin/sidebar";
 import {
-  createPegawai,
-  deletePegawai,
-  getListPegawai,
-  updatePegawai,
-} from "@/lib/api/pegawai.api";
-import { Pegawai } from "@/lib/interface/pegawai.interface";
+  createOrganisasi,
+  deleteOrganisasi,
+  getListOrganisasi,
+  updateOrganisasi,
+} from "@/lib/api/organisasi.api";
+import { Organisasi } from "@/lib/interface/organisasi.interface";
 import {
   Table,
   TableBody,
@@ -30,9 +30,9 @@ import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getListPegawai(params, token);
+  await getListOrganisasi(params, token);
 
-export default function PegawaiMaster() {
+export default function OrganisasiMaster() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
@@ -40,7 +40,7 @@ export default function PegawaiMaster() {
   const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
+  const [selectedOrganisasi, setSelectedOrganisasi] = useState<Organisasi | null>(null);
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -76,12 +76,12 @@ export default function PegawaiMaster() {
 
   function onCloseModal() {
     setOpenModal(false);
-    setSelectedPegawai(null);
+    setSelectedOrganisasi(null);
   }
 
   function onCloseDeleteModal() {
     setOpenDeleteModal(false);
-    setSelectedPegawai(null);
+    setSelectedOrganisasi(null);
   }
 
   function onCloseCreateModal() {
@@ -91,30 +91,30 @@ export default function PegawaiMaster() {
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const search = formData.get("search-pegawai") as string;
+    const search = formData.get("search-organisasi") as string;
     setSearchQuery(search);
     setPage(1);
   };
 
-  const handleEdit = (pegawai: Pegawai) => {
-    setSelectedPegawai(pegawai);
+  const handleEdit = (organisasi: Organisasi) => {
+    setSelectedOrganisasi(organisasi);
     setOpenModal(true);
   };
 
   const handleDelete = async () => {
-    if (!selectedPegawai) return;
+    if (!selectedOrganisasi) return;
 
     try {
-      const res = await deletePegawai(selectedPegawai.id_pegawai, token);
+      const res = await deleteOrganisasi(selectedOrganisasi.id_organisasi, token);
 
       if (res) {
         mutate(); // Revalidate data after deletion
         onCloseDeleteModal();
       } else {
-        console.error("Failed to delete pegawai");
+        console.error("Failed to delete organisasi");
       }
     } catch (error) {
-      console.error("Error deleting pegawai:", error);
+      console.error("Error deleting organisasi:", error);
     }
   };
 
@@ -144,22 +144,22 @@ export default function PegawaiMaster() {
       createData.set("tgl_lahir", formData.get("tgl_lahir") as string);
     }
     try {
-      const res = await createPegawai(createData, token);
+      const res = await createOrganisasi(createData, token);
 
       if (res) {
         mutate(); // Revalidate data after creation
         onCloseCreateModal();
       } else {
-        console.error("Failed to create pegawai");
+        console.error("Failed to create organisasi");
       }
     } catch (error) {
-      console.error("Error creating pegawai:", error);
+      console.error("Error creating organisasi:", error);
     }
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selectedPegawai) return;
+    if (!selectedOrganisasi) return;
 
     const formData = new FormData(e.currentTarget);
     const updateData = new FormData();
@@ -181,8 +181,8 @@ export default function PegawaiMaster() {
     }
 
     try {
-      const res = await updatePegawai(
-        selectedPegawai.id_pegawai,
+      const res = await updateOrganisasi(
+        selectedOrganisasi.id_organisasi,
         updateData,
         token
       );
@@ -191,10 +191,10 @@ export default function PegawaiMaster() {
         mutate();
         onCloseModal();
       } else {
-        console.error("Failed to update pegawai");
+        console.error("Failed to update organisasi");
       }
     } catch (error) {
-      console.error("Error updating pegawai:", error);
+      console.error("Error updating organisasi:", error);
     }
   };
 
@@ -213,16 +213,16 @@ export default function PegawaiMaster() {
         <ModalBody>
           <form className="space-y-6" onSubmit={handleUpdate}>
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Edit Data Pegawai
+              Edit Data Organisasi
             </h3>
             <div>
               <div className="mb-2 block">
-                <Label htmlFor="nama">Nama Pegawai</Label>
+                <Label htmlFor="nama">Nama Organisasi</Label>
               </div>
               <TextInput
                 id="nama"
                 name="nama"
-                defaultValue={selectedPegawai?.nama}
+                defaultValue={selectedOrganisasi?.nama}
                 required
               />
             </div>
@@ -233,7 +233,7 @@ export default function PegawaiMaster() {
               <Select
                 id="jabatan"
                 name="jabatan"
-                defaultValue={selectedPegawai?.jabatan?.id_jabatan?.toString()}
+                defaultValue={selectedOrganisasi?.jabatan?.id_jabatan?.toString()}
                 required
               >
                 <option value="">Pilih Jabatan</option>
@@ -252,7 +252,7 @@ export default function PegawaiMaster() {
               <TextInput
                 id="email"
                 name="email"
-                defaultValue={selectedPegawai?.email}
+                defaultValue={selectedOrganisasi?.email}
                 required
               />
             </div>
@@ -263,7 +263,7 @@ export default function PegawaiMaster() {
               <TextInput
                 id="telp"
                 name="telp"
-                defaultValue={selectedPegawai?.nomor_telepon}
+                defaultValue={selectedOrganisasi?.nomor_telepon}
                 required
               />
             </div>
@@ -317,16 +317,16 @@ export default function PegawaiMaster() {
         <ModalBody>
           <form className="space-y-6" onSubmit={handleCreate}>
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Tambah Pegawai Baru
+              Tambah Organisasi Baru
             </h3>
             <div>
               <div className="mb-2 block">
-                <Label htmlFor="nama">Nama Pegawai</Label>
+                <Label htmlFor="nama">Nama Organisasi</Label>
               </div>
               <TextInput
                 id="nama"
                 name="nama"
-                placeholder="Masukkan nama pegawai"
+                placeholder="Masukkan nama organisasi"
                 required
               />
             </div>
@@ -384,7 +384,7 @@ export default function PegawaiMaster() {
                 type="submit"
                 className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80 "
               >
-                Tambah Pegawai
+                Tambah Organisasi
               </Button>
             </div>
           </form>
@@ -392,15 +392,15 @@ export default function PegawaiMaster() {
       </Modal>
       <SideBar />
       <div className="flex-1 p-4 ml-64">
-        <h1 className="text-4xl font-bold mt-12 mb-4">Data Pegawai</h1>
+        <h1 className="text-4xl font-bold mt-12 mb-4">Data Organisasi</h1>
         <div className="flex justify-between items-center my-5">
           <form className="flex gap-3" onSubmit={handleSearch}>
             <input
               type="text"
-              name="search-pegawai"
-              id="search-pegawai"
+              name="search-organisasi"
+              id="search-organisasi"
               className="border rounded-md p-2 w-72"
-              placeholder="Cari pegawai"
+              placeholder="Cari organisasi"
             />
             <button
               type="submit"
@@ -413,7 +413,7 @@ export default function PegawaiMaster() {
             onClick={() => setOpenCreateModal(true)}
             className="bg-[#1980e6] hover:bg-[#1980e6]/80 "
           >
-            Tambah Pegawai
+            Tambah Organisasi
           </Button>
         </div>
         <div className="w-full overflow-x-auto">
@@ -448,25 +448,25 @@ export default function PegawaiMaster() {
                   </TableCell>
                 </TableRow>
               ) : data && data[0].length > 0 ? (
-                data[0].map((pegawai: Pegawai, index: number) => (
+                data[0].map((organisasi: Organisasi, index: number) => (
                   <TableRow
-                    key={pegawai.id_pegawai}
+                    key={organisasi.id_organisasi}
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                   >
                     <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
                     <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {pegawai.id_pegawai}
+                      {organisasi.id_organisasi}
                     </TableCell>
                     <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {pegawai.nama}
+                      {organisasi.nama}
                     </TableCell>
-                    <TableCell>{pegawai.jabatan?.nama_jabatan}</TableCell>
-                    <TableCell>{pegawai.email}</TableCell>
-                    <TableCell>{pegawai.nomor_telepon}</TableCell>
+                    <TableCell>{organisasi.jabatan?.nama_jabatan}</TableCell>
+                    <TableCell>{organisasi.email}</TableCell>
+                    <TableCell>{organisasi.nomor_telepon}</TableCell>
                     <TableCell>
                       <button
                         className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                        onClick={() => handleEdit(pegawai)}
+                        onClick={() => handleEdit(organisasi)}
                       >
                         Edit
                       </button>
@@ -474,7 +474,7 @@ export default function PegawaiMaster() {
                     <TableCell>
                       <button
                         onClick={() => {
-                          setSelectedPegawai(pegawai);
+                          setSelectedOrganisasi(organisasi);
                           setOpenDeleteModal(true);
                         }}
                         className="font-medium text-red-600 hover:underline dark:text-red-500"
