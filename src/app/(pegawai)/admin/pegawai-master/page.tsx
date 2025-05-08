@@ -55,7 +55,7 @@ export default function PegawaiMaster() {
 
   // ini nanti diganti sama token yang di session
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjYxMzUzNSwiZXhwIjoxNzQ3MjE4MzM1fQ.51iaidNmHrpj7nmhPaHlzvP5iW6VEKFX29z6ZljJrTY";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjY3NjM5OCwiZXhwIjoxNzQ3MjgxMTk4fQ.ZTPJ7IdJa-6LYmB6yUx5CmKy6t6chRTb7Jpp9CgTeCg";
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(

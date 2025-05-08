@@ -2,7 +2,6 @@
 
 import SideBar from "@/components/admin/sidebar";
 import {
-  createOrganisasi,
   deleteOrganisasi,
   getListOrganisasi,
   updateOrganisasi,
@@ -15,15 +14,14 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
+  Textarea,
 } from "flowbite-react";
 import {
-  Select,
   Label,
   Modal,
   ModalBody,
   ModalHeader,
   TextInput,
-  Button,
 } from "flowbite-react";
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
@@ -35,7 +33,6 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 export default function OrganisasiMaster() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -55,7 +52,7 @@ export default function OrganisasiMaster() {
 
   // ini nanti diganti sama token yang di session
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjYxMzUzNSwiZXhwIjoxNzQ3MjE4MzM1fQ.51iaidNmHrpj7nmhPaHlzvP5iW6VEKFX29z6ZljJrTY";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjY3NjM5OCwiZXhwIjoxNzQ3MjgxMTk4fQ.ZTPJ7IdJa-6LYmB6yUx5CmKy6t6chRTb7Jpp9CgTeCg";
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
@@ -82,10 +79,6 @@ export default function OrganisasiMaster() {
   function onCloseDeleteModal() {
     setOpenDeleteModal(false);
     setSelectedOrganisasi(null);
-  }
-
-  function onCloseCreateModal() {
-    setOpenCreateModal(false);
   }
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -118,45 +111,6 @@ export default function OrganisasiMaster() {
     }
   };
 
-  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-    const createData = new FormData();
-
-    if (formData.get("nama")) {
-      createData.set("nama", formData.get("nama") as string);
-    }
-
-    if (formData.get("email")) {
-      createData.set("email", formData.get("email") as string);
-    }
-
-    if (formData.get("telp")) {
-      createData.set("nomor_telepon", formData.get("telp") as string);
-    }
-
-    if (formData.get("jabatan")) {
-      createData.set("id_jabatan", formData.get("jabatan") as string);
-    }
-    
-    if (formData.get("tgl_lahir")) {
-      createData.set("tgl_lahir", formData.get("tgl_lahir") as string);
-    }
-    try {
-      const res = await createOrganisasi(createData, token);
-
-      if (res) {
-        mutate(); // Revalidate data after creation
-        onCloseCreateModal();
-      } else {
-        console.error("Failed to create organisasi");
-      }
-    } catch (error) {
-      console.error("Error creating organisasi:", error);
-    }
-  };
-
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedOrganisasi) return;
@@ -165,19 +119,23 @@ export default function OrganisasiMaster() {
     const updateData = new FormData();
 
     if (formData.get("nama")) {
-      updateData.set("nama", formData.get("nama") as string);
+      updateData.set("nama_organisasi", formData.get("nama") as string);
     }
 
     if (formData.get("email")) {
       updateData.set("email", formData.get("email") as string);
+    }
+    
+    if (formData.get("alamat")) {
+      updateData.set("alamat", formData.get("alamat") as string);
     }
 
     if (formData.get("telp")) {
       updateData.set("nomor_telepon", formData.get("telp") as string);
     }
 
-    if (formData.get("jabatan")) {
-      updateData.set("id_jabatan", formData.get("jabatan") as string);
+    if (formData.get("desc")) {
+      updateData.set("deskripsi", formData.get("desc") as string);
     }
 
     try {
@@ -222,28 +180,9 @@ export default function OrganisasiMaster() {
               <TextInput
                 id="nama"
                 name="nama"
-                defaultValue={selectedOrganisasi?.nama}
+                defaultValue={selectedOrganisasi?.nama_organisasi}
                 required
               />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="jabatan">Jabatan</Label>
-              </div>
-              <Select
-                id="jabatan"
-                name="jabatan"
-                defaultValue={selectedOrganisasi?.jabatan?.id_jabatan?.toString()}
-                required
-              >
-                <option value="">Pilih Jabatan</option>
-                <option value="1">Owner</option>
-                <option value="2">Admin</option>
-                <option value="3">Customer Service</option>
-                <option value="4">Gudang</option>
-                <option value="5">Kurir</option>
-                <option value="6">Hunter</option>
-              </Select>
             </div>
             <div>
               <div className="mb-2 block">
@@ -258,6 +197,17 @@ export default function OrganisasiMaster() {
             </div>
             <div>
               <div className="mb-2 block">
+                <Label htmlFor="alamat">Alamat</Label>
+              </div>
+              <TextInput
+                id="alamat"
+                name="alamat"
+                defaultValue={selectedOrganisasi?.alamat}
+                required
+              />
+            </div>
+            <div>
+              <div className="mb-2 block">
                 <Label htmlFor="telp">Nomor Telepon</Label>
               </div>
               <TextInput
@@ -266,6 +216,12 @@ export default function OrganisasiMaster() {
                 defaultValue={selectedOrganisasi?.nomor_telepon}
                 required
               />
+            </div>
+            <div>
+              <div className="mb-2 block">
+                <Label htmlFor="desc">Deskripsi</Label>
+              </div>
+              <Textarea id='desc' name='desc' defaultValue={selectedOrganisasi?.deskripsi} required></Textarea>
             </div>
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               <button
@@ -307,89 +263,7 @@ export default function OrganisasiMaster() {
           </div>
         </ModalBody>
       </Modal>
-      <Modal
-        show={openCreateModal}
-        size="md"
-        onClose={onCloseCreateModal}
-        popup
-      >
-        <ModalHeader />
-        <ModalBody>
-          <form className="space-y-6" onSubmit={handleCreate}>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Tambah Organisasi Baru
-            </h3>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="nama">Nama Organisasi</Label>
-              </div>
-              <TextInput
-                id="nama"
-                name="nama"
-                placeholder="Masukkan nama organisasi"
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="jabatan">Jabatan</Label>
-              </div>
-              <Select id="jabatan" name="jabatan" required>
-                <option value="">Pilih Jabatan</option>
-                <option value="1">Owner</option>
-                <option value="2">Admin</option>
-                <option value="3">Customer Service</option>
-                <option value="4">Gudang</option>
-                <option value="5">Kurir</option>
-                <option value="6">Hunter</option>
-              </Select>
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="email">Email</Label>
-              </div>
-              <TextInput
-                id="email"
-                name="email"
-                placeholder="Masukkan email"
-                type="email"
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="tgl_lahir">Tanggal Lahir</Label>
-              </div>
-              <TextInput
-                id="tgl_lahir"
-                name="tgl_lahir"
-                placeholder="Masukkan tgl_lahir"
-                type="date"
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="telp">Nomor Telepon</Label>
-              </div>
-              <TextInput
-                id="telp"
-                name="telp"
-                placeholder="Masukkan nomor telepon"
-                required
-              />
-            </div>
-            <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
-              <Button
-                type="submit"
-                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80 "
-              >
-                Tambah Organisasi
-              </Button>
-            </div>
-          </form>
-        </ModalBody>
-      </Modal>
+      
       <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Organisasi</h1>
@@ -409,12 +283,7 @@ export default function OrganisasiMaster() {
               <HiSearch />
             </button>
           </form>
-          <Button
-            onClick={() => setOpenCreateModal(true)}
-            className="bg-[#1980e6] hover:bg-[#1980e6]/80 "
-          >
-            Tambah Organisasi
-          </Button>
+          
         </div>
         <div className="w-full overflow-x-auto">
           <Table hoverable className="w-full border-1">
@@ -422,9 +291,8 @@ export default function OrganisasiMaster() {
               <TableRow>
                 <TableHeadCell>No.</TableHeadCell>
                 <TableHeadCell>ID</TableHeadCell>
-                <TableHeadCell>Nama</TableHeadCell>
-                <TableHeadCell>Jabatan</TableHeadCell>
-                <TableHeadCell>Email</TableHeadCell>
+                <TableHeadCell>Nama Organisasi</TableHeadCell>
+                <TableHeadCell>Alamat</TableHeadCell>
                 <TableHeadCell>No. Telepon</TableHeadCell>
                 <TableHeadCell>
                   <span className="sr-only">Edit</span>
@@ -458,10 +326,9 @@ export default function OrganisasiMaster() {
                       {organisasi.id_organisasi}
                     </TableCell>
                     <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {organisasi.nama}
+                      {organisasi.nama_organisasi}
                     </TableCell>
-                    <TableCell>{organisasi.jabatan?.nama_jabatan}</TableCell>
-                    <TableCell>{organisasi.email}</TableCell>
+                    <TableCell>{organisasi.alamat}</TableCell>
                     <TableCell>{organisasi.nomor_telepon}</TableCell>
                     <TableCell>
                       <button
