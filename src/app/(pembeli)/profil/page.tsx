@@ -48,7 +48,7 @@ export default function ProfilePage() {
               </p>
             </div>
             <Link
-              href={"/"}
+              href={"/daftar-alamat"}
               className="text-[#2662d9] text-md hover:underline hover:text-blue-500"
             >
               Daftar alamat
