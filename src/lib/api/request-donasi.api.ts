@@ -20,7 +20,7 @@ export async function getAllListRequestDonasi(
   params?: URLSearchParams,
   accessToken?: string
 ): Promise<[RequestDonasi[], number]> {
-  return await GET(`/request-donasi/allLists`, accessToken);
+  return await GET(`/request-donasi/allLists?${params}`, accessToken);
 }
 
 export async function createRequestDonasi(

@@ -1,6 +1,6 @@
 "use client";
 
-import SideBar from "@/components/admin/sidebar";
+import SideBar from "@/components/owner/sidebar";
 import { getAllListRequestDonasi } from "@/lib/api/request-donasi.api";
 import { RequestDonasi } from "@/lib/interface/request-donasi.interface";
 import {
@@ -37,17 +37,21 @@ export default function RequestDonasiMaster() {
   //   const [searchQuery, setSearchQuery] = useState("");
   //   const [selectedRequestDonasi, setSelectedRequestDonasi] = useState<RequestDonasi | null>(null);
 
+  const searchQuery = "MENUNGGU";
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
+    if (searchQuery) {
+      params.append("search", searchQuery);
+    }
     return params;
   }, [page, limit]);
 
   // ini nanti diganti sama token yang di session
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJPd25lciIsImlhdCI6MTc0NjcwMDc2NSwiZXhwIjoxNzQ3MzA1NTY1fQ.HDOvB2mIDbP-VrPEDJTvDKI5zkIutdLuM_1YenZCCEs";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJPd25lciIsImlhdCI6MTc0Njc2MjI5NiwiZXhwIjoxNzQ3MzY3MDk2fQ._0J5L0LS5bVhoKYEyCAvJDqK4N0MBTIoSfLxrQm4I3k";
 
   // ini penting
   const { data, error, isLoading } = useSWR(
@@ -207,7 +211,7 @@ export default function RequestDonasiMaster() {
       setPage(newPage);
     }
   };
-  console.log(data);
+  // console.log(data);
   return (
     <div className="flex">
       {/* <Modal show={openModal} size="md" onClose={onCloseModal} popup>
@@ -459,6 +463,13 @@ export default function RequestDonasiMaster() {
                       {formatDate(requestDonasi.tanggal_request)}
                     </TableCell>
                     <TableCell>{requestDonasi.status}</TableCell>
+                    <TableCell>
+                      <button
+                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                      >
+                        Donasi
+                      </button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
