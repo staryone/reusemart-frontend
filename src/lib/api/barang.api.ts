@@ -11,6 +11,6 @@ export async function getBarang(
 export async function getListBarang(
   params?: URLSearchParams,
   accessToken?: string
-): Promise<Barang[]> {
+): Promise<[Barang[], number]> {
   return await GET(`/barang/lists?${params}`, accessToken);
 }

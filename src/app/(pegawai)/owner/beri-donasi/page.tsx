@@ -1,32 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  getListBarang
+} from "@/lib/api/barang.api";
+import { Barang } from "@/lib/interface/barang.interface";
 
 export default function BeriDonasi() {
-  const semuaBarang = [
-    "Pakaian",
-    "Makanan",
-    "Buku",
-    "Mainan",
-    "Obat",
-    "Alat Tulis",
-    "Alat Tulis",
-    "Alat Tulis",
-    "Alat Tulis",
-    "Alat Tulis",
-    "Alat Tulis",
-  ];
 
   const [namaPenerima, setNamaPenerima] = useState("");
-  const [barangDonasi, setBarangDonasi] = useState("");
+  const [barangDonasi, setBarangDonasi] = useState<Barang | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [historiDonasi, setHistoriDonasi] = useState([
     { id: 1, nama: "Andi", barang: "Pakaian" },
     { id: 2, nama: "Siti", barang: "Buku" },
   ]);
+  const [semuaBarang, setSemuaBarang] = useState<Barang[]>([]);
+
+  useEffect(() => {
+    async function fetchBarang() {
+      try {
+        const response = await getListBarang();
+        setSemuaBarang(response[0]);
+      } catch (error) {
+        console.error("Gagal memuat barang:", error);
+      }
+    }
+    fetchBarang();
+  }, []);
 
   const filteredBarang = semuaBarang.filter((barang) =>
-    barang.toLowerCase().includes(searchTerm.toLowerCase())
+    barang.nama_barang.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -35,11 +39,11 @@ export default function BeriDonasi() {
     const newEntry = {
       id: historiDonasi.length + 1,
       nama: namaPenerima,
-      barang: barangDonasi,
+      barang: barangDonasi.nama_barang,
     };
     setHistoriDonasi([newEntry, ...historiDonasi]);
     setNamaPenerima("");
-    setBarangDonasi("");
+    setBarangDonasi(null);
     setSearchTerm("");
   };
 
@@ -74,19 +78,22 @@ export default function BeriDonasi() {
             />
 
             <div className="max-h-48 overflow-y-auto border rounded p-2">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {filteredBarang.map((barang, index) => (
+              <div className="flex flex-col gap-3">
+              {filteredBarang.map((barang) => (
                   <button
                     type="button"
-                    key={index}
+                    key={barang.id_barang}
                     onClick={() => setBarangDonasi(barang)}
-                    className={`p-3 border rounded text-center transition ${
-                      barangDonasi === barang
+                    className={`p-3 border rounded text-left transition text-sm ${
+                      barangDonasi?.id_barang === barang.id_barang
                         ? "bg-blue-600 text-white"
                         : "hover:bg-gray-100"
                     }`}
                   >
-                    {barang}
+                    <div className="flex flex-col">
+                      <div>{barang.nama_barang}</div>
+                      <div>Penitip: {barang.penitip.nama}</div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -94,7 +101,7 @@ export default function BeriDonasi() {
 
             {barangDonasi && (
               <p className="text-sm text-green-600 mt-2">
-                Barang yang dipilih: <strong>{barangDonasi}</strong>
+                Barang yang dipilih: <strong>{barangDonasi.nama_barang}</strong>
               </p>
             )}
           </div>
