@@ -1,26 +1,43 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import {
   getListBarang
 } from "@/lib/api/barang.api";
+
+import {
+  getListDonasi
+} from "@/lib/api/donasi.api";
+
 import { Barang } from "@/lib/interface/barang.interface";
+import { Donasi } from "@/lib/interface/donasi.interface";
 
 export default function BeriDonasi() {
+
+  const { id } = useParams();
 
   const [namaPenerima, setNamaPenerima] = useState("");
   const [barangDonasi, setBarangDonasi] = useState<Barang | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [historiDonasi, setHistoriDonasi] = useState([
-    { id: 1, nama: "Andi", barang: "Pakaian" },
-    { id: 2, nama: "Siti", barang: "Buku" },
-  ]);
+  const [historiDonasi, setHistoriDonasi] = useState<Donasi[]>([]);
   const [semuaBarang, setSemuaBarang] = useState<Barang[]>([]);
+
+  const paramsBarang = new URLSearchParams({
+    status: 'DIDONASIKAN'
+  });
+  const paramsDonasi = new URLSearchParams({
+
+  });
+
+  const token =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJPd25lciIsImlhdCI6MTc0Njc3ODg4NCwiZXhwIjoxNzQ3MzgzNjg0fQ.LTBxcf9Slz49o8AmO1KAnZXoggoIHnTLtJhgLdS-UT4";
+
 
   useEffect(() => {
     async function fetchBarang() {
       try {
-        const response = await getListBarang();
+        const response = await getListBarang(paramsBarang);
         setSemuaBarang(response[0]);
       } catch (error) {
         console.error("Gagal memuat barang:", error);
@@ -29,19 +46,25 @@ export default function BeriDonasi() {
     fetchBarang();
   }, []);
 
+  useEffect(() => {
+    async function fetchDonasi() {
+      try {
+        const response = await getListDonasi(id?.toString(), paramsDonasi, token);
+        console.log(response)
+        setHistoriDonasi(response[0]);
+      } catch (error) {
+        console.error("Gagal memuat history:", error);
+      }
+    }
+    fetchDonasi();
+  }, []);
+
   const filteredBarang = semuaBarang.filter((barang) =>
     barang.nama_barang.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!namaPenerima || !barangDonasi) return;
-    const newEntry = {
-      id: historiDonasi.length + 1,
-      nama: namaPenerima,
-      barang: barangDonasi.nama_barang,
-    };
-    setHistoriDonasi([newEntry, ...historiDonasi]);
     setNamaPenerima("");
     setBarangDonasi(null);
     setSearchTerm("");
@@ -122,9 +145,9 @@ export default function BeriDonasi() {
           ) : (
             <ul className="space-y-2">
               {historiDonasi.map((donasi) => (
-                <li key={donasi.id} className="border p-3 rounded shadow">
-                  <strong>{donasi.nama}</strong> mendonasikan{" "}
-                  <em>{donasi.barang}</em>
+                <li key={donasi.id_donasi} className="border p-3 rounded shadow">
+                  <strong>{donasi.nama_penerima}</strong> menerima{" "}
+                  <em>{donasi.barang.nama_barang}</em>
                 </li>
               ))}
             </ul>

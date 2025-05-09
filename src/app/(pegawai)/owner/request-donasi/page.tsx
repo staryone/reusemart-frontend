@@ -51,7 +51,7 @@ export default function RequestDonasiMaster() {
 
   // ini nanti diganti sama token yang di session
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJPd25lciIsImlhdCI6MTc0Njc2MjI5NiwiZXhwIjoxNzQ3MzY3MDk2fQ._0J5L0LS5bVhoKYEyCAvJDqK4N0MBTIoSfLxrQm4I3k";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJPd25lciIsImlhdCI6MTc0Njc3ODg4NCwiZXhwIjoxNzQ3MzgzNjg0fQ.LTBxcf9Slz49o8AmO1KAnZXoggoIHnTLtJhgLdS-UT4";
 
   // ini penting
   const { data, error, isLoading } = useSWR(
@@ -464,11 +464,12 @@ export default function RequestDonasiMaster() {
                     </TableCell>
                     <TableCell>{requestDonasi.status}</TableCell>
                     <TableCell>
-                      <button
+                      <a
+                        href={`/owner/beri-donasi/${requestDonasi.id_organisasi}`}
                         className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
                       >
                         Donasi
-                      </button>
+                      </a>
                     </TableCell>
                   </TableRow>
                 ))

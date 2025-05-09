@@ -6,4 +6,5 @@ export interface RequestDonasi {
   tanggal_request: string;
   status: string;
   nama_organisasi: string;
+  id_organisasi: number;
 }
