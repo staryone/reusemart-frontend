@@ -5,6 +5,7 @@ import {
   createPegawai,
   deletePegawai,
   getListPegawai,
+  resetPasswordPegawai,
   updatePegawai,
 } from "@/lib/api/pegawai.api";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
@@ -35,6 +36,7 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 export default function PegawaiMaster() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openResetPasswordModal, setOpenResetPasswordModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -55,7 +57,7 @@ export default function PegawaiMaster() {
 
   // ini nanti diganti sama token yang di session
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjY3NjM5OCwiZXhwIjoxNzQ3MjgxMTk4fQ.ZTPJ7IdJa-6LYmB6yUx5CmKy6t6chRTb7Jpp9CgTeCg";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjcyMDA3MiwiZXhwIjoxNzQ3MzI0ODcyfQ.deuNzdH8bazqhINTyS18zTdNENsvttcRnZDzDQyTmj0";
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
@@ -81,6 +83,11 @@ export default function PegawaiMaster() {
 
   function onCloseDeleteModal() {
     setOpenDeleteModal(false);
+    setSelectedPegawai(null);
+  }
+
+  function onCloseResetPasswordModal() {
+    setOpenResetPasswordModal(false);
     setSelectedPegawai(null);
   }
 
@@ -118,6 +125,23 @@ export default function PegawaiMaster() {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!selectedPegawai) return;
+
+    try {
+      const res = await resetPasswordPegawai(selectedPegawai.id_pegawai, token);
+
+      if (res) {
+        mutate(); // Revalidate data after deletion
+        onCloseResetPasswordModal();
+      } else {
+        console.error("Failed to reset password pegawai");
+      }
+    } catch (error) {
+      console.error("Error reset password pegawai:", error);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -139,7 +163,7 @@ export default function PegawaiMaster() {
     if (formData.get("jabatan")) {
       createData.set("id_jabatan", formData.get("jabatan") as string);
     }
-    
+
     if (formData.get("tgl_lahir")) {
       createData.set("tgl_lahir", formData.get("tgl_lahir") as string);
     }
@@ -308,6 +332,35 @@ export default function PegawaiMaster() {
         </ModalBody>
       </Modal>
       <Modal
+        show={openResetPasswordModal}
+        size="md"
+        onClose={onCloseResetPasswordModal}
+        popup
+      >
+        <ModalHeader />
+        <ModalBody>
+          <div className="text-center">
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+              Apakah Anda yakin ingin reset password data ini?
+            </h3>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={onCloseResetPasswordModal}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleResetPassword}
+                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Reset Password
+              </button>
+            </div>
+          </div>
+        </ModalBody>
+      </Modal>
+      <Modal
         show={openCreateModal}
         size="md"
         onClose={onCloseCreateModal}
@@ -432,6 +485,9 @@ export default function PegawaiMaster() {
                 <TableHeadCell>
                   <span className="sr-only">Delete</span>
                 </TableHeadCell>
+                <TableHeadCell>
+                  <span className="sr-only">Reset Password</span>
+                </TableHeadCell>
               </TableRow>
             </TableHead>
             <TableBody className="divide-y">
@@ -447,7 +503,7 @@ export default function PegawaiMaster() {
                     Error loading data
                   </TableCell>
                 </TableRow>
-              ) : data && data[0].length > 0 ? (
+              ) : data && data[0]?.length > 0 ? (
                 data[0].map((pegawai: Pegawai, index: number) => (
                   <TableRow
                     key={pegawai.id_pegawai}
@@ -480,6 +536,17 @@ export default function PegawaiMaster() {
                         className="font-medium text-red-600 hover:underline dark:text-red-500"
                       >
                         Delete
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => {
+                          setSelectedPegawai(pegawai);
+                          setOpenResetPasswordModal(true);
+                        }}
+                        className="font-medium text-yellow-600 hover:underline dark:text-yellow-500"
+                      >
+                        Reset Password
                       </button>
                     </TableCell>
                   </TableRow>
