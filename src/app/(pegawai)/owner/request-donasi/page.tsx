@@ -465,7 +465,7 @@ export default function RequestDonasiMaster() {
                     <TableCell>{requestDonasi.status}</TableCell>
                     <TableCell>
                       <a
-                        href={`/owner/beri-donasi/${requestDonasi.id_organisasi}`}
+                        href={`/owner/beri-donasi/${requestDonasi.id_organisasi}?request=${requestDonasi.id_request}`}
                         className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
                       >
                         Donasi

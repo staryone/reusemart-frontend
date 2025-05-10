@@ -3,7 +3,7 @@ import { ResponseAPI } from "../interface/response.interface";
 import { GET, POST, PATCH, DELETE } from "./fetch";
 
 export async function getOrganisasi(
-  id: string,
+  id?: string,
   accessToken?: string
 ): Promise<Organisasi> {
   return await GET(`/organisasi/${id}`, accessToken);
