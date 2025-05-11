@@ -4,10 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { getListBarang } from "@/lib/api/barang.api";
 
-import {
-  createDonasi,
-  getListDonasi,
-} from "@/lib/api/donasi.api";
+import { createDonasi, getListDonasi } from "@/lib/api/donasi.api";
 
 import { Barang } from "@/lib/interface/barang.interface";
 import { Donasi } from "@/lib/interface/donasi.interface";
@@ -129,6 +126,7 @@ export default function BeriDonasi() {
         Donasi ke{" "}
         <span className="text-[#1980e6]">{organisasi?.nama_organisasi}</span>
       </h1>
+      <div>Request:</div>
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Formulir */}
         <form onSubmit={handleSubmit} className="w-full lg:w-1/2 space-y-4">
@@ -150,15 +148,16 @@ export default function BeriDonasi() {
             <label className="block font-semibold">
               Cari & Pilih Barang Donasi:
             </label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari barang..."
-              className="border p-2 w-full mb-4 rounded"
-            />
 
-            <div className="max-h-48 overflow-y-auto border rounded p-2">
+            <div className="max-h-80 overflow-y-auto border rounded p-2">
+
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Cari barang..."
+                  className="border border-gray-500 p-2 w-full mb-4 rounded sticky top-0 bg-white"
+                />
               <div className="flex flex-col gap-3">
                 {filteredBarang.map((barang) => (
                   <button
