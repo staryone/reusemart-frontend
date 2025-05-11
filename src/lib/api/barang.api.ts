@@ -2,10 +2,9 @@ import { Barang } from "../interface/barang.interface";
 import { GET } from "./fetch";
 
 export async function getBarang(
-  id: number,
-  accessToken?: string
+  id?: string,
 ): Promise<Barang> {
-  return await GET(`/barang/${id}`, accessToken);
+  return await GET(`/barang/${id}`);
 }
 
 export async function getListBarang(
