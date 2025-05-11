@@ -79,6 +79,18 @@ export default function ProductDetails() {
           <div className="text-2xl my-5 font-bold">Informasi Produk</div>
           <div className="flex flex-col gap-4 mb-10 text-md">
             <div className="flex justify-between w-72">
+              <div>Nama penitip: </div>
+              <div>{barang?.penitip.nama}</div>
+            </div>
+            <div className="flex justify-between w-72">
+              <div>Berat produk: </div>
+              <div>{barang?.berat} kg</div>
+            </div>
+            <div className="flex justify-between w-72">
+              <div>Kategori: </div>
+              <div>{barang?.kategori.nama_kategori}</div>
+            </div>
+            <div className="flex justify-between w-72">
               <div>Garansi: </div>
               <div>{barang?.garansi == null ? "Tidak ada" : formatDate(barang.garansi)}</div>
             </div>
