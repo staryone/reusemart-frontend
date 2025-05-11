@@ -32,7 +32,7 @@ export default function ProfilePage() {
         <div className="flex flex-col justify-between gap-9">
           <div className="flex flex-col items-start">
             <h1 className="text-3xl font-bold text-gray-900 mb-1">{penitip?.nama}</h1>
-            <p className="text-gray-600 mb-2">Penitip</p>
+            <p className="text-gray-600 mb-2">{penitip?.email}</p>
             <p className="text-md text-gray-900">⭐ {penitip?.rating} / 5</p>
           </div>
           {/* Points */}
