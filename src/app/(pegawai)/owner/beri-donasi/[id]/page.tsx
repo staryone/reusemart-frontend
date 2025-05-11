@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { getListBarang } from "@/lib/api/barang.api";
 
-import { createDonasi, getListDonasi, updateDonasi } from "@/lib/api/donasi.api";
+import {
+  createDonasi,
+  getListDonasi,
+} from "@/lib/api/donasi.api";
 
 import { Barang } from "@/lib/interface/barang.interface";
 import { Donasi } from "@/lib/interface/donasi.interface";
 import { getOrganisasi } from "@/lib/api/organisasi.api";
 import { Organisasi } from "@/lib/interface/organisasi.interface";
-import { updateRequestDonasi } from "@/lib/api/request-donasi.api";
 
 export default function BeriDonasi() {
   const searchParams = useSearchParams();
@@ -84,7 +86,6 @@ export default function BeriDonasi() {
     const formattedDate = currentDate.toISOString().slice(0, 19) + "Z";
     const formData = new FormData(e.currentTarget);
     const createData = new FormData();
-    const createDataRequest = new FormData();
 
     if (formData.get("nama")) {
       createData.set("nama_penerima", formData.get("nama") as string);
@@ -94,24 +95,18 @@ export default function BeriDonasi() {
 
     createData.set("id_request", id_request as string);
 
-    createData.set("tgl_lahir", formattedDate as string);
+    createData.set("tanggal_donasi", formattedDate as string);
 
-    createDataRequest.set("status")
     try {
-      const resUpdate = await updateRequestDonasi(
-              id_request,
-              updateData,
-              token
-            );
       const res = await createDonasi(createData, token);
 
       if (res) {
         router.push("/owner/request-donasi");
       } else {
-        console.error("Failed to create pegawai");
+        console.error("Failed process donasi");
       }
     } catch (error) {
-      console.error("Error creating pegawai:", error);
+      console.error("Error:", error);
     }
     setNamaPenerima("");
     setBarangDonasi(null);
@@ -179,6 +174,7 @@ export default function BeriDonasi() {
                     <div className="flex flex-col">
                       <div>{barang.nama_barang}</div>
                       <div>Penitip: {barang.penitip.nama}</div>
+                      <div>ID: {barang.id_barang}</div>
                     </div>
                   </button>
                 ))}
