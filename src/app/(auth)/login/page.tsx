@@ -1,4 +1,6 @@
 "use client";
+
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -9,28 +11,44 @@ export default function Login() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError("");
+
+  //   try {
+  //     const response = await fetch("http://localhost:3001/api/pembeli/login", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       localStorage.setItem("token", data.token);
+  //       router.push("/");
+  //       console.log(data.token);
+  //     } else {
+  //       const data = await response.json();
+  //       setError(data.error || "Login failed");
+  //     }
+  //   } catch (err) {
+  //     setError("An error occurred during login");
+  //   }
+  // };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    try {
-      const response = await fetch("http://localhost:3001/api/pembeli/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("token", data.token);
-        router.push("/");
-        console.log(data.token);
-      } else {
-        const data = await response.json();
-        setError(data.error || "Login failed");
-      }
-    } catch (err) {
-      setError("An error occurred during login");
+    if (result?.error) {
+      setError("Email atau password salah");
+    } else {
+      // window.location.href = "/";
     }
   };
 
