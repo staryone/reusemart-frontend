@@ -9,7 +9,6 @@ export async function getBarang(
 
 export async function getListBarang(
   params?: URLSearchParams,
-  accessToken?: string
 ): Promise<[Barang[], number]> {
-  return await GET(`/barang/lists?${params}`, accessToken);
+  return await GET(`/barang/lists?${params}`);
 }

@@ -6,25 +6,27 @@ import { Barang } from "@/lib/interface/barang.interface";
 import { useState, useMemo } from "react";
 import useSWR from "swr";
 
-const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getListBarang(params, token);
+const fetcher = async ([params]: [URLSearchParams, string]) =>
+  await getListBarang(params);
 
 export default function Home() {
-  const [searchQuery] = useState("");
+  // const [searchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
+  const tersediaOnly = "TERSEDIA";
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({});
-    if (searchQuery) {
-      params.append("search", searchQuery);
+    if (selectedCategory) {
+      params.append("search", selectedCategory);
+    }
+    if (tersediaOnly) {
+      params.append("status", tersediaOnly);
     }
     return params;
-  }, [searchQuery]);
-
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVNQkVMSSIsImlhdCI6MTc0NjY5MDY2MCwiZXhwIjoxNzQ3Mjk1NDYwfQ.UcUMayyDsFe4jrfIN10MXzVOfvZeSD-og7y4zYG21S0";
+  }, [selectedCategory]);
 
   const { data, error, isLoading } = useSWR(
-    [queryParams, token],
+    [queryParams],
     fetcher,
     {
       revalidateIfStale: false,
@@ -39,6 +41,20 @@ export default function Home() {
   //   const search = formData.get("search-alamat") as string;
   //   setSearchQuery(search);
   // };
+
+  const categories = [
+    { id: "", name: "All Categories" },
+    { id: "1", name: "Elektronik & Gadget" },
+    { id: "2", name: "Pakaian & Aksesori" },
+    { id: "3", name: "Perabotan Rumah Tangga" },
+    { id: "4", name: "Buku, Alat Tulis, & Peralatan Sekolah" },
+    { id: "5", name: "Hobi, Mainan, & Koleksi" },
+    { id: "6", name: "Perlengkapan Bayi & Anak" },
+    { id: "7", name: "Otomotif & Aksesori" },
+    { id: "8", name: "Perlengkapan Taman & Outdoor" },
+    { id: "9", name: "Peralatan Kantor & Industri" },
+    { id: "10", name: "Kosmetik & Perawatan Diri" },
+  ];
   return (
     <div className="overflow-x-hidden">
       <Navbar />
@@ -46,6 +62,7 @@ export default function Home() {
         <img src="banner.png" alt="image" className="w-screen" />
       </div> */}
       <div className="flex flex-col items-start justify-items-center px-18 py-18">
+        
         <h2 className="text-4xl mb-4 mt-10">Barang Terbaru</h2>
         <div className="flex gap-3 overflow-x-auto max-w-full">
           {isLoading ? (
@@ -80,7 +97,25 @@ export default function Home() {
           )}
         </div>
         <h2 className="text-4xl mb-4 mt-10">Semua Produk</h2>
-        <div className="flex gap-3 overflow-x-auto max-w-full">
+        {/* Category Filter UI */}
+        <div className="mb-6">
+          <label htmlFor="category" className="mr-2 text-lg">
+            Filter by Category:
+          </label>
+          <select
+            id="category"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="p-2 border rounded-md"
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.name == "All Categories" ? "" : category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="grid grid-cols-5 gap-3 max-w-full">
           {isLoading ? (
             <div>Loading...</div>
           ) : error ? (
