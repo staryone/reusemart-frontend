@@ -10,6 +10,7 @@ import { Barang } from "@/lib/interface/barang.interface";
 import { Donasi } from "@/lib/interface/donasi.interface";
 import { getOrganisasi } from "@/lib/api/organisasi.api";
 import { Organisasi } from "@/lib/interface/organisasi.interface";
+import { getToken } from "@/lib/auth/auth";
 
 export default function BeriDonasi() {
   const searchParams = useSearchParams();
@@ -23,14 +24,16 @@ export default function BeriDonasi() {
   const [historiDonasi, setHistoriDonasi] = useState<Donasi[]>([]);
   const [semuaBarang, setSemuaBarang] = useState<Barang[]>([]);
   const [organisasi, setOrganisasi] = useState<Organisasi | null>(null);
+  const [token, setToken] = useState("");
 
   const paramsBarang = new URLSearchParams({
     status: "DIDONASIKAN",
   });
   const paramsDonasi = new URLSearchParams({});
 
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJPd25lciIsImlhdCI6MTc0Njg5MzY3NSwiZXhwIjoxNzQ3NDk4NDc1fQ.nafkHzTSnLH56H3FzQITmqF3GI7d9ewN54uF9YThYxY";
+  const tokenTemp = getToken();
+    if(tokenTemp)
+      setToken(tokenTemp);
 
   useEffect(() => {
     async function fetchBarang() {
