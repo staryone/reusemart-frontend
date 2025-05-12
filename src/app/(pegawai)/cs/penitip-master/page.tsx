@@ -8,6 +8,7 @@ import {
   //   resetPasswordPenitip,
   updatePenitip,
 } from "@/lib/api/penitip.api";
+import { getToken } from "@/lib/auth/auth";
 import { Penitip } from "@/lib/interface/penitip.interface";
 import {
   Table,
@@ -44,6 +45,7 @@ export default function PenitipMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPenitip, setSelectedPenitip] = useState<Penitip | null>(null);
+  const [token, setToken] = useState("");
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -57,9 +59,9 @@ export default function PenitipMaster() {
   }, [page, searchQuery]);
 
   // ini nanti diganti sama token yang di session
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJDUyIsImlhdCI6MTc0NzA2NjM3MCwiZXhwIjoxNzQ3NjcxMTcwfQ.Kw_jAXF6fA-se0fyM_mFqCV_BFwOK9IG5Kg2l06FFgU";
-
+  const tokenTemp = getToken();
+    if(tokenTemp)
+      setToken(tokenTemp);
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],

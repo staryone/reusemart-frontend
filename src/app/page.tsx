@@ -12,7 +12,6 @@ const fetcher = async ([params]: [URLSearchParams, string]) =>
 export default function Home() {
   // const [searchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [primaryImage, setPrimaryImage] = useState("");
 
   const tersediaOnly = "TERSEDIA";
   const queryParams = useMemo(() => {

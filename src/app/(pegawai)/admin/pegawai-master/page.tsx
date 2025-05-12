@@ -8,6 +8,7 @@ import {
   resetPasswordPegawai,
   updatePegawai,
 } from "@/lib/api/pegawai.api";
+import { getToken } from "@/lib/auth/auth";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
 import {
   Table,
@@ -40,6 +41,7 @@ export default function PegawaiMaster() {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [token, setToken] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
@@ -56,8 +58,10 @@ export default function PegawaiMaster() {
   }, [page, searchQuery]);
 
   // ini nanti diganti sama token yang di session
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjcyMDA3MiwiZXhwIjoxNzQ3MzI0ODcyfQ.deuNzdH8bazqhINTyS18zTdNENsvttcRnZDzDQyTmj0";
+  const tokenTemp = getToken();
+  if(tokenTemp)
+    setToken(tokenTemp);
+  
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(

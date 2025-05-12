@@ -6,6 +6,7 @@ import {
   getListOrganisasi,
   updateOrganisasi,
 } from "@/lib/api/organisasi.api";
+import { getToken } from "@/lib/auth/auth";
 import { Organisasi } from "@/lib/interface/organisasi.interface";
 import {
   Table,
@@ -38,6 +39,7 @@ export default function OrganisasiMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrganisasi, setSelectedOrganisasi] = useState<Organisasi | null>(null);
+  const [token, setToken] = useState("");
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -51,9 +53,9 @@ export default function OrganisasiMaster() {
   }, [page, searchQuery]);
 
   // ini nanti diganti sama token yang di session
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjY3NjM5OCwiZXhwIjoxNzQ3MjgxMTk4fQ.ZTPJ7IdJa-6LYmB6yUx5CmKy6t6chRTb7Jpp9CgTeCg";
-
+  const tokenTemp = getToken();
+    if(tokenTemp)
+      setToken(tokenTemp);
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],

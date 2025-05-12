@@ -1,35 +1,9 @@
 "use client";
 
 import SideBar from "@/components/cs/sidebar";
-import {
-  deleteOrganisasi,
-  getListOrganisasi,
-  updateOrganisasi,
-} from "@/lib/api/organisasi.api";
-import { Organisasi } from "@/lib/interface/organisasi.interface";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Textarea,
-} from "flowbite-react";
-import {
-  Label,
-  Modal,
-  ModalBody,
-  ModalHeader,
-  TextInput,
-} from "flowbite-react";
-import Link from "next/link";
-import { useState, useMemo } from "react";
-import { HiSearch } from "react-icons/hi";
-import useSWR from "swr";
 
-const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getListOrganisasi(params, token);
+import Link from "next/link";
+
 
 export default function Diskusi() {
   return (
