@@ -20,7 +20,6 @@ export default function ProductDetails() {
       try {
         const response = await getBarang(id?.toString());
 
-        console.log(response);
         setBarang(response);
       } catch (error) {
         console.error("Gagal memuat history:", error);

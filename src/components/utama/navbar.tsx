@@ -44,7 +44,7 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { label: "Produk", path: "/pages-produk" },
+    { label: "Produk", path: "/" },
     { label: "Transaksi", path: "/pages-transaksi" },
     isLoggedIn
       ? { label: "Profil", path: "/profil" }

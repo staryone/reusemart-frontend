@@ -1,7 +1,43 @@
+"use client";
 import Navbar from "@/components/utama/navbar";
 import Link from "next/link";
 
+import { getProfilPembeli } from "@/lib/api/pembeli.api";
+import { Pembeli } from "@/lib/interface/pembeli.interface";
+import { Alamat } from "@/lib/interface/alamat.interface";
+
+import { useState, useEffect } from "react";
+
 export default function ProfilePage() {
+  const [pembeli, setPembeli] = useState<Pembeli | null>(null);
+  const [alamat, setAlamat] = useState<Alamat | null>(null);
+
+  
+    const token =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVNQkVMSSIsImlhdCI6MTc0Njk4MzkxOSwiZXhwIjoxNzQ3NTg4NzE5fQ.sV50G0RXA8XMgYNnLGTq9qjPvGSTS1QOUC_vpPZZG4s";
+  
+    useEffect(() => {
+        async function fetchPembeli() {
+          try {
+            const response = await getProfilPembeli(token);
+    
+            setPembeli(response);
+          } catch (error) {
+            console.error("Gagal memuat history:", error);
+          }
+        }
+        fetchPembeli();
+      }, []);
+    
+    useEffect(() => {
+    if (pembeli?.alamat) {
+      const defaultAlamat = pembeli.alamat.find((element) => element.status_default);
+      setAlamat(defaultAlamat || null);
+    }
+  }, [pembeli]);
+    
+
+    
   return (
     <div className="min-h-screen bg-gray-50 px-6 pb-10 pt-26">
       <Navbar />
@@ -9,14 +45,13 @@ export default function ProfilePage() {
         {/* Left: Profile Summary */}
         <div className="flex flex-col justify-between">
           <div className="flex flex-col items-start">
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">Frendy</h1>
-            <p className="text-gray-600 mb-2">Pembeli</p>
-            <p className="text-sm text-gray-400">📅 Bergabung sejak 2023</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">{pembeli?.nama}</h1>
+            <p className="text-gray-600 mb-2">{pembeli?.email}</p>
           </div>
           {/* Points */}
           <div>
             <h2 className="text-lg font-semibold text-gray-800">Total Poin</h2>
-            <p className="text-[#2662d9] text-2xl font-bold mt-1">100 Poin</p>
+            <p className="text-[#2662d9] text-2xl font-bold mt-1">{pembeli?.poin_loyalitas} Poin</p>
           </div>
         </div>
 
@@ -27,7 +62,7 @@ export default function ProfilePage() {
             <h2 className="text-lg font-semibold text-gray-800">
               Nomor Telepon
             </h2>
-            <p className="text-gray-700 mt-1">08123123123</p>
+            <p className="text-gray-700 mt-1">{pembeli?.nomor_telepon}</p>
           </div>
 
           {/* Address */}
@@ -35,16 +70,13 @@ export default function ProfilePage() {
             <h2 className="text-lg font-semibold text-gray-800">Alamat</h2>
             <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 mt-2">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="font-semibold text-gray-800">Rumah</h3>
+                <h3 className="font-semibold text-gray-800">{alamat?.nama_alamat}</h3>
                 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
                   Utama
                 </span>
               </div>
-              <p className="text-gray-700">Frendy</p>
-              <p className="text-gray-700">08123123123</p>
               <p className="text-gray-700">
-                Jl. Brigjend Konoha, Gg. Dukuh, No. 20, Depok, Sleman, D. I.
-                Yogyakarta, 52218
+                {alamat?.detail_alamat}
               </p>
             </div>
             <Link

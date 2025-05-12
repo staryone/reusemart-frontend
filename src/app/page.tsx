@@ -25,15 +25,11 @@ export default function Home() {
     return params;
   }, [selectedCategory]);
 
-  const { data, error, isLoading } = useSWR(
-    [queryParams],
-    fetcher,
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
+  const { data, error, isLoading } = useSWR([queryParams], fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 
   // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
   //   e.preventDefault();
@@ -43,7 +39,7 @@ export default function Home() {
   // };
 
   const categories = [
-    { id: "", name: "All Categories" },
+    { id: "", name: "Semua" },
     { id: "1", name: "Elektronik & Gadget" },
     { id: "2", name: "Pakaian & Aksesori" },
     { id: "3", name: "Perabotan Rumah Tangga" },
@@ -62,7 +58,6 @@ export default function Home() {
         <img src="banner.png" alt="image" className="w-screen" />
       </div> */}
       <div className="flex flex-col items-start justify-items-center px-18 py-18">
-        
         <h2 className="text-4xl mb-4 mt-10">Barang Terbaru</h2>
         <div className="flex gap-3 overflow-x-auto max-w-full">
           {isLoading ? (
@@ -70,28 +65,39 @@ export default function Home() {
           ) : error ? (
             <div>Error loading data</div>
           ) : data && data[0].length > 0 ? (
-            data[0].map((barang: Barang) => (
-              <div
-                className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-64"
-                key={barang.id_barang}
-              >
-                <a href={`/product-details/${barang.id_barang}`} className="flex flex-col h-full">
-                  <img
-                    className="p-8 rounded-t-lg"
-                    src="/product.png"
-                    alt="product image"
-                  />
-                  <div className="px-5 pb-5 flex flex-col justify-between flex-grow">
-                    <h5 className="text-lg tracking-tight text-gray-900">
-                      {barang.nama_barang}
-                    </h5>
-                    <div className="text-xl font-bold text-gray-900">
-                      Rp{new Intl.NumberFormat('id-ID').format(barang.harga)}
+            data[0]
+              .sort((a: Barang, b: Barang) => {
+                return (
+                  new Date(b.createdAt).getTime() -
+                  new Date(a.createdAt).getTime()
+                ); // Newest first
+              })
+              .slice(0, 10)
+              .map((barang: Barang) => (
+                <div
+                  className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-64"
+                  key={barang.id_barang}
+                >
+                  <a
+                    href={`/product-details/${barang.id_barang}`}
+                    className="flex flex-col h-full"
+                  >
+                    <img
+                      className="p-8 rounded-t-lg"
+                      src="/product.png"
+                      alt="product image"
+                    />
+                    <div className="px-5 pb-5 flex flex-col justify-between flex-grow">
+                      <h5 className="text-lg tracking-tight text-gray-900">
+                        {barang.nama_barang}
+                      </h5>
+                      <div className="text-xl font-bold text-gray-900">
+                        Rp{new Intl.NumberFormat("id-ID").format(barang.harga)}
+                      </div>
                     </div>
-                  </div>
-                </a>
-              </div>
-            ))
+                  </a>
+                </div>
+              ))
           ) : (
             <div>No data found</div>
           )}
@@ -100,7 +106,7 @@ export default function Home() {
         {/* Category Filter UI */}
         <div className="mb-6">
           <label htmlFor="category" className="mr-2 text-lg">
-            Filter by Category:
+            Filter berdasarkan kategori:
           </label>
           <select
             id="category"
@@ -109,7 +115,10 @@ export default function Home() {
             className="p-2 border rounded-md"
           >
             {categories.map((category) => (
-              <option key={category.id} value={category.name == "All Categories" ? "" : category.name}>
+              <option
+                key={category.id}
+                value={category.name == "Semua" ? "" : category.name}
+              >
                 {category.name}
               </option>
             ))}
@@ -119,14 +128,17 @@ export default function Home() {
           {isLoading ? (
             <div>Loading...</div>
           ) : error ? (
-            <div>Error loading data</div>
+            <div>Error memuat data</div>
           ) : data && data[0].length > 0 ? (
             data[0].map((barang: Barang) => (
               <div
                 className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-64"
                 key={barang.id_barang}
               >
-                <a href={`/pages/product-details/${barang.id_barang}`} className="flex flex-col h-full">
+                <a
+                  href={`/product-details/${barang.id_barang}`}
+                  className="flex flex-col h-full"
+                >
                   <img
                     className="p-8 rounded-t-lg"
                     src="/product.png"
@@ -137,14 +149,14 @@ export default function Home() {
                       {barang.nama_barang}
                     </h5>
                     <div className="text-xl font-bold text-gray-900">
-                      Rp{new Intl.NumberFormat('id-ID').format(barang.harga)}
+                      Rp{new Intl.NumberFormat("id-ID").format(barang.harga)}
                     </div>
                   </div>
                 </a>
               </div>
             ))
           ) : (
-            <div>No data found</div>
+            <div>Tidak ada data</div>
           )}
         </div>
       </div>

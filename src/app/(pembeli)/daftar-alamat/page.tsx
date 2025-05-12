@@ -40,7 +40,7 @@ export default function ProfilePage() {
   }, [searchQuery]);
 
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVNQkVMSSIsImlhdCI6MTc0NjY5MDY2MCwiZXhwIjoxNzQ3Mjk1NDYwfQ.UcUMayyDsFe4jrfIN10MXzVOfvZeSD-og7y4zYG21S0";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVNQkVMSSIsImlhdCI6MTc0Njk4MzkxOSwiZXhwIjoxNzQ3NTg4NzE5fQ.sV50G0RXA8XMgYNnLGTq9qjPvGSTS1QOUC_vpPZZG4s";
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
