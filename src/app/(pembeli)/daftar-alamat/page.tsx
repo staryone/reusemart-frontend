@@ -7,7 +7,7 @@ import {
   ModalBody,
   ModalHeader,
   TextInput,
-  Button
+  Button,
 } from "flowbite-react";
 import { Alamat } from "@/lib/interface/alamat.interface";
 import {
@@ -20,6 +20,7 @@ import {
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
+import { getToken } from "@/lib/auth/auth";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListAlamat(params, token);
@@ -39,8 +40,7 @@ export default function ProfilePage() {
     return params;
   }, [searchQuery]);
 
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVNQkVMSSIsImlhdCI6MTc0Njk4MzkxOSwiZXhwIjoxNzQ3NTg4NzE5fQ.sV50G0RXA8XMgYNnLGTq9qjPvGSTS1QOUC_vpPZZG4s";
+  const token = getToken() || "";
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -155,17 +155,12 @@ export default function ProfilePage() {
     }
   };
   const handleUpdateDefault = async (alamat: Alamat) => {
-
     const updateData = new FormData();
 
     updateData.set("status_default", "true");
 
     try {
-      const res = await updateAlamat(
-        alamat.id_alamat,
-        updateData,
-        token
-      );
+      const res = await updateAlamat(alamat.id_alamat, updateData, token);
 
       if (res) {
         mutate();
@@ -175,16 +170,16 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Error updating alamat:", error);
     } finally {
-        setSelectedAlamat(null);
+      setSelectedAlamat(null);
     }
   };
   const sortedData = data
-  ? [...data].sort((a, b) => {
-      if (a.status_default && !b.status_default) return -1;
-      if (!a.status_default && b.status_default) return 1;
-      return a.nama_alamat.localeCompare(b.nama_alamat);
-    })
-  : [];
+    ? [...data].sort((a, b) => {
+        if (a.status_default && !b.status_default) return -1;
+        if (!a.status_default && b.status_default) return 1;
+        return a.nama_alamat.localeCompare(b.nama_alamat);
+      })
+    : [];
   return (
     <div className="min-h-screen bg-gray-50 px-6 pb-10 pt-26 overflow-x-hidden">
       <Modal show={openModal} size="md" onClose={onCloseModal} popup>
@@ -305,27 +300,27 @@ export default function ProfilePage() {
       <div className="overflow-x-hidden w-screen px-24">
         <h1 className="text-2xl font-bold mb-8">Daftar Alamat</h1>
         <div className="flex justify-between">
-            <form className="flex gap-3 mb-4" onSubmit={handleSearch}>
+          <form className="flex gap-3 mb-4" onSubmit={handleSearch}>
             <input
-                type="text"
-                name="search-alamat"
-                id="search-alamat"
-                className="border rounded-md p-2 w-72"
-                placeholder="Cari alamat"
+              type="text"
+              name="search-alamat"
+              id="search-alamat"
+              className="border rounded-md p-2 w-72"
+              placeholder="Cari alamat"
             />
             <button
-                type="submit"
-                className="p-3 bg-blue-500 text-white rounded-md"
+              type="submit"
+              className="p-3 bg-blue-500 text-white rounded-md"
             >
-                <HiSearch />
+              <HiSearch />
             </button>
-            </form>
-            <Button
+          </form>
+          <Button
             onClick={() => setOpenCreateModal(true)}
             className="bg-[#1980e6] hover:bg-[#1980e6]/80 "
-            >
+          >
             Tambah Alamat
-            </Button>
+          </Button>
         </div>
         <div className="bg-white rounded-2xl p-8">
           {isLoading ? (
@@ -361,28 +356,27 @@ export default function ProfilePage() {
                   </button>
                   {!alamat.status_default ? (
                     <button
-                    className="text-red-600 hover:underline "
-                    onClick={() => {
-                      setSelectedAlamat(alamat);
-                      setOpenDeleteModal(true);
-                    }}
-                  >Delete
-                  </button>
+                      className="text-red-600 hover:underline "
+                      onClick={() => {
+                        setSelectedAlamat(alamat);
+                        setOpenDeleteModal(true);
+                      }}
+                    >
+                      Delete
+                    </button>
                   ) : (
                     <></>
                   )}
                   {!alamat.status_default ? (
                     <button
-                    className="text-cyan-600 hover:underline "
-                    onClick={() => handleUpdateDefault(alamat)}
-                  >
-                    Jadikan alamat utama
-                  </button>
+                      className="text-cyan-600 hover:underline "
+                      onClick={() => handleUpdateDefault(alamat)}
+                    >
+                      Jadikan alamat utama
+                    </button>
                   ) : (
                     <></>
                   )}
-                  
-                    
                 </div>
               </div>
             ))

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { setToken, verifyToken } from "@/lib/auth/auth";
+import { setToken } from "@/lib/auth/auth";
 import { removeToken } from "@/lib/auth/auth";
 import { BASE_URL, API_LOGIN_PEMBELI } from "@/lib/env";
 
