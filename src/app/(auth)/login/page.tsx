@@ -38,62 +38,113 @@ export default function Login() {
   //   }
   // };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError("");
+
+  //   try {
+  //     const response = await fetch("http://localhost:3001/api/pembeli/login", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       const token = data.data.token;
+
+  //       console.log("Response data:", data);
+  //       console.log("Token:", token);
+
+  //       // Save token to sessionStorage using auth.ts utility
+  //       setToken(token);
+
+  //       // Verify token and check role
+  //       const decodedToken = verifyToken(token);
+  //       if (decodedToken && decodedToken.role === "PEMBELI") {
+  //         router.push("/");
+  //         console.log("Login successful, token:", token);
+  //       } else {
+  //         setError("Invalid user role or token");
+  //         removeToken(); // Clean up invalid token
+  //       }
+  //     } else {
+  //       const data = await response.json();
+  //       console.log(data);
+  //       setError(data.error || "Login failed");
+  //     }
+  //   } catch (err) {
+  //     setError("An error occurred during login");
+  //   }
+  // };
+
+  // // const handleSubmit = async (e: React.FormEvent) => {
+  // //   e.preventDefault();
+  // //   setError("");
+
+  // //   const result = await signIn("credentials", {
+  // //     email,
+  // //     password,
+  // //     redirect: false,
+  // //   });
+
+  // //   if (result?.error) {
+  // //     setError("Email atau password salah");
+  // //   } else {
+  // //     // window.location.href = "/";
+  // //   }
+  // // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3001/api/pembeli/login", {
+      // Langkah 1: Login ke backend
+      const loginResponse = await fetch(
+        "http://localhost:3001/api/pembeli/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
+      if (!loginResponse.ok) {
+        const data = await loginResponse.json();
+        setError(data.error || "Login failed");
+        return;
+      }
+
+      const loginData = await loginResponse.json();
+      const token = loginData.data.token;
+
+      console.log("Response data:", loginData);
+      console.log("Token:", token);
+
+      // Langkah 2: Verifikasi token melalui API Route
+      const verifyResponse = await fetch("/api/auth/verify/pembeli", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ token }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const token = data.data.token;
+      const verifyData = await verifyResponse.json();
 
-        console.log("Response data:", data);
-        console.log("Token:", token);
-
-        // Save token to sessionStorage using auth.ts utility
+      if (verifyResponse.ok && verifyData.valid) {
+        // Simpan token jika valid
         setToken(token);
-
-        // Verify token and check role
-        const decodedToken = verifyToken(token);
-        if (decodedToken && decodedToken.role === "PEMBELI") {
-          router.push("/");
-          console.log("Login successful, token:", token);
-        } else {
-          setError("Invalid user role or token");
-          removeToken(); // Clean up invalid token
-        }
+        router.push("/");
+        console.log("Login successful, token:", token);
       } else {
-        const data = await response.json();
-        console.log(data);
-        setError(data.error || "Login failed");
+        setError(verifyData.error || "Invalid user role or token");
+        removeToken(); // Hapus token jika tidak valid
       }
     } catch (err) {
       setError("An error occurred during login");
+      console.error(err);
     }
   };
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setError("");
-
-  //   const result = await signIn("credentials", {
-  //     email,
-  //     password,
-  //     redirect: false,
-  //   });
-
-  //   if (result?.error) {
-  //     setError("Email atau password salah");
-  //   } else {
-  //     // window.location.href = "/";
-  //   }
-  // };
 
   return (
     <div>

@@ -26,11 +26,14 @@ export default function Login() {
         }),
       });
 
+      console.log(res);
+
       if (!res) {
         throw new Error("Email atau password salah");
       }
 
       const data = await res.json();
+      console.log(data);
       if (data.token) {
         console.log(data.token);
         setToken(data.token);
