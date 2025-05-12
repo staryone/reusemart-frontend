@@ -8,10 +8,8 @@ import {
 } from "flowbite-react";
 import {
   HiChartPie,
-  HiBriefcase,
   HiUser,
-  HiOfficeBuilding,
-  HiGift,
+  HiChat,
 } from "react-icons/hi";
 
 export default function SideBar() {
@@ -25,17 +23,11 @@ export default function SideBar() {
           <SidebarItem href="#" icon={HiChartPie}>
             Dashboard
           </SidebarItem>
-          <SidebarItem href="/admin/pegawai-master" icon={HiUser}>
-            Pegawai
+          <SidebarItem href="/cs/diskusi" icon={HiChat}>
+            Diskusi
           </SidebarItem>
-          <SidebarItem href="/admin/jabatan-master" icon={HiBriefcase}>
-            Jabatan
-          </SidebarItem>
-          <SidebarItem href="/admin/organisasi-master" icon={HiOfficeBuilding}>
-            Organisasi
-          </SidebarItem>
-          <SidebarItem href="/admin/merch-master" icon={HiGift}>
-            Merchandise
+          <SidebarItem href="/admin/penitip-master" icon={HiUser}>
+            Penitip
           </SidebarItem>
         </SidebarItemGroup>
       </SidebarItems>

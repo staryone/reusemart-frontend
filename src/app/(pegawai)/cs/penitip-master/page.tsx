@@ -1,6 +1,6 @@
 "use client";
 
-import SideBar from "@/components/admin/sidebar";
+import SideBar from "@/components/cs/sidebar";
 import {
   createPenitip,
   deletePenitip,
