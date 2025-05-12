@@ -20,7 +20,7 @@ export default function Navbar() {
     try {
       const token = sessionStorage.getItem("token");
 
-      const response = await fetch("http://localhost:3001/api/pembeli/logout", {
+      const response = await fetch("http://localhost:3001/api/penitip/logout", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -42,13 +42,13 @@ export default function Navbar() {
 
   const navLinks = [
     { label: "Produk", path: "/" },
-    { label: "Transaksi", path: "/pages-transaksi" },
+    { label: "Transaksi", path: "/" },
     isLoggedIn
-      ? { label: "Profil", path: "/profil" }
-      : { label: "Login", path: "/login" },
-    isLoggedIn
-      ? { label: "Logout", onClick: () => setShowLogoutModal(true) }
-      : { label: "Register", path: "/register" },
+      ? { label: "Profil", path: "/penitip/profil" }
+      : { label: "Login", path: "/penitip/login" },
+    ...(isLoggedIn
+      ? [{ label: "Logout", onClick: () => setShowLogoutModal(true) }]
+      : []),
   ];
 
   return (
