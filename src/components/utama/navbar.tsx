@@ -56,8 +56,7 @@ export default function Navbar() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
-            <img src="/logo.svg" className="h-8" alt="Logo" />
-            <span className="text-2xl font-semibold">ReUseMart</span>
+            <img src="/logo.png" className="h-12" alt="Logo" />
           </Link>
 
           {/* Desktop Search */}
