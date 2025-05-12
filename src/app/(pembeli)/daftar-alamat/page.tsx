@@ -326,7 +326,7 @@ export default function ProfilePage() {
           {isLoading ? (
             <div>Loading...</div>
           ) : error ? (
-            <div>Error loading data</div>
+            <div>Error memuat data</div>
           ) : sortedData && sortedData.length > 0 ? (
             sortedData.map((alamat: Alamat) => (
               <div
@@ -381,7 +381,7 @@ export default function ProfilePage() {
               </div>
             ))
           ) : (
-            <div>No data found</div>
+            <div>Tidak ada data</div>
           )}
         </div>
       </div>
