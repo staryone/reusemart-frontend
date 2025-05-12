@@ -100,7 +100,11 @@ export default function ProfilePage() {
                   Utama
                 </span>
               </div>
-              <p className="text-gray-700">{alamat?.detail_alamat}</p>
+              <p className="text-gray-700">
+                {alamat === null
+                  ? "Tidak ada alamat utama"
+                  : alamat?.detail_alamat}
+              </p>
             </div>
             <Link
               href={"/daftar-alamat"}
