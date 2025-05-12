@@ -2,9 +2,10 @@
 import Navbar from "../components/utama/navbar";
 import { getListBarang } from "@/lib/api/barang.api";
 import { Barang, Gambar } from "@/lib/interface/barang.interface";
-// import Image from "next/image";
+import Image from "next/image";
 import { useState, useMemo } from "react";
 import useSWR from "swr";
+import Footer from "../components/utama/footer";
 
 const fetcher = async ([params]: [URLSearchParams, string]) =>
   await getListBarang(params);
@@ -34,7 +35,7 @@ export default function Home() {
   const getPrimaryGambar = (gambars: Gambar[]): string | null => {
     const primaryGambar = gambars.find((gambar: Gambar) => gambar.is_primary);
     return primaryGambar ? primaryGambar.url_gambar : null;
-  }
+  };
 
   // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
   //   e.preventDefault();
@@ -87,10 +88,17 @@ export default function Home() {
                     href={`/product-details/${barang.id_barang}`}
                     className="flex flex-col h-full"
                   >
-                    <img
+                    {/* <img
                       className="p-8 rounded-t-lg"
                       src={getPrimaryGambar(barang.gambar)}
                       alt="product image"
+                    /> */}
+                    <Image
+                      src={getPrimaryGambar(barang.gambar) as string}
+                      alt="product image"
+                      width={480}
+                      height={480}
+                      className="p-8 rounded-t-lg"
                     />
                     <div className="px-5 pb-5 flex flex-col justify-between flex-grow">
                       <h5 className="text-lg tracking-tight text-gray-900">
@@ -144,10 +152,17 @@ export default function Home() {
                   href={`/product-details/${barang.id_barang}`}
                   className="flex flex-col h-full"
                 >
-                  <img
+                  {/* <img
                     className="p-8 rounded-t-lg"
                     src={getPrimaryGambar(barang.gambar)}
                     alt="product image"
+                  /> */}
+                  <Image
+                    src={getPrimaryGambar(barang.gambar) as string}
+                    alt="product image"
+                    width={480}
+                    height={480}
+                    className="p-8 rounded-t-lg"
                   />
                   <div className="px-5 pb-5 flex flex-col justify-between flex-grow">
                     <h5 className="text-lg tracking-tight text-gray-900">
@@ -165,6 +180,7 @@ export default function Home() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
