@@ -1,10 +1,40 @@
+"use client";
+
+import { createPembeli } from "@/lib/api/pembeli.api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Register() {
+  const router = useRouter();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    console.log(formData.get("nama"));
+    try {
+      const res = await createPembeli(formData);
+
+      if (res.data) {
+        toast.success("Akun berhasil dibuat!");
+        router.push("/login");
+      } else {
+        toast.error("Akun gagal dibuat!");
+      }
+    } catch (error) {
+      toast.error("Error ketika mendaftar!");
+      console.error("Error register:", error);
+    }
+  };
+
   return (
     <div>
+      <Toaster position="top-right" />
       <div className="overflow-x-hidden w-screen h-screen p-10 place-items-center place-content-center bg-gray-100">
-        <form className="border-1 border-gray-300 rounded-lg w-1/2 p-10 bg-white">
+        <form
+          onSubmit={handleSubmit}
+          className="border-1 border-gray-300 rounded-lg w-1/2 p-10 bg-white"
+        >
           <div className="text-5xl mb-3 font-bold">Registrasi Pembeli</div>
           <div className="my-3">
             Ingin mendaftarkan organisasi sosial?{" "}
@@ -21,6 +51,7 @@ export default function Register() {
                 <div className="mb-1">Nama</div>
                 <input
                   type="text"
+                  name="nama"
                   className="border-1 border-gray-400 rounded-sm h-10 w-full px-2"
                 />
               </div>
@@ -28,6 +59,7 @@ export default function Register() {
                 <div className="mb-1">Email</div>
                 <input
                   type="text"
+                  name="email"
                   className="border-1 border-gray-400 rounded-sm h-10 w-full px-2"
                 />
               </div>
@@ -35,6 +67,7 @@ export default function Register() {
                 <div className="mb-1">No. Handphone</div>
                 <input
                   type="text"
+                  name="nomor_telepon"
                   className="border-1 border-gray-400 rounded-sm h-10 w-full px-2"
                 />
               </div>
@@ -44,6 +77,7 @@ export default function Register() {
                 <div className="mb-1">Password</div>
                 <input
                   type="password"
+                  name="password"
                   className="border-1 border-gray-400 rounded-sm h-10 w-full px-2"
                 />
               </div>
@@ -51,6 +85,7 @@ export default function Register() {
                 <div className="mb-1">Konfirmasi Password</div>
                 <input
                   type="password"
+                  name="confirm_password"
                   className="border-1 border-gray-400 rounded-sm h-10 w-full px-2"
                 />
               </div>
