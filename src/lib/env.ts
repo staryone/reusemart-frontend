@@ -1,8 +1,8 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
-const API_LOGIN_PEMBELI = process.env.BACKEND_API_PEMBELI;
-const API_LOGIN_PENITIP = process.env.BACKEND_API_PENITIP;
-const API_LOGIN_PEGAWAI = process.env.BACKEND_API_PEGAWAI;
-const API_LOGIN_ORGANISASI = process.env.BACKEND_API_ORGANISASI;
+const API_LOGIN_PEMBELI = process.env.NEXT_PUBLIC_BACKEND_API_PEMBELI as string;
+const API_LOGIN_PENITIP = process.env.NEXT_PUBLIC_BACKEND_API_PENITIP as string;
+const API_LOGIN_PEGAWAI = process.env.NEXT_PUBLIC_BACKEND_API_PEGAWAI as string;
+const API_LOGIN_ORGANISASI = process.env.NEXT_PUBLIC_BACKEND_API_ORGANISASI as string;
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export {

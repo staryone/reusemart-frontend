@@ -14,7 +14,6 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
     try {
       const res = await fetch(`${BASE_URL}${API_LOGIN_PENITIP}`, {
         method: "POST",
@@ -27,12 +26,13 @@ export default function Login() {
         }),
       });
 
-      if (!res.ok) {
+      if (!res) {
         throw new Error("Email atau password salah");
       }
 
       const data = await res.json();
       if (data.token) {
+        console.log(data.token);
         setToken(data.token);
         router.push("/penitip");
       } else {
