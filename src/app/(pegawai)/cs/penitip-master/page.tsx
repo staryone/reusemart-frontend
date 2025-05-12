@@ -18,7 +18,6 @@ import {
   TableRow,
 } from "flowbite-react";
 import {
-  Select,
   Label,
   Modal,
   ModalBody,
@@ -38,7 +37,7 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 export default function PenitipMaster() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [openResetPasswordModal, setOpenResetPasswordModal] = useState(false);
+  // const [openResetPasswordModal, setOpenResetPasswordModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -59,7 +58,7 @@ export default function PenitipMaster() {
 
   // ini nanti diganti sama token yang di session
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjcyMDA3MiwiZXhwIjoxNzQ3MzI0ODcyfQ.deuNzdH8bazqhINTyS18zTdNENsvttcRnZDzDQyTmj0";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJDUyIsImlhdCI6MTc0NzA2NjM3MCwiZXhwIjoxNzQ3NjcxMTcwfQ.Kw_jAXF6fA-se0fyM_mFqCV_BFwOK9IG5Kg2l06FFgU";
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
@@ -557,7 +556,7 @@ export default function PenitipMaster() {
                     <TableCell>{penitip.alamat}</TableCell>
                     <TableCell>{penitip.nomor_telepon}</TableCell>
                     <TableCell>{penitip.saldo}</TableCell>
-                    <TableCell>{penitip.rating}</TableCell>
+                    <TableCell>{penitip.rating.toFixed(1)}</TableCell>
                     <TableCell>{penitip.poin}</TableCell>
                     <TableCell>
                       <button
