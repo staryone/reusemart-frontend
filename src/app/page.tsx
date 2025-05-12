@@ -54,9 +54,9 @@ export default function Home() {
   return (
     <div className="overflow-x-hidden">
       <Navbar />
-      {/* <div className="w-screen h-auto">
+      <div className="mt-[5vw] w-[90vw] h-auto mx-auto">
         <img src="banner.png" alt="image" className="w-screen" />
-      </div> */}
+      </div>
       <div className="flex flex-col items-start justify-items-center px-18 py-18">
         <h2 className="text-4xl mb-4 mt-10">Barang Terbaru</h2>
         <div className="flex gap-3 overflow-x-auto max-w-full">
