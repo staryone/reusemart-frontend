@@ -15,17 +15,10 @@ export async function POST(request: Request) {
     }
 
     // Verifikasi token
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      role?: string;
-      jabatan?: string;
-    };
+    const decoded = jwt.verify(token, JWT_SECRET) as { role?: string };
 
     // Periksa peran
-    if (
-      decoded &&
-      decoded.role === "PEGAWAI" &&
-      decoded.jabatan?.toUpperCase() === "ADMIN"
-    ) {
+    if (decoded && decoded.role === "PEGAWAI") {
       return NextResponse.json({ valid: true, decoded });
     } else {
       return NextResponse.json(

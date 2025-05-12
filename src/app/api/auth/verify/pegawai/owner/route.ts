@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     if (
       decoded &&
       decoded.role === "PEGAWAI" &&
-      decoded.jabatan?.toUpperCase() === "ADMIN"
+      decoded.jabatan?.toUpperCase() === "OWNER"
     ) {
       return NextResponse.json({ valid: true, decoded });
     } else {
