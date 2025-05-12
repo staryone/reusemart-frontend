@@ -13,5 +13,5 @@ export interface Penitip {
   is_top_seller: boolean;
   total_per_bulan: number;
   poin: number;
-  // transaksi: Transaksi[];
+  transaksi: [];
 }
