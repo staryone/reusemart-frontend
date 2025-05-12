@@ -9,11 +9,18 @@ export interface Barang {
     garansi: string; // ISO date string
     berat: number;
     kategori: Kategori;
-    gambar: string[]; // Assuming URLs or base64 strings
+    gambar: Gambar[]; // Assuming URLs or base64 strings
     createdAt: string;
     updatedAt: string;
     penitip: Penitip;
   }
+
+export interface Gambar {
+  id_gambar: number;
+  url_gambar: string;
+  is_primary: boolean;
+  id_barang: number;
+}
 
 export interface Kategori {
     id_kategori: number;

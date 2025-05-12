@@ -1,7 +1,7 @@
 "use client";
 import Navbar from "../components/utama/navbar";
 import { getListBarang } from "@/lib/api/barang.api";
-import { Barang } from "@/lib/interface/barang.interface";
+import { Barang, Gambar } from "@/lib/interface/barang.interface";
 // import Image from "next/image";
 import { useState, useMemo } from "react";
 import useSWR from "swr";
@@ -12,6 +12,7 @@ const fetcher = async ([params]: [URLSearchParams, string]) =>
 export default function Home() {
   // const [searchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [primaryImage, setPrimaryImage] = useState("");
 
   const tersediaOnly = "TERSEDIA";
   const queryParams = useMemo(() => {
@@ -30,6 +31,11 @@ export default function Home() {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
   });
+
+  const getPrimaryGambar = (gambars: Gambar[]): string | null => {
+    const primaryGambar = gambars.find((gambar: Gambar) => gambar.is_primary);
+    return primaryGambar ? primaryGambar.url_gambar : null;
+  }
 
   // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
   //   e.preventDefault();
@@ -84,7 +90,7 @@ export default function Home() {
                   >
                     <img
                       className="p-8 rounded-t-lg"
-                      src="/product.png"
+                      src={getPrimaryGambar(barang.gambar)}
                       alt="product image"
                     />
                     <div className="px-5 pb-5 flex flex-col justify-between flex-grow">
@@ -141,7 +147,7 @@ export default function Home() {
                 >
                   <img
                     className="p-8 rounded-t-lg"
-                    src="/product.png"
+                    src={getPrimaryGambar(barang.gambar)}
                     alt="product image"
                   />
                   <div className="px-5 pb-5 flex flex-col justify-between flex-grow">

@@ -3,22 +3,22 @@ import Navbar from "@/components/utama/navbar";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { getBarang } from "@/lib/api/barang.api";
-import { Barang } from "@/lib/interface/barang.interface";
+import { Barang, Gambar } from "@/lib/interface/barang.interface";
 import { getListDiskusi, createDiskusi } from "@/lib/api/diskusi.api";
 import { Diskusi } from "@/lib/interface/diskusi.interface";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { getToken } from "@/lib/auth/auth";
 
 export default function ProductDetails() {
   const [barang, setBarang] = useState<Barang | null>(null);
   const [diskusi, setDiskusi] = useState<Diskusi[]>([]);
+  const [gambar, setGambar] = useState<Gambar[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { id } = useParams();
 
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVNQkVMSSIsImlhdCI6MTc0NzAxNzUzOSwiZXhwIjoxNzQ3NjIyMzM5fQ.l7X5QYvdZXEvhSgFpaXwQSGCvgrYWGLak4vbA-GF-oM";
-
+  const token = getToken() || "";
   useEffect(() => {
     async function fetchData() {
       try {
@@ -26,11 +26,14 @@ export default function ProductDetails() {
         const barangResponse = await getBarang(id?.toString());
         setBarang(barangResponse);
 
+        setGambar(barangResponse.gambar);
         // Fetch diskusi with the updated paramsDiskusi
-        const params = new URLSearchParams();
-        params.set("search", barangResponse.nama_barang);
-        const diskusiResponse = await getListDiskusi(params, token);
-        setDiskusi(diskusiResponse[0]);
+        if (token) {
+          const params = new URLSearchParams();
+          params.set("search", barangResponse.nama_barang);
+          const diskusiResponse = await getListDiskusi(params, token);
+          setDiskusi(diskusiResponse[0]);
+        }
       } catch (error) {
         console.error("Gagal memuat data:", error);
       }
@@ -75,12 +78,6 @@ export default function ProductDetails() {
     }
   };
 
-  const images = [
-    "../product.png",
-    "https://res.cloudinary.com/demo/image/upload/v1652366604/docs/demo_image5.jpg",
-    "https://res.cloudinary.com/demo/image/upload/v1652345874/docs/demo_image1.jpg",
-  ];
-
   return (
     <div className="overflow-x-hidden">
       <Navbar />
@@ -88,12 +85,15 @@ export default function ProductDetails() {
         <div className="flex justify-center gap-20 h-fit w-full">
           <div className="w-1/3 place-items-center">
             <Carousel useKeyboardArrows={true}>
-              {images.map((URL, index) => (
-                <div key={index} className="slide relative w-full h-full">
+              {gambar.map((item) => (
+                <div
+                  key={item.id_gambar}
+                  className="slide relative w-full h-full"
+                >
                   <img
                     alt="sample_file"
-                    src={URL}
-                    key={index}
+                    src={item.url_gambar}
+                    key={item.id_gambar}
                     style={{ objectFit: "contain" }}
                     className="w-4/5!"
                   />
@@ -145,27 +145,38 @@ export default function ProductDetails() {
           <div className="text-md">{barang?.deskripsi}</div>
         </div>
         <div>
-          <div className="text-2xl mt-10 mb-3 font-bold">Diskusi Produk</div>
-          <div className="mb-5">
-            <form onSubmit={handleSubmitDiscussion} className="flex flex-col gap-3">
-              <textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Tulis pesan diskusi Anda..."
-                className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
-                disabled={isSubmitting}
-              />
-              <button
-                type="submit"
-                className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
-                  isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Mengirim..." : "Kirim Diskusi"}
-              </button>
-            </form>
-          </div>
+          {token ? (
+            <div>
+              <div className="text-2xl mt-10 mb-3 font-bold">
+                Diskusi Produk
+              </div>
+              <div className="mb-5">
+                <form
+                  onSubmit={handleSubmitDiscussion}
+                  className="flex flex-col gap-3"
+                >
+                  <textarea
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Tulis pesan diskusi Anda..."
+                    className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
+                    disabled={isSubmitting}
+                  />
+                  <button
+                    type="submit"
+                    className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
+                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Mengirim..." : "Kirim Diskusi"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          ) : (
+            <div></div>
+          )}
           {diskusi && diskusi.length > 0 ? (
             diskusi.map((diskusi: Diskusi) => (
               <div key={diskusi.id_diskusi}>
@@ -176,7 +187,9 @@ export default function ProductDetails() {
                       alt="profile"
                       className="rounded-full h-8 border-1"
                     />
-                    <div className="text-md">{diskusi.role == "CS" ? "Customer Service" : diskusi.nama}</div>
+                    <div className="text-md">
+                      {diskusi.role == "CS" ? "Customer Service" : diskusi.nama}
+                    </div>
                   </div>
                   <div className="text-lg ml-11">{diskusi.pesan}</div>
                   <hr className="my-3 border-gray-400" />
@@ -184,7 +197,7 @@ export default function ProductDetails() {
               </div>
             ))
           ) : (
-            <div>Belum ada diskusi</div>
+            <div>{token ? "Belum ada diskusi" : ""}</div>
           )}
         </div>
       </div>
