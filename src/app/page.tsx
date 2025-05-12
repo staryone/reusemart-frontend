@@ -63,7 +63,7 @@ export default function Home() {
           {isLoading ? (
             <div>Loading...</div>
           ) : error ? (
-            <div>Error loading data</div>
+            <div>Error memuat data</div>
           ) : data && data[0].length > 0 ? (
             data[0]
               .sort((a: Barang, b: Barang) => {
@@ -99,7 +99,7 @@ export default function Home() {
                 </div>
               ))
           ) : (
-            <div>No data found</div>
+            <div>Tidak ada data</div>
           )}
         </div>
         <h2 className="text-4xl mb-4 mt-10">Semua Produk</h2>

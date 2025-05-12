@@ -500,7 +500,7 @@ export default function PegawaiMaster() {
               ) : error ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center">
-                    Error loading data
+                    Error memuat data
                   </TableCell>
                 </TableRow>
               ) : data && data[0]?.length > 0 ? (
@@ -554,7 +554,7 @@ export default function PegawaiMaster() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center">
-                    No data found
+                    Tidak ada data
                   </TableCell>
                 </TableRow>
               )}

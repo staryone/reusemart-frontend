@@ -184,7 +184,7 @@ export default function ProductDetails() {
               </div>
             ))
           ) : (
-            <div>No data found</div>
+            <div>Belum ada diskusi</div>
           )}
         </div>
       </div>
