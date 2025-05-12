@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
+import { removeToken } from "@/lib/auth/auth";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,18 +11,13 @@ export default function Navbar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
-    const user = localStorage.getItem("token");
+    const user = sessionStorage.getItem("token");
     setIsLoggedIn(!!user);
   }, []);
 
-  // const handleLogout = () => {
-  //   localStorage.removeItem("token");
-  //   setIsLoggedIn(false);
-  //   window.location.href = "/";
-  // };
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await fetch("http://localhost:3001/api/pembeli/logout", {
         method: "DELETE",
@@ -32,7 +28,7 @@ export default function Navbar() {
       });
 
       if (response.ok) {
-        localStorage.removeItem("token");
+        removeToken();
         setIsLoggedIn(false);
         window.location.href = "/";
       } else {
