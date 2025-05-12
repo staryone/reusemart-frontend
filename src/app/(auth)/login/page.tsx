@@ -6,6 +6,7 @@ import Link from "next/link";
 import { setToken } from "@/lib/auth/auth";
 import { removeToken } from "@/lib/auth/auth";
 import { BASE_URL, API_LOGIN_PEMBELI } from "@/lib/env";
+import Image from "next/image";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -45,7 +46,6 @@ export default function Login() {
         // Simpan token jika valid
         setToken(token);
         router.push("/");
-        console.log("Login successful, token:", token);
       } else {
         setError(verifyData.error || "Invalid user role or token");
         removeToken(); // Hapus token jika tidak valid
@@ -63,7 +63,13 @@ export default function Login() {
           href="/"
           className="flex items-center justify-center space-x-3 mb-5"
         >
-          <img src="/logo.png" className="h-12" alt="Logo" />
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={1000}
+            height={258}
+            className="h-12 w-auto"
+          />
         </Link>
         <form
           onSubmit={handleSubmit}
@@ -73,7 +79,7 @@ export default function Login() {
           <div className="my-3">
             Belum mempunyai akun?{" "}
             <Link
-              href={"/pages/register-pembeli"}
+              href={"/register"}
               className="text-[#72C678] hover:text-[#008E6D] font-semibold"
             >
               Daftar disini!
@@ -99,16 +105,7 @@ export default function Login() {
               required
             />
           </div>
-          {/* <div className="my-3">
-            <Link
-              href="#"
-              className="text-[#72C678] hover:text-[#008E6D] font-medium"
-            >
-              Forgot Password?
-            </Link>
-          </div> */}
           <div className="w-full text-right text-sm font-medium">
-            {/* Forgot Password di sebelah kanan */}
             <Link
               href="#"
               className="text-[#72C678] hover:text-[#008E6D] font-medium text-right"
