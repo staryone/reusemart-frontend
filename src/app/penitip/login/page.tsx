@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { setToken } from "@/lib/auth/auth";
+import { API_LOGIN_PENITIP, BASE_URL } from "@/lib/env";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,19 +16,30 @@ export default function Login() {
     setError("");
 
     try {
-      const response = "tes";
+      const res = await fetch(`${BASE_URL}${API_LOGIN_PENITIP}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("token", data.token);
-        router.push("/");
-        console.log(data.token);
-      } else {
-        const data = await response.json();
-        setError(data.error || "Login failed");
+      if (!res.ok) {
+        throw new Error("Email atau password salah");
       }
-    } catch (err) {
-      setError("An error occurred during login");
+
+      const data = await res.json();
+      if (data.token) {
+        setToken(data.token);
+        router.push("/penitip");
+      } else {
+        setError("Token tidak ditemukan dalam respons");
+      }
+    } catch (err: any) {
+      setError(err.message || "Terjadi kesalahan saat login");
     }
   };
 
