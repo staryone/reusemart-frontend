@@ -1,32 +1,42 @@
 "use client";
 import Navbar from "@/components/utama/navbar";
-// import { Carousel } from "flowbite-react";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-// import Image from "next/image";
-
 import { getBarang } from "@/lib/api/barang.api";
 import { Barang } from "@/lib/interface/barang.interface";
+import { getListDiskusi, createDiskusi } from "@/lib/api/diskusi.api";
+import { Diskusi } from "@/lib/interface/diskusi.interface";
 import { useParams } from "next/navigation";
-
 import { useState, useEffect } from "react";
 
 export default function ProductDetails() {
   const [barang, setBarang] = useState<Barang | null>(null);
+  const [diskusi, setDiskusi] = useState<Diskusi[]>([]);
+  const [newMessage, setNewMessage] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { id } = useParams();
 
-  useEffect(() => {
-    async function fetchBarang() {
-      try {
-        const response = await getBarang(id?.toString());
+  const token =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVNQkVMSSIsImlhdCI6MTc0NzAxNzUzOSwiZXhwIjoxNzQ3NjIyMzM5fQ.l7X5QYvdZXEvhSgFpaXwQSGCvgrYWGLak4vbA-GF-oM";
 
-        setBarang(response);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch barang
+        const barangResponse = await getBarang(id?.toString());
+        setBarang(barangResponse);
+
+        // Fetch diskusi with the updated paramsDiskusi
+        const params = new URLSearchParams();
+        params.set("search", barangResponse.nama_barang);
+        const diskusiResponse = await getListDiskusi(params, token);
+        setDiskusi(diskusiResponse[0]);
       } catch (error) {
-        console.error("Gagal memuat history:", error);
+        console.error("Gagal memuat data:", error);
       }
     }
-    fetchBarang();
-  }, []);
+    fetchData();
+  }, [id, token]);
 
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return "N/A"; // Handle missing dates
@@ -38,11 +48,39 @@ export default function ProductDetails() {
     return `${day}-${month}-${year}`;
   };
 
+  const handleSubmitDiscussion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return; // Prevent empty submissions
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("pesan", newMessage);
+      formData.append("id_barang", id?.toString() || "");
+
+      await createDiskusi(formData, token);
+
+      // Refresh discussion list
+      const params = new URLSearchParams();
+      params.set("search", barang?.nama_barang || "");
+      const diskusiResponse = await getListDiskusi(params, token);
+      setDiskusi(diskusiResponse[0]);
+
+      // Clear input
+      setNewMessage("");
+    } catch (error) {
+      console.error("Gagal menambahkan diskusi:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const images = [
     "../product.png",
     "https://res.cloudinary.com/demo/image/upload/v1652366604/docs/demo_image5.jpg",
     "https://res.cloudinary.com/demo/image/upload/v1652345874/docs/demo_image1.jpg",
   ];
+
   return (
     <div className="overflow-x-hidden">
       <Navbar />
@@ -65,7 +103,12 @@ export default function ProductDetails() {
           </div>
           <div className="flex flex-col items-start justify-items-center gap-10 max-w-1/2">
             <div className="text-xl font-semibold">{barang?.nama_barang}</div>
-            <div className="text-4xl font-semibold">Rp{barang?.harga !== undefined ? new Intl.NumberFormat('id-ID').format(barang.harga) : '0'}</div>
+            <div className="text-4xl font-semibold">
+              Rp
+              {barang?.harga !== undefined
+                ? new Intl.NumberFormat("id-ID").format(barang.harga)
+                : "0"}
+            </div>
             <button className="bg-blue-500 text-white p-3 rounded-lg w-64">
               Tambahkan ke Keranjang
             </button>
@@ -91,40 +134,58 @@ export default function ProductDetails() {
             </div>
             <div className="flex justify-between w-72">
               <div>Garansi: </div>
-              <div>{barang?.garansi == null ? "Tidak ada" : formatDate(barang.garansi)}</div>
+              <div>
+                {barang?.garansi == null
+                  ? "Tidak ada"
+                  : formatDate(barang.garansi)}
+              </div>
             </div>
           </div>
           <div className="text-2xl my-5 font-bold">Deskripsi</div>
-          <div className="text-md">
-            {barang?.deskripsi}
-          </div>
+          <div className="text-md">{barang?.deskripsi}</div>
         </div>
         <div>
           <div className="text-2xl mt-10 mb-3 font-bold">Diskusi Produk</div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-              <img
-                src="../profile.png"
-                alt="profile"
-                className="rounded-full h-8 border-1"
+          <div className="mb-5">
+            <form onSubmit={handleSubmitDiscussion} className="flex flex-col gap-3">
+              <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Tulis pesan diskusi Anda..."
+                className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
+                disabled={isSubmitting}
               />
-              <div className="text-md">Nama</div>
-            </div>
-            <div className="text-lg ml-11">Apakah produknya ori?</div>
-            <hr className="my-3 border-gray-400" />
+              <button
+                type="submit"
+                className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
+                  isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Mengirim..." : "Kirim Diskusi"}
+              </button>
+            </form>
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-              <img
-                src="../profile.png"
-                alt="profile"
-                className="rounded-full h-8 border-1"
-              />
-              <div className="text-md">Customer Service</div>
-            </div>
-            <div className="text-lg ml-11">Ori dongs</div>
-            <hr className="my-3 border-gray-400" />
-          </div>
+          {diskusi && diskusi.length > 0 ? (
+            diskusi.map((diskusi: Diskusi) => (
+              <div key={diskusi.id_diskusi}>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="../profile.png"
+                      alt="profile"
+                      className="rounded-full h-8 border-1"
+                    />
+                    <div className="text-md">{diskusi.role == "CS" ? "Customer Service" : diskusi.nama}</div>
+                  </div>
+                  <div className="text-lg ml-11">{diskusi.pesan}</div>
+                  <hr className="my-3 border-gray-400" />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div>No data found</div>
+          )}
         </div>
       </div>
     </div>
