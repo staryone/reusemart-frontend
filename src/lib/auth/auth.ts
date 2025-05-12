@@ -30,36 +30,3 @@ export const removeToken = () => {
     sessionStorage.removeItem("token");
   }
 };
-
-// Verifikasi dan decode token
-export const verifyToken = (token: string): DecodedToken | null => {
-  try {
-    // Verifikasi token dan konversi ke unknown terlebih dahulu
-    const decoded = jwt.verify(token, JWT_SECRET) as unknown;
-
-    // Validasi bahwa decoded sesuai dengan DecodedToken
-    if (
-      decoded &&
-      typeof decoded === "object" &&
-      "role" in decoded &&
-      "sub" in decoded &&
-      "iat" in decoded &&
-      "exp" in decoded
-    ) {
-      const decodedToken = decoded as DecodedToken;
-      // Validasi nilai role
-      if (
-        !["PEMBELI", "PENITIP", "ORGANISASI", "PEGAWAI"].includes(
-          decodedToken.role
-        )
-      ) {
-        return null;
-      }
-      return decodedToken;
-    }
-    return null;
-  } catch (error) {
-    console.error("Error verifying JWT:", error);
-    return null;
-  }
-};
