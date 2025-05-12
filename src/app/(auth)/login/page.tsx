@@ -4,6 +4,8 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { setToken, verifyToken } from "@/lib/auth/auth";
+import { removeToken } from "@/lib/auth/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -35,22 +37,63 @@ export default function Login() {
   //     setError("An error occurred during login");
   //   }
   // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const response = await fetch("http://localhost:3001/api/pembeli/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (result?.error) {
-      setError("Email atau password salah");
-    } else {
-      // window.location.href = "/";
+      if (response.ok) {
+        const data = await response.json();
+        const token = data.data.token;
+
+        console.log("Response data:", data);
+        console.log("Token:", token);
+
+        // Save token to sessionStorage using auth.ts utility
+        setToken(token);
+
+        // Verify token and check role
+        const decodedToken = verifyToken(token);
+        if (decodedToken && decodedToken.role === "PEMBELI") {
+          router.push("/");
+          console.log("Login successful, token:", token);
+        } else {
+          setError("Invalid user role or token");
+          removeToken(); // Clean up invalid token
+        }
+      } else {
+        const data = await response.json();
+        console.log(data);
+        setError(data.error || "Login failed");
+      }
+    } catch (err) {
+      setError("An error occurred during login");
     }
   };
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError("");
+
+  //   const result = await signIn("credentials", {
+  //     email,
+  //     password,
+  //     redirect: false,
+  //   });
+
+  //   if (result?.error) {
+  //     setError("Email atau password salah");
+  //   } else {
+  //     // window.location.href = "/";
+  //   }
+  // };
 
   return (
     <div>
