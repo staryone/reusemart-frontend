@@ -5,9 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
-import Navbar from "@/components/utama/navbar";
-import { ThreeDot } from "react-loading-indicators";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Image from "next/image";
 
 export default function Register() {
   const router = useRouter();
@@ -22,8 +20,6 @@ export default function Register() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateForm = () => {
     let isValid = true;
@@ -44,7 +40,7 @@ export default function Register() {
     }
 
     if (!nomorTelepon.trim()) {
-      setNomorTeleponError("No. Handphone harus diisi");
+      setNomorTeleponError("Nomor Telepon harus diisi");
       isValid = false;
     }
 
@@ -52,7 +48,7 @@ export default function Register() {
       setPasswordError("Password harus diisi");
       isValid = false;
     } else if (password.length < 8) {
-      setPasswordError("Password harus minimal 8 karakter");
+      setPasswordError("Password setidaknya harus mengandung 8 karakter");
       isValid = false;
     }
 
@@ -133,159 +129,148 @@ export default function Register() {
   };
 
   return (
-    <div>
-      <Toaster position="top-right" />
-      <Navbar />
-      <div className="overflow-x-hidden w-screen min-h-screen p-4 sm:p-10 flex items-center justify-center bg-gray-100">
-        <form
-          onSubmit={handleSubmit}
-          className="border-1 border-gray-300 rounded-lg w-full sm:w-3/4 md:w-1/2 p-6 sm:p-10 bg-white"
-        >
-          <div className="text-3xl sm:text-5xl mb-3 font-bold">
-            Registrasi Pembeli
-          </div>
-          <div className="my-3 text-sm sm:text-base">
-            Ingin mendaftarkan organisasi sosial?{" "}
-            <Link
-              href={"/organisasi/register"}
-              className="text-[#1980e6]/80 underline hover:text-[#1980e6]"
-            >
-              Daftar disini!
-            </Link>
-          </div>
-          <div className="flex flex-col md:flex-row md:justify-center md:gap-15">
-            <div className="flex flex-col items-start w-full">
-              <div className="my-3 w-full">
-                <div className="mb-1">Nama</div>
-                <input
-                  type="text"
-                  name="nama"
-                  value={nama}
-                  onChange={handleNamaChange}
-                  className={`border-1 rounded-sm h-10 w-full px-2 ${
-                    namaError ? "border-red-500" : "border-gray-400"
-                  }`}
-                />
-                {namaError && (
-                  <div className="text-red-500 text-sm mt-1">{namaError}</div>
-                )}
-              </div>
-              <div className="my-3 w-full">
-                <div className="mb-1">Email</div>
-                <input
-                  type="text"
-                  name="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  className={`border-1 rounded-sm h-10 w-full px-2 ${
-                    emailError ? "border-red-500" : "border-gray-400"
-                  }`}
-                />
-                {emailError && (
-                  <div className="text-red-500 text-sm mt-1">{emailError}</div>
-                )}
-              </div>
-              <div className="my-3 w-full">
-                <div className="mb-1">No. Handphone</div>
-                <input
-                  type="text"
-                  name="nomor_telepon"
-                  value={nomorTelepon}
-                  onChange={handleNomorTeleponChange}
-                  className={`border-1 rounded-sm h-10 w-full px-2 ${
-                    nomorTeleponError ? "border-red-500" : "border-gray-400"
-                  }`}
-                />
-                {nomorTeleponError && (
-                  <div className="text-red-500 text-sm mt-1">
-                    {nomorTeleponError}
-                  </div>
-                )}
-              </div>
+    <div className="overflow-x-hidden w-screen h-screen p-10 bg-gray-100">
+      <div className="flex flex-col h-full">
+        <div className="mb-5 flex justify-center">
+          <Link href="/" className="flex items-center space-x-3">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={1000}
+              height={258}
+              className="h-12 w-auto"
+            />
+          </Link>
+        </div>
+
+        <div className="flex-grow flex justify-center items-center">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col items-start border border-gray-300 rounded-lg w-full max-w-4xl p-10 bg-white"
+          >
+            <div className="text-5xl mb-3 font-bold">Register</div>
+            <div className="my-3">
+              Sudah punya akun ReuseMart?{" "}
+              <Link
+                href={"/login"}
+                className="text-[#72C678] hover:text-[#008E6D] font-semibold"
+              >
+                Login
+              </Link>
             </div>
-            <div className="flex flex-col items-start w-full">
-              <div className="my-3 w-full">
-                <div className="mb-1">Password</div>
-                <div className="relative">
+            <div className="flex flex-col md:flex-row md:gap-10 w-full">
+              {/* Kolom Kiri */}
+              <div className="flex flex-col items-start w-full">
+                <div className="my-3 w-full">
+                  <label className="block mb-1 text-gray-700">Nama</label>
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type="text"
+                    name="nama"
+                    value={nama}
+                    onChange={handleNamaChange}
+                    className={`w-full h-11 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72C678] focus:border-[#72C678] transition duration-200 border ${
+                      namaError ? "border-red-700" : "border-gray-500"
+                    }`}
+                  />
+                  {namaError && (
+                    <div className="text-red-500 text-sm mt-1">{namaError}</div>
+                  )}
+                </div>
+                <div className="my-3 w-full">
+                  <label className="block mb-1 text-gray-700">Email</label>
+                  <input
+                    type="text"
+                    name="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    className={`w-full h-11 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72C678] focus:border-[#72C678] transition duration-200 border ${
+                      emailError ? "border-red-700" : "border-gray-500"
+                    }`}
+                  />
+                  {emailError && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {emailError}
+                    </div>
+                  )}
+                </div>
+                <div className="my-3 w-full">
+                  <label className="block mb-1 text-gray-700">Telepon</label>
+                  <input
+                    type="text"
+                    name="nomor_telepon"
+                    value={nomorTelepon}
+                    onChange={handleNomorTeleponChange}
+                    className={`w-full h-11 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72C678] focus:border-[#72C678] transition duration-200 border ${
+                      nomorTeleponError ? "border-red-700" : "border-gray-500"
+                    }`}
+                  />
+                  {nomorTeleponError && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {nomorTeleponError}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Kolom Kanan */}
+              <div className="flex flex-col items-start w-full">
+                <div className="my-3 w-full">
+                  <label className="block mb-1 text-gray-700">Password</label>
+                  <input
+                    type="password"
                     name="password"
                     value={password}
                     onChange={handlePasswordChange}
-                    className={`border-1 rounded-sm h-10 w-full px-2 ${
-                      passwordError ? "border-red-500" : "border-gray-400"
+                    className={`w-full h-11 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72C678] focus:border-[#72C678] transition duration-200 border ${
+                      passwordError ? "border-red-700" : "border-gray-500"
                     }`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
+                  {passwordError && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {passwordError}
+                    </div>
+                  )}
                 </div>
-                {passwordError && (
-                  <div className="text-red-500 text-sm mt-1">
-                    {passwordError}
-                  </div>
-                )}
-              </div>
-              <div className="my-3 w-full">
-                <div className="mb-1">Konfirmasi Password</div>
-                <div className="relative">
+                <div className="my-3 w-full">
+                  <label className="block mb-1 text-gray-700">
+                    Konfirmasi Password
+                  </label>
                   <input
-                    type={showConfirmPassword ? "text" : "password"}
+                    type="password"
                     name="confirm_password"
                     value={confirmPassword}
                     onChange={handleConfirmPasswordChange}
-                    className={`border-1 rounded-sm h-10 w-full px-2 ${
+                    className={`w-full h-11 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72C678] focus:border-[#72C678] transition duration-200 border ${
                       confirmPasswordError
-                        ? "border-red-500"
-                        : "border-gray-400"
+                        ? "border-red-700"
+                        : "border-gray-500"
                     }`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
+                  {confirmPasswordError && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {confirmPasswordError}
+                    </div>
+                  )}
                 </div>
-                {confirmPasswordError && (
-                  <div className="text-red-500 text-sm mt-1">
-                    {confirmPasswordError}
-                  </div>
-                )}
-              </div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="my-3 rounded-[0.5rem] py-2 px-8 bg-[#1980e6] text-white hover:bg-white hover:text-[#1980e6] border-1 hover:border-[#1980e6] transition-colors"
-              >
-                {isLoading ? (
-                  <ThreeDot
-                    color="#ffffff"
-                    size="small"
-                    text=""
-                    textColor=""
-                    style={{ fontSize: "7px" }}
-                  />
-                ) : (
-                  "Registrasi"
-                )}
-              </button>
-              <div className="my-3 text-sm sm:text-base">
-                <Link
-                  href={"/login"}
-                  className="text-[#1980e6]/80 underline hover:text-[#1980e6]"
-                >
-                  Saya sudah punya akun
-                </Link>
               </div>
             </div>
-          </div>
-        </form>
+            <button
+              type="submit"
+              className="my-5 py-2 px-8 rounded-[0.5rem] bg-[#72C678] text-white font-semibold hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300 w-full"
+            >
+              Register
+            </button>
+            <div className="mt-5 w-full text-center">
+              <Link
+                href={"/organisasi/register"}
+                className="text-[#72C678] hover:text-[#008E6D]"
+              >
+                <span className="font-medium">Daftar sebagai </span>
+                <span className="font-semibold">Organisasi</span>
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
