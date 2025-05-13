@@ -24,7 +24,8 @@ import {
   ModalHeader,
   TextInput,
 } from "flowbite-react";
-import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
 
@@ -38,10 +39,43 @@ export default function OrganisasiMaster() {
   const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedOrganisasi, setSelectedOrganisasi] = useState<Organisasi | null>(null);
+  const [selectedOrganisasi, setSelectedOrganisasi] =
+    useState<Organisasi | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(true);
 
   const token = getToken() || "";
+  const router = useRouter();
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      if (!token) {
+        router.push("/unauthorized");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/auth/verify/pegawai/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await response.json();
+
+        if (!data.valid) {
+          router.push("/unauthorized");
+        } else {
+          setIsVerifying(false);
+        }
+      } catch (error) {
+        console.error("Error verifying token:", error);
+        router.push("/unauthorized");
+      }
+    };
+
+    verifyToken();
+  }, [token, router]);
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -52,7 +86,7 @@ export default function OrganisasiMaster() {
       params.append("search", searchQuery);
     }
     return params;
-  }, [page, searchQuery]);
+  }, [page, searchQuery, limit]);
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -98,7 +132,10 @@ export default function OrganisasiMaster() {
     if (!selectedOrganisasi) return;
 
     try {
-      const res = await deleteOrganisasi(selectedOrganisasi.id_organisasi, token);
+      const res = await deleteOrganisasi(
+        selectedOrganisasi.id_organisasi,
+        token
+      );
 
       if (res) {
         mutate();
@@ -178,6 +215,14 @@ export default function OrganisasiMaster() {
       setPage(newPage);
     }
   };
+
+  if (isVerifying) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg text-gray-600">Verifying access...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex">

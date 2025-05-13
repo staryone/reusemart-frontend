@@ -27,9 +27,10 @@ import {
   TextInput,
   Button,
 } from "flowbite-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPegawai(params, token);
@@ -46,8 +47,40 @@ export default function PegawaiMaster() {
   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(true);
 
   const token = getToken() || "";
+  const router = useRouter();
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      if (!token) {
+        router.push("/unauthorized");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/auth/verify/pegawai/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await response.json();
+
+        if (!data.valid) {
+          router.push("/unauthorized");
+        } else {
+          setIsVerifying(false);
+        }
+      } catch (error) {
+        console.error("Error verifying token:", error);
+        router.push("/unauthorized");
+      }
+    };
+
+    verifyToken();
+  }, [token, router]);
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -58,8 +91,7 @@ export default function PegawaiMaster() {
       params.append("search", searchQuery);
     }
     return params;
-  }, [page, searchQuery]);
-
+  }, [page, searchQuery, limit]);
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -257,11 +289,19 @@ export default function PegawaiMaster() {
 
   const totalPages = Math.ceil(totalItems / limit);
 
-  const handlePageChangeKILLME = (newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setPage(newPage);
     }
   };
+
+  if (isVerifying) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg text-gray-600">Verifying access...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex">
@@ -615,14 +655,14 @@ export default function PegawaiMaster() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => handlePageChangeKILLME(page - 1)}
+              onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
               className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
             >
               Previous
             </button>
             <button
-              onClick={() => handlePageChangeKILLME(page + 1)}
+              onClick={() => handlePageChange(page + 1)}
               disabled={page === totalPages}
               className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
             >
