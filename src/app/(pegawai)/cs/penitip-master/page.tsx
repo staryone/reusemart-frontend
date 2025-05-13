@@ -45,7 +45,8 @@ export default function PenitipMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPenitip, setSelectedPenitip] = useState<Penitip | null>(null);
-  const [token, setToken] = useState("");
+  
+  const token = getToken() || "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -59,9 +60,7 @@ export default function PenitipMaster() {
   }, [page, searchQuery]);
 
   // ini nanti diganti sama token yang di session
-  const tokenTemp = getToken();
-    if(tokenTemp)
-      setToken(tokenTemp);
+  
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],

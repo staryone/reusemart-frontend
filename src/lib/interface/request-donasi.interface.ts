@@ -1,3 +1,4 @@
+import { Organisasi } from "./organisasi.interface";
 
 
 export interface RequestDonasi {
@@ -7,4 +8,5 @@ export interface RequestDonasi {
   status: string;
   nama_organisasi: string;
   id_organisasi: number;
+  organisasi: Organisasi;
 }

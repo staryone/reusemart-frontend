@@ -22,7 +22,8 @@ export default function RequestDonasiMaster() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [token, setToken] = useState("");
+  // const [token, setToken] = useState("");
+  const token = getToken() || "";
 
   const searchQuery = "MENUNGGU";
   const queryParams = useMemo(() => {
@@ -37,9 +38,7 @@ export default function RequestDonasiMaster() {
   }, [page, limit]);
 
   // ini nanti diganti sama token yang di session
-  const tokenTemp = getToken();
-      if(tokenTemp)
-        setToken(tokenTemp);
+  
       
   // ini penting
   const { data, error, isLoading } = useSWR(

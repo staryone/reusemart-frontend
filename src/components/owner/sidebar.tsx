@@ -1,7 +1,7 @@
 "use client";
 
 import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems } from "flowbite-react";
-import { HiChartPie, HiCalendar, HiUser, HiOfficeBuilding, HiGift, HiNewspaper } from "react-icons/hi";
+import { HiChartPie, HiCalendar, HiGift, HiNewspaper } from "react-icons/hi";
 
 export default function SideBar() {
   return (
@@ -14,9 +14,9 @@ export default function SideBar() {
           <SidebarItem href="/owner/request-donasi" icon={HiGift}>
             Request Donasi
           </SidebarItem>
-          {/* <SidebarItem href="/owner/history-donasi" icon={HiCalendar}>
-            History Donasi
-          </SidebarItem> */}
+          <SidebarItem href="/owner/riwayat-donasi" icon={HiCalendar}>
+            Riwayat Donasi
+          </SidebarItem>
           <SidebarItem href="/owner/laporan" icon={HiNewspaper}>
             Laporan
           </SidebarItem>
