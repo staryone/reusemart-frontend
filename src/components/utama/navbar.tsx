@@ -19,7 +19,7 @@ export default function Navbar() {
       }
 
       try {
-        const response = await fetch("/api/auth/verify/organisasi", {
+        const response = await fetch("/api/auth/verify/pembeli", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),
