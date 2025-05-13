@@ -27,7 +27,7 @@ export default function SideBar() {
 
       if (response.ok) {
         removeToken();
-        toast.success("Gagal logout berhasil!");
+        toast.success("Logout berhasil!");
         router.push("/pegawai/login");
       } else {
         toast.error("Gagal logout dari server");
