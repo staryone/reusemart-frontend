@@ -13,6 +13,16 @@ interface Pembeli {
   nama: string;
 }
 
+interface Pengiriman {
+  id_pengiriman: number;
+  tanggal: string;
+  status_pengiriman: string;
+  id_kurir: number;
+  id_transaksi: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface Transaksi {
   id_transaksi: number;
   tanggal_transaksi: string;
@@ -20,6 +30,7 @@ interface Transaksi {
   status_Pembayaran: string;
   total_akhir: number;
   pembeli: Pembeli;
+  pengiriman?: Pengiriman | null;
 }
 
 interface DetailTransaksi {
@@ -46,11 +57,6 @@ interface Penitipan {
   tanggal_laku: string | null;
   detail_penitipan: DetailPenitipan[];
 }
-
-// interface ApiResponse {
-//   nama: string;
-//   penitipan: Penitipan[];
-// }
 
 const fetcher = async (token: string) => await getListHistoryPenjualan(token);
 
@@ -93,6 +99,14 @@ export default function Home() {
     }).format(amount);
   };
 
+  const isItemSold = (barang: Barang): boolean => {
+    return (
+      !!barang.detail_transaksi &&
+      barang.detail_transaksi.transaksi.pengiriman?.status_pengiriman ===
+        "SUDAH_DITERIMA"
+    );
+  };
+
   const openModal = (item: Barang) => {
     setSelectedItem(item);
   };
@@ -100,6 +114,13 @@ export default function Home() {
   const closeModal = () => {
     setSelectedItem(null);
   };
+
+  // Flatten and filter sold items
+  const soldItems =
+    data?.penitipan
+      ?.flatMap((penitipan: Penitipan) => penitipan.detail_penitipan)
+      .filter((detail) => isItemSold(detail.barang))
+      .map((detail) => detail.barang) || [];
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -110,83 +131,52 @@ export default function Home() {
       </Head>
 
       <div className="ml-64 p-4">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-6">
+          History Penjualan
+        </h1>
         {isLoading ? (
           <div className="text-center p-4">Loading...</div>
         ) : error ? (
           <div className="text-center p-4 text-red-500">Error memuat data</div>
-        ) : !data?.penitipan?.length ? (
-          <div className="text-center p-4">Tidak ada data penitipan</div>
+        ) : !soldItems.length ? (
+          <div className="text-center p-4">
+            Tidak ada riwayat transaksi barang yang sudah terjual
+          </div>
         ) : (
           <div className="space-y-4">
-            {data.penitipan.map((penitipan: Penitipan) => (
+            {soldItems.map((item: Barang) => (
               <div
-                key={penitipan.id_penitipan}
-                className="bg-white border border-gray-300 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                key={item.id_barang}
+                className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
               >
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Penitipan ID: {penitipan.id_penitipan}
-                </h2>
-                <p className="text-gray-600 mt-1">
-                  Tanggal Masuk: {formatDate(penitipan.tanggal_masuk)}
-                </p>
-                <p className="text-gray-600">
-                  Status:{" "}
-                  <span
-                    className={
-                      penitipan.tanggal_laku
-                        ? "text-green-600"
-                        : "text-yellow-600"
-                    }
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-800">
+                      {item.nama_barang}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Harga: {formatCurrency(item.harga)}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Pembeli: {item.detail_transaksi?.transaksi.pembeli.nama}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Tanggal Transaksi:{" "}
+                      {formatDate(
+                        item.detail_transaksi?.transaksi
+                          .tanggal_transaksi as string
+                      )}
+                    </p>
+                    <p className="text-sm text-green-600 mt-1">
+                      Status: Terjual
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openModal(item)}
+                    className="px-4 py-2 bg-[#72C678] text-white rounded-md hover:bg-[#008E6D] transition-colors text-sm"
                   >
-                    {penitipan.tanggal_laku
-                      ? `Terjual (${formatDate(penitipan.tanggal_laku)})`
-                      : "Belum Terjual"}
-                  </span>
-                </p>
-
-                <div className="mt-4">
-                  <h3 className="text-lg font-medium text-gray-700">
-                    Detail Barang:
-                  </h3>
-                  <ul className="mt-2 divide-y divide-gray-200">
-                    {penitipan.detail_penitipan.map((detail) => (
-                      <li
-                        key={detail.barang.id_barang}
-                        className="py-3 flex justify-between items-center"
-                      >
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {detail.barang.nama_barang}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Harga: {formatCurrency(detail.barang.harga)}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Status:{" "}
-                            <span
-                              className={
-                                detail.barang.detail_transaksi
-                                  ? "text-green-600"
-                                  : "text-yellow-600"
-                              }
-                            >
-                              {detail.barang.detail_transaksi
-                                ? "Terjual"
-                                : "Belum Terjual"}
-                            </span>
-                          </p>
-                        </div>
-                        {detail.barang.detail_transaksi && (
-                          <button
-                            onClick={() => openModal(detail.barang)}
-                            className="px-4 py-2 bg-[#72C678] text-white rounded-md hover:bg-[#008E6D] transition-colors"
-                          >
-                            Lihat Detail
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                    Lihat Detail
+                  </button>
                 </div>
               </div>
             ))}
@@ -195,55 +185,63 @@ export default function Home() {
 
         {/* Modal for Transaction Details */}
         {selectedItem && (
-          <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full border border-gray-300 shadow-xl">
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-green-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full border border-gray-200 shadow-xl">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-gray-800">
                   Detail Transaksi
                 </h2>
                 <button
                   onClick={closeModal}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <HiX size={24} />
+                  <HiX size={20} />
                 </button>
               </div>
-              <div className="space-y-3">
-                <p>
-                  <strong className="text-gray-700">Nama Barang:</strong>{" "}
-                  {selectedItem.nama_barang}
-                </p>
-                <p>
-                  <strong className="text-gray-700">Harga:</strong>{" "}
-                  {formatCurrency(selectedItem.harga)}
-                </p>
-                <p>
-                  <strong className="text-gray-700">Pembeli:</strong>{" "}
-                  {selectedItem.detail_transaksi?.transaksi.pembeli.nama}
-                </p>
-                <p>
-                  <strong className="text-gray-700">Tanggal Transaksi:</strong>{" "}
-                  {formatDate(
-                    selectedItem.detail_transaksi?.transaksi
-                      .tanggal_transaksi as string
-                  )}
-                </p>
-                <p>
-                  <strong className="text-gray-700">Total Harga:</strong>{" "}
-                  {formatCurrency(
-                    selectedItem.detail_transaksi?.transaksi
-                      .total_harga as number
-                  )}
-                </p>
-                <p>
-                  <strong className="text-gray-700">Total Akhir:</strong>{" "}
-                  {formatCurrency(
-                    selectedItem.detail_transaksi?.transaksi
-                      .total_akhir as number
-                  )}
-                </p>
-                <p>
-                  <strong className="text-gray-700">Status Pembayaran:</strong>{" "}
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Nama Barang:</strong>
+                  <span>{selectedItem.nama_barang}</span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Harga:</strong>
+                  <span>{formatCurrency(selectedItem.harga)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Pembeli:</strong>
+                  <span>
+                    {selectedItem.detail_transaksi?.transaksi.pembeli.nama}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Tanggal Transaksi:</strong>
+                  <span>
+                    {formatDate(
+                      selectedItem.detail_transaksi?.transaksi
+                        .tanggal_transaksi as string
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Total Harga:</strong>
+                  <span>
+                    {formatCurrency(
+                      selectedItem.detail_transaksi?.transaksi
+                        .total_harga as number
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Total Akhir:</strong>
+                  <span>
+                    {formatCurrency(
+                      selectedItem.detail_transaksi?.transaksi
+                        .total_akhir as number
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Status Pembayaran:</strong>
                   <span
                     className={
                       selectedItem.detail_transaksi?.transaksi
@@ -254,21 +252,49 @@ export default function Home() {
                   >
                     {selectedItem.detail_transaksi?.transaksi.status_Pembayaran}
                   </span>
-                </p>
-                <p>
-                  <strong className="text-gray-700">Poin:</strong>{" "}
-                  {selectedItem.detail_transaksi?.poin}
-                </p>
-                <p>
-                  <strong className="text-gray-700">Komisi Penitip:</strong>{" "}
-                  {formatCurrency(
-                    selectedItem.detail_transaksi?.komisi_penitip as number
-                  )}
-                </p>
+                </div>
+                {selectedItem.detail_transaksi?.transaksi.pengiriman && (
+                  <>
+                    <div className="flex justify-between">
+                      <strong className="text-gray-700">
+                        Status Pengiriman:
+                      </strong>
+                      <span className="text-green-600">
+                        {
+                          selectedItem.detail_transaksi.transaksi.pengiriman
+                            .status_pengiriman
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <strong className="text-gray-700">
+                        Tanggal Pengiriman:
+                      </strong>
+                      <span>
+                        {formatDate(
+                          selectedItem.detail_transaksi.transaksi.pengiriman
+                            .tanggal
+                        )}
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Poin:</strong>
+                  <span>{selectedItem.detail_transaksi?.poin}</span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Komisi Penitip:</strong>
+                  <span>
+                    {formatCurrency(
+                      selectedItem.detail_transaksi?.komisi_penitip as number
+                    )}
+                  </span>
+                </div>
               </div>
               <button
                 onClick={closeModal}
-                className="mt-6 w-full py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                className="mt-4 w-full py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
               >
                 Tutup
               </button>
