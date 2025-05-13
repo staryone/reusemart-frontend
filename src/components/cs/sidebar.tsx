@@ -50,7 +50,7 @@ export default function SideBar() {
           <SidebarItem href="/cs/diskusi" icon={HiChat}>
             Diskusi
           </SidebarItem>
-          <SidebarItem href="/admin/penitip-master" icon={HiUser}>
+          <SidebarItem href="/cs/penitip-master" icon={HiUser}>
             Penitip
           </SidebarItem>
           <hr />
