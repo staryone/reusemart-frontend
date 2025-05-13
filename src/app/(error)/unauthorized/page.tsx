@@ -16,7 +16,7 @@ export default function Unauthorized() {
       </p>
       <Button
         onClick={() => router.push("/")}
-        className="bg-[#1980e6] hover:bg-[#1980e6]/80"
+        className="bg-[#72C678] hover:from-[#72C678] hover:to-[#008E6D]"
       >
         Kembali ke Halaman Utama
       </Button>
