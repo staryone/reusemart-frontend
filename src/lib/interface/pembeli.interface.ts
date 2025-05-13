@@ -1,4 +1,5 @@
 import { Alamat } from "./alamat.interface";
+import { Transaksi } from "./transaksi.interface";
 
 export interface Pembeli {
   id_pembeli: string;
@@ -7,5 +8,5 @@ export interface Pembeli {
   nomor_telepon: string;
   poin_loyalitas: number;
   alamat: Alamat[];
-  // transaksi: Transaksi[];
+  transaksi: Transaksi[];
 }

@@ -1,10 +1,12 @@
 "use client";
 import Navbar from "@/components/utama/navbar";
+import CardTransaksi from "@/components/pembeli/card-transaksi";
 import Link from "next/link";
 
 import { getProfilPembeli } from "@/lib/api/pembeli.api";
 import { Pembeli } from "@/lib/interface/pembeli.interface";
 import { Alamat } from "@/lib/interface/alamat.interface";
+import { Transaksi } from "@/lib/interface/transaksi.interface";
 
 import { useState, useEffect } from "react";
 import { getToken } from "@/lib/auth/auth";
@@ -57,6 +59,8 @@ export default function ProfilePage() {
     }
   }, [pembeli]);
 
+  const transaksiList = pembeli?.transaksi || [];
+
   return (
     <div className="min-h-screen bg-gray-50 px-6 pb-10 pt-26">
       <Navbar />
@@ -72,7 +76,7 @@ export default function ProfilePage() {
           {/* Points */}
           <div>
             <h2 className="text-lg font-semibold text-gray-800">Total Poin</h2>
-            <p className="text-[#2662d9] text-2xl font-bold mt-1">
+            <p className="text-[#008E6D] text-2xl font-bold mt-1">
               {pembeli?.poin_loyalitas} Poin
             </p>
           </div>
@@ -91,7 +95,7 @@ export default function ProfilePage() {
           {/* Address */}
           <div>
             <h2 className="text-lg font-semibold text-gray-800">Alamat</h2>
-            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 mt-2">
+            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 mt-2 mb-2">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold text-gray-800">
                   {alamat?.nama_alamat}
@@ -108,12 +112,36 @@ export default function ProfilePage() {
             </div>
             <Link
               href={"/daftar-alamat"}
-              className="text-[#2662d9] text-md hover:underline hover:text-blue-500"
+              className="text-[#72C678] hover:text-[#008E6D] font-semibold"
             >
               Daftar alamat
             </Link>
           </div>
         </div>
+      </div>
+      {/* <div className="mt-5 max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="block">Daftar Transaksi</div>
+        <div>
+          {transaksiList.length === 0 ? (
+            <p>Tidak ada transaksi.</p>
+          ) : (
+            <div className="space-y-4">
+              {transaksiList.map((trx) => (
+                <CardTransaksi key={trx.id_transaksi} transaksi={trx} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div> */}
+      <div className="mt-5 max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8">
+        <h2 className="text-xl font-bold mb-4">Daftar Transaksi</h2>
+        {transaksiList.length === 0 ? (
+          <p className="text-gray-500">Tidak ada transaksi.</p>
+        ) : (
+          transaksiList.map((trx) => (
+            <CardTransaksi key={trx.id_transaksi} transaksi={trx} />
+          ))
+        )}
       </div>
     </div>
   );
