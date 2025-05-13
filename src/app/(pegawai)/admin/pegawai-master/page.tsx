@@ -300,8 +300,8 @@ export default function PegawaiMaster() {
                 <option value="">Pilih Jabatan</option>
                 <option value="1">Owner</option>
                 <option value="2">Admin</option>
-                <option value="3">Customer Service</option>
-                <option value="4">Gudang</option>
+                <option value="3">Gudang</option>
+                <option value="4">Customer Service</option>
                 <option value="5">Kurir</option>
                 <option value="6">Hunter</option>
               </Select>
@@ -433,8 +433,8 @@ export default function PegawaiMaster() {
                 <option value="">Pilih Jabatan</option>
                 <option value="1">Owner</option>
                 <option value="2">Admin</option>
-                <option value="3">Customer Service</option>
-                <option value="4">Gudang</option>
+                <option value="3">Gudang</option>
+                <option value="4">Customer Service</option>
                 <option value="5">Kurir</option>
                 <option value="6">Hunter</option>
               </Select>
