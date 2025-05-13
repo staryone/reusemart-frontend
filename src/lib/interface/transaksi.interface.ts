@@ -1,4 +1,4 @@
-import { Barang } from "./barang.interface";
+import { DetailTransaksi } from "./detail-transaksi.interface";
 
 export interface Transaksi {
   id_transaksi: number;
@@ -12,5 +12,5 @@ export interface Transaksi {
   metode_pengiriman: string;
   ongkos_kirim: number;
   total_akhir: number;
-  barang: Barang[];
+  detail_transaksi: DetailTransaksi[];
 }
