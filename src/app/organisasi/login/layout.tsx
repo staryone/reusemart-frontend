@@ -28,11 +28,11 @@ export default function AdminLayout({
           if (data.valid) {
             router.push("/organisasi/request-donasi");
           } else {
-            router.push("/unauthorized");
+            setIsVerifying(false);
           }
         } catch (error) {
           console.error("Error verifying token:", error);
-          router.push("/unauthorized");
+          setIsVerifying(false);
         }
       } else {
         setIsVerifying(false);
