@@ -1,38 +1,49 @@
 "use client";
+
 import Navbar from "@/components/utama/navbar";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { getBarang } from "@/lib/api/barang.api";
 import { Barang, Gambar } from "@/lib/interface/barang.interface";
-import { getListDiskusi, createDiskusi } from "@/lib/api/diskusi.api";
-import { Diskusi } from "@/lib/interface/diskusi.interface";
+import { getListByBarangId, createDiskusi } from "@/lib/api/diskusi.api";
+import { getToken } from "@/lib/auth/auth";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { getToken } from "@/lib/auth/auth";
+import Image from "next/image";
+
+export interface DiskusiPublic {
+  id_diskusi: number;
+  tanggal_diskusi: string;
+  pesan: string;
+  id_barang: string;
+  id_pembeli?: number;
+  id_cs?: number;
+  nama: string;
+  role: string;
+}
 
 export default function ProductDetails() {
   const [barang, setBarang] = useState<Barang | null>(null);
-  const [diskusi, setDiskusi] = useState<Diskusi[]>([]);
+  const [diskusi, setDiskusi] = useState<DiskusiPublic[]>([]);
   const [gambar, setGambar] = useState<Gambar[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { id } = useParams();
 
   const token = getToken() || "";
+
   useEffect(() => {
     async function fetchData() {
       try {
         // Fetch barang
         const barangResponse = await getBarang(id?.toString());
         setBarang(barangResponse);
-
         setGambar(barangResponse.gambar);
-        // Fetch diskusi with the updated paramsDiskusi
+
+        // Fetch diskusi
         if (token) {
-          const params = new URLSearchParams();
-          params.set("search", barangResponse.nama_barang);
-          const diskusiResponse = await getListDiskusi(params, token);
-          setDiskusi(diskusiResponse[0]);
+          const diskusiResponse = await getListByBarangId(id?.toString());
+          setDiskusi(diskusiResponse[0] || []);
         }
       } catch (error) {
         console.error("Gagal memuat data:", error);
@@ -42,18 +53,18 @@ export default function ProductDetails() {
   }, [id, token]);
 
   const formatDate = (dateString: string | undefined): string => {
-    if (!dateString) return "N/A"; // Handle missing dates
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date"; // Handle invalid dates
+    if (isNaN(date.getTime())) return "Invalid Date";
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
 
   const handleSubmitDiscussion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return; // Prevent empty submissions
+    if (!newMessage.trim()) return;
     setIsSubmitting(true);
 
     try {
@@ -64,10 +75,8 @@ export default function ProductDetails() {
       await createDiskusi(formData, token);
 
       // Refresh discussion list
-      const params = new URLSearchParams();
-      params.set("search", barang?.nama_barang || "");
-      const diskusiResponse = await getListDiskusi(params, token);
-      setDiskusi(diskusiResponse[0]);
+      const diskusiResponse = await getListByBarangId(id?.toString());
+      setDiskusi(diskusiResponse[0] || []);
 
       // Clear input
       setNewMessage("");
@@ -90,7 +99,7 @@ export default function ProductDetails() {
                   key={item.id_gambar}
                   className="slide relative w-full h-full"
                 >
-                  <img
+                  <Image
                     alt="sample_file"
                     src={item.url_gambar}
                     key={item.id_gambar}
@@ -178,24 +187,28 @@ export default function ProductDetails() {
             <div></div>
           )}
           {diskusi && diskusi.length > 0 ? (
-            diskusi.map((diskusi: Diskusi) => (
-              <div key={diskusi.id_diskusi}>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src="../profile.png"
-                      alt="profile"
-                      className="rounded-full h-8 border-1"
-                    />
-                    <div className="text-md">
-                      {diskusi.role == "CS" ? "Customer Service" : diskusi.nama}
+            <div>
+              {diskusi.map((diskusi: DiskusiPublic) => (
+                <div key={diskusi.id_diskusi}>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src="../profile.png"
+                        alt="profile"
+                        className="rounded-full h-8 border-1"
+                      />
+                      <div className="text-md">
+                        {diskusi.role === "CS"
+                          ? "Customer Service"
+                          : diskusi.nama}
+                      </div>
                     </div>
+                    <div className="text-lg ml-11">{diskusi.pesan}</div>
+                    <hr className="my-3 border-gray-400" />
                   </div>
-                  <div className="text-lg ml-11">{diskusi.pesan}</div>
-                  <hr className="my-3 border-gray-400" />
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
             <div>{token ? "Belum ada diskusi" : ""}</div>
           )}

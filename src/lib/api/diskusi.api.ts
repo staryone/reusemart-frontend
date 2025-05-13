@@ -1,4 +1,4 @@
-import { Diskusi } from "../interface/diskusi.interface";
+import { Diskusi, DiskusiPublic } from "../interface/diskusi.interface";
 import { ResponseAPI } from "../interface/response.interface";
 import { GET, POST } from "./fetch";
 
@@ -17,10 +17,9 @@ export async function getListDiskusi(
 }
 
 export async function getListByBarangId(
-  idBarang?: string,
-  accessToken?: string
-): Promise<[Diskusi[], number]> {
-  return await GET(`/diskusi/lists/${idBarang}`, accessToken);
+  idBarang?: string
+): Promise<[DiskusiPublic[], number]> {
+  return await GET(`/diskusi/lists/${idBarang}`);
 }
 
 export async function createDiskusi(

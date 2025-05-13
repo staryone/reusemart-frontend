@@ -8,3 +8,14 @@ export interface Diskusi {
   nama: string;
   role: string;
 }
+
+export interface DiskusiPublic {
+  id_diskusi: number;
+  tanggal_diskusi: string;
+  pesan: string;
+  id_barang: string;
+  id_pembeli?: number;
+  id_cs?: number;
+  nama: string;
+  role: string;
+}
