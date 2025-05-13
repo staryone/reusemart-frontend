@@ -28,6 +28,7 @@ import {
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
+import { getToken } from "@/lib/auth/auth";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListRequestDonasi(params, token);
@@ -54,9 +55,7 @@ export default function RequestDonasiMaster() {
     return params;
   }, [page, searchQuery]);
 
-  // ini nanti diganti sama token yang di session
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiUEVHQVdBSSIsImphYmF0YW4iOiJBZG1pbiIsImlhdCI6MTc0NjY3NjM5OCwiZXhwIjoxNzQ3MjgxMTk4fQ.ZTPJ7IdJa-6LYmB6yUx5CmKy6t6chRTb7Jpp9CgTeCg";
+  const token = getToken() || "";
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
