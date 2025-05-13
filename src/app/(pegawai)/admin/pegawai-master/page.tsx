@@ -44,6 +44,8 @@ export default function PegawaiMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   const token = getToken() || "";
 
@@ -58,9 +60,6 @@ export default function PegawaiMaster() {
     return params;
   }, [page, searchQuery]);
 
-  // ini nanti diganti sama token yang di session
-
-  // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
     fetcher,
@@ -80,6 +79,7 @@ export default function PegawaiMaster() {
   function onCloseModal() {
     setOpenModal(false);
     setSelectedPegawai(null);
+    setUpdateError(null);
   }
 
   function onCloseDeleteModal() {
@@ -94,6 +94,7 @@ export default function PegawaiMaster() {
 
   function onCloseCreateModal() {
     setOpenCreateModal(false);
+    setCreateError(null);
   }
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -116,13 +117,13 @@ export default function PegawaiMaster() {
       const res = await deletePegawai(selectedPegawai.id_pegawai, token);
 
       if (res) {
-        mutate(); // Revalidate data after deletion
+        mutate();
         onCloseDeleteModal();
       } else {
-        console.error("Failed to delete pegawai");
+        console.error("Gagal menghapus pegawai");
       }
-    } catch (error) {
-      console.error("Error deleting pegawai:", error);
+    } catch (error: unknown) {
+      console.error("Error menghapus pegawai:", error);
     }
   };
 
@@ -133,51 +134,67 @@ export default function PegawaiMaster() {
       const res = await resetPasswordPegawai(selectedPegawai.id_pegawai, token);
 
       if (res) {
-        mutate(); // Revalidate data after deletion
+        mutate();
         onCloseResetPasswordModal();
       } else {
-        console.error("Failed to reset password pegawai");
+        console.error("Gagal reset password pegawai");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error reset password pegawai:", error);
     }
   };
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setCreateError(null);
 
     const formData = new FormData(e.currentTarget);
     const createData = new FormData();
 
-    if (formData.get("nama")) {
-      createData.set("nama", formData.get("nama") as string);
-    }
-
-    if (formData.get("email")) {
-      createData.set("email", formData.get("email") as string);
-    }
-
-    if (formData.get("telp")) {
-      createData.set("nomor_telepon", formData.get("telp") as string);
-    }
-
-    if (formData.get("jabatan")) {
-      createData.set("id_jabatan", formData.get("jabatan") as string);
-    }
-
-    if (formData.get("tgl_lahir")) {
-      createData.set("tgl_lahir", formData.get("tgl_lahir") as string);
-    }
     try {
+      // Validasi input
+      const nama = formData.get("nama") as string;
+      const email = formData.get("email") as string;
+      const telp = formData.get("telp") as string;
+      const jabatan = formData.get("jabatan") as string;
+      const tglLahir = formData.get("tgl_lahir") as string;
+
+      if (!nama || nama.trim().length < 2) {
+        throw new Error("Nama harus diisi dan minimal 2 karakter");
+      }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error("Email tidak valid");
+      }
+      if (!telp || !/^\d{10,13}$/.test(telp)) {
+        throw new Error("Nomor telepon tidak valid (10-13 digit)");
+      }
+      if (!jabatan) {
+        throw new Error("Jabatan harus dipilih");
+      }
+      if (!tglLahir) {
+        throw new Error("Tanggal lahir harus diisi");
+      }
+
+      if (nama) createData.set("nama", nama);
+      if (email) createData.set("email", email);
+      if (telp) createData.set("nomor_telepon", telp);
+      if (jabatan) createData.set("id_jabatan", jabatan);
+      if (tglLahir) createData.set("tgl_lahir", tglLahir);
+
       const res = await createPegawai(createData, token);
 
       if (res) {
-        mutate(); // Revalidate data after creation
+        mutate();
         onCloseCreateModal();
       } else {
-        console.error("Failed to create pegawai");
+        throw new Error("Gagal membuat pegawai");
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat membuat pegawai";
+      setCreateError(errorMessage);
       console.error("Error creating pegawai:", error);
     }
   };
@@ -185,27 +202,36 @@ export default function PegawaiMaster() {
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedPegawai) return;
+    setUpdateError(null);
 
     const formData = new FormData(e.currentTarget);
     const updateData = new FormData();
 
-    if (formData.get("nama")) {
-      updateData.set("nama", formData.get("nama") as string);
-    }
-
-    if (formData.get("email")) {
-      updateData.set("email", formData.get("email") as string);
-    }
-
-    if (formData.get("telp")) {
-      updateData.set("nomor_telepon", formData.get("telp") as string);
-    }
-
-    if (formData.get("jabatan")) {
-      updateData.set("id_jabatan", formData.get("jabatan") as string);
-    }
-
     try {
+      // Validasi input
+      const nama = formData.get("nama") as string;
+      const email = formData.get("email") as string;
+      const telp = formData.get("telp") as string;
+      const jabatan = formData.get("jabatan") as string;
+
+      if (!nama || nama.trim().length < 2) {
+        throw new Error("Nama harus diisi dan minimal 2 karakter");
+      }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error("Email tidak valid");
+      }
+      if (!telp || !/^\d{10,13}$/.test(telp)) {
+        throw new Error("Nomor telepon tidak valid (10-13 digit)");
+      }
+      if (!jabatan) {
+        throw new Error("Jabatan harus dipilih");
+      }
+
+      if (nama) updateData.set("nama", nama);
+      if (email) updateData.set("email", email);
+      if (telp) updateData.set("nomor_telepon", telp);
+      if (jabatan) updateData.set("id_jabatan", jabatan);
+
       const res = await updatePegawai(
         selectedPegawai.id_pegawai,
         updateData,
@@ -216,16 +242,21 @@ export default function PegawaiMaster() {
         mutate();
         onCloseModal();
       } else {
-        console.error("Failed to update pegawai");
+        throw new Error("Gagal memperbarui pegawai");
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat memperbarui pegawai";
+      setUpdateError(errorMessage);
       console.error("Error updating pegawai:", error);
     }
   };
 
   const totalPages = Math.ceil(totalItems / limit);
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChangeKILLME = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setPage(newPage);
     }
@@ -240,6 +271,11 @@ export default function PegawaiMaster() {
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
               Edit Data Pegawai
             </h3>
+            {updateError && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+                {updateError}
+              </div>
+            )}
             <div>
               <div className="mb-2 block">
                 <Label htmlFor="nama">Nama Pegawai</Label>
@@ -373,6 +409,11 @@ export default function PegawaiMaster() {
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
               Tambah Pegawai Baru
             </h3>
+            {createError && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+                {createError}
+              </div>
+            )}
             <div>
               <div className="mb-2 block">
                 <Label htmlFor="nama">Nama Pegawai</Label>
@@ -436,7 +477,7 @@ export default function PegawaiMaster() {
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               <Button
                 type="submit"
-                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80 "
+                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80"
               >
                 Tambah Pegawai
               </Button>
@@ -465,7 +506,7 @@ export default function PegawaiMaster() {
           </form>
           <Button
             onClick={() => setOpenCreateModal(true)}
-            className="bg-[#1980e6] hover:bg-[#1980e6]/80 "
+            className="bg-[#1980e6] hover:bg-[#1980e6]/80"
           >
             Tambah Pegawai
           </Button>
@@ -573,14 +614,14 @@ export default function PegawaiMaster() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => handlePageChange(page - 1)}
+              onClick={() => handlePageChangeKILLME(page - 1)}
               disabled={page === 1}
               className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
             >
               Previous
             </button>
             <button
-              onClick={() => handlePageChange(page + 1)}
+              onClick={() => handlePageChangeKILLME(page + 1)}
               disabled={page === totalPages}
               className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
             >
