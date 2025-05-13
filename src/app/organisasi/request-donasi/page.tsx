@@ -274,7 +274,7 @@ export default function RequestDonasiMaster() {
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               <Button
                 type="submit"
-                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80"
+                className="py-2 px-8 rounded-[0.5rem] bg-[#72C678] text-white font-semibold hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300 w-full"
               >
                 Tambah Request
               </Button>
@@ -297,14 +297,14 @@ export default function RequestDonasiMaster() {
             />
             <button
               type="submit"
-              className="p-3 bg-blue-500 text-white rounded-md"
+              className="p-3 rounded-[0.5rem] bg-[#72C678] text-white font-semibold hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300"
             >
               <HiSearch />
             </button>
           </form>
           <Button
             onClick={() => setOpenCreateModal(true)}
-            className="bg-[#1980e6] hover:bg-[#1980e6]/80"
+            className="rounded-[0.5rem] bg-[#72C678] text-white font-semibold hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300"
           >
             Tambah Request
           </Button>
