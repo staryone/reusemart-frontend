@@ -124,14 +124,14 @@ export default function PenitipMaster() {
     try {
       const res = await createPenitip(formData, token);
 
-      if (res) {
+      if (res.data) {
         mutate(); // Revalidate data after creation
         onCloseCreateModal();
       } else {
-        console.error("Failed to create penitip");
+        console.error("Failed to create penitip ", res.errors);
       }
-    } catch (error) {
-      console.error("Error creating penitip:", error);
+    } catch (error: any) {
+      console.error("Error creating penitip:");
     }
   };
 
@@ -336,7 +336,7 @@ export default function PenitipMaster() {
               </div>
               <TextInput
                 id="ktp"
-                name="ktp"
+                name="nomor_ktp"
                 placeholder="Masukkan nomor KTP"
                 required
               />
@@ -382,7 +382,7 @@ export default function PenitipMaster() {
               </div>
               <TextInput
                 id="telp"
-                name="telp"
+                name="nomor_telepon"
                 placeholder="Masukkan nomor telepon"
                 required
               />
