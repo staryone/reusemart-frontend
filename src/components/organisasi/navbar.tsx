@@ -44,8 +44,8 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { label: "Request", path: "/" },
-    { label: "Profil", path: "/" },
+    { label: "Request", path: "/organisasi/request-donasi" },
+    { label: "Profil", path: "#" },
     { label: "Logout", onClick: () => setShowLogoutModal(true) },
   ];
 

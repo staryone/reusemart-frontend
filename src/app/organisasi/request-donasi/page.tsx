@@ -30,6 +30,7 @@ import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
 import { getToken } from "@/lib/auth/auth";
+import Navbar from "@/components/organisasi/navbar";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListRequestDonasi(params, token);
@@ -283,8 +284,8 @@ export default function RequestDonasiMaster() {
         </ModalBody>
       </Modal>
 
-      {/* <SideBar /> */}
-      <div className="flex-1 p-4 mx-10">
+      <Navbar />
+      <div className="flex-1 px-18 mt-18">
         <h1 className="text-4xl font-bold mt-10 mb-4">Requst Donasi</h1>
         <div className="flex justify-between items-center my-5">
           <form className="flex gap-3" onSubmit={handleSearch}>
