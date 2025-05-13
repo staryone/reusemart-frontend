@@ -116,7 +116,7 @@ export default function Login() {
             <div className="my-3">
               Belum punya akun?{" "}
               <Link
-                href={"/register"}
+                href={"/organisasi/register"}
                 className="text-[#72C678] hover:text-[#008E6D] font-semibold"
               >
                 Daftar disini!

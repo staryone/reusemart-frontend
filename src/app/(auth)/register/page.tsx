@@ -260,7 +260,7 @@ export default function Register() {
             >
               Register
             </button>
-            <div className="mt-5 w-full text-center">
+            <div className="mt-3 w-full text-center">
               <Link
                 href={"/organisasi/register"}
                 className="text-[#72C678] hover:text-[#008E6D]"
