@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { getListBarang } from "@/lib/api/barang.api";
 
@@ -24,16 +24,33 @@ export default function BeriDonasi() {
   const [historiDonasi, setHistoriDonasi] = useState<Donasi[]>([]);
   const [semuaBarang, setSemuaBarang] = useState<Barang[]>([]);
   const [organisasi, setOrganisasi] = useState<Organisasi | null>(null);
-  const [token, setToken] = useState("");
+  // const [token, setToken] = useState("");
 
-  const paramsBarang = new URLSearchParams({
-    status: "DIDONASIKAN",
-  });
-  const paramsDonasi = new URLSearchParams({});
+  const token = getToken() || "";
 
-  const tokenTemp = getToken();
-    if(tokenTemp)
-      setToken(tokenTemp);
+  const paramsBarang = useMemo(
+  () =>
+    new URLSearchParams({
+      status: "DIDONASIKAN",
+    }),
+  []
+);
+  const paramsDonasi = useMemo(
+  () =>
+    new URLSearchParams({}),
+  []
+);
+  // const paramsDonasi = new URLSearchParams({});
+
+//   useEffect(() => {
+//   const tokenTemp = getToken();
+//   if (tokenTemp) {
+//     setToken(tokenTemp);
+//   } else {
+//     // Handle missing token (e.g., redirect to login)
+//     console.error("No token found");
+//   }
+// }, []);
 
   useEffect(() => {
     async function fetchBarang() {
@@ -45,11 +62,12 @@ export default function BeriDonasi() {
       }
     }
     fetchBarang();
-  }, []);
+  }, [paramsBarang]);
 
   useEffect(() => {
     async function fetchDonasi() {
       try {
+        console.log(token);
         const response = await getListDonasi(
           id?.toString(),
           paramsDonasi,
@@ -62,7 +80,7 @@ export default function BeriDonasi() {
       }
     }
     fetchDonasi();
-  }, []);
+  }, [id, paramsDonasi, token]);
   useEffect(() => {
     async function fetchOrganisasi() {
       try {
@@ -74,7 +92,7 @@ export default function BeriDonasi() {
       }
     }
     fetchOrganisasi();
-  }, []);
+  }, [id, token]);
 
   const filteredBarang = semuaBarang.filter((barang) =>
     barang.nama_barang.toLowerCase().includes(searchTerm.toLowerCase())

@@ -17,6 +17,13 @@ export async function getListDonasi(
   return await GET(`/donasi/lists/${org}?${params}`, accessToken);
 }
 
+export async function getAllListDonasi(
+  params?: URLSearchParams,
+  accessToken?: string
+): Promise<[Donasi[], number]> {
+  return await GET(`/donasi/allLists?${params}`, accessToken);
+}
+
 export async function createDonasi(
   data: FormData,
   accessToken?: string
