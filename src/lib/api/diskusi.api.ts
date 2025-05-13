@@ -16,6 +16,13 @@ export async function getListDiskusi(
   return await GET(`/diskusi/lists?${params}`, accessToken);
 }
 
+export async function getListByBarangId(
+  idBarang?: string,
+  accessToken?: string
+): Promise<[Diskusi[], number]> {
+  return await GET(`/diskusi/lists/${idBarang}`, accessToken);
+}
+
 export async function createDiskusi(
   data: FormData,
   accessToken?: string
