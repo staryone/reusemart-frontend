@@ -44,9 +44,6 @@ export default function CardTransaksi({ transaksi }: Props) {
       {/* Tengah: Produk info */}
       <div className="flex w-6/12 items-start gap-4">
         <div className="flex flex-col">
-          {/* <p className="font-semibold text-sm mb-1 line-clamp-2">
-            {getFirstBarang(transaksi)?.nama_barang || "Barang tidak tersedia"}
-          </p> */}
           <p className="font-semibold text-sm mb-1 line-clamp-2">
             {getFirstBarang(transaksi)?.nama_barang || "Barang tidak tersedia"}
             <span className="font-normal text-xs">
@@ -65,7 +62,7 @@ export default function CardTransaksi({ transaksi }: Props) {
 
           <div className="flex gap-2 mt-3 text-sm">
             <Link
-              href={`/transaksi/${transaksi.id_transaksi}`}
+              href={`/detail-transaksi`}
               className="text-[#72C678] hover:text-[#008E6D] font-semibold"
             >
               Lihat Detail Transaksi
