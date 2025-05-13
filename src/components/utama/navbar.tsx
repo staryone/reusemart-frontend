@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
-import { removeToken } from "@/lib/auth/auth";
+import { getToken, removeToken } from "@/lib/auth/auth";
 import Image from "next/image";
 
 export default function Navbar() {
@@ -12,8 +12,31 @@ export default function Navbar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
-    const user = sessionStorage.getItem("token");
-    setIsLoggedIn(!!user);
+    const token = getToken();
+    const verifyToken = async () => {
+      if (!token) {
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/auth/verify/organisasi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await response.json();
+
+        if (!data.valid) {
+          setIsLoggedIn(false);
+        } else {
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        setIsLoggedIn(false);
+      }
+    };
+    verifyToken();
   }, []);
 
   const handleLogout = async () => {
