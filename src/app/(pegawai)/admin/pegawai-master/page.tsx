@@ -59,9 +59,7 @@ export default function PegawaiMaster() {
 
   // ini nanti diganti sama token yang di session
   const tokenTemp = getToken();
-  if(tokenTemp)
-    setToken(tokenTemp);
-  
+  if (tokenTemp) setToken(tokenTemp);
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
