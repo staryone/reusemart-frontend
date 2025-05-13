@@ -39,7 +39,8 @@ export default function OrganisasiMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrganisasi, setSelectedOrganisasi] = useState<Organisasi | null>(null);
-  
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
   const token = getToken() || "";
 
   const queryParams = useMemo(() => {
@@ -53,8 +54,6 @@ export default function OrganisasiMaster() {
     return params;
   }, [page, searchQuery]);
 
-  
-  // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
     fetcher,
@@ -74,6 +73,7 @@ export default function OrganisasiMaster() {
   function onCloseModal() {
     setOpenModal(false);
     setSelectedOrganisasi(null);
+    setUpdateError(null);
   }
 
   function onCloseDeleteModal() {
@@ -101,44 +101,54 @@ export default function OrganisasiMaster() {
       const res = await deleteOrganisasi(selectedOrganisasi.id_organisasi, token);
 
       if (res) {
-        mutate(); // Revalidate data after deletion
+        mutate();
         onCloseDeleteModal();
       } else {
-        console.error("Failed to delete organisasi");
+        throw new Error("Gagal menghapus organisasi");
       }
-    } catch (error) {
-      console.error("Error deleting organisasi:", error);
+    } catch (error: unknown) {
+      console.error("Error menghapus organisasi:", error);
     }
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedOrganisasi) return;
+    setUpdateError(null);
 
     const formData = new FormData(e.currentTarget);
     const updateData = new FormData();
 
-    if (formData.get("nama")) {
-      updateData.set("nama_organisasi", formData.get("nama") as string);
-    }
-
-    if (formData.get("email")) {
-      updateData.set("email", formData.get("email") as string);
-    }
-    
-    if (formData.get("alamat")) {
-      updateData.set("alamat", formData.get("alamat") as string);
-    }
-
-    if (formData.get("telp")) {
-      updateData.set("nomor_telepon", formData.get("telp") as string);
-    }
-
-    if (formData.get("desc")) {
-      updateData.set("deskripsi", formData.get("desc") as string);
-    }
-
     try {
+      // Validasi input
+      const nama = formData.get("nama") as string;
+      const email = formData.get("email") as string;
+      const alamat = formData.get("alamat") as string;
+      const telp = formData.get("telp") as string;
+      const desc = formData.get("desc") as string;
+
+      if (!nama || nama.trim().length < 2) {
+        throw new Error("Nama organisasi harus diisi dan minimal 2 karakter");
+      }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error("Email tidak valid");
+      }
+      if (!alamat || alamat.trim().length < 5) {
+        throw new Error("Alamat harus diisi dan minimal 5 karakter");
+      }
+      if (!telp || !/^\d{10,13}$/.test(telp)) {
+        throw new Error("Nomor telepon tidak valid (10-13 digit)");
+      }
+      if (!desc || desc.trim().length < 10) {
+        throw new Error("Deskripsi harus diisi dan minimal 10 karakter");
+      }
+
+      if (nama) updateData.set("nama_organisasi", nama);
+      if (email) updateData.set("email", email);
+      if (alamat) updateData.set("alamat", alamat);
+      if (telp) updateData.set("nomor_telepon", telp);
+      if (desc) updateData.set("deskripsi", desc);
+
       const res = await updateOrganisasi(
         selectedOrganisasi.id_organisasi,
         updateData,
@@ -149,9 +159,14 @@ export default function OrganisasiMaster() {
         mutate();
         onCloseModal();
       } else {
-        console.error("Failed to update organisasi");
+        throw new Error("Gagal memperbarui organisasi");
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat memperbarui organisasi";
+      setUpdateError(errorMessage);
       console.error("Error updating organisasi:", error);
     }
   };
@@ -173,6 +188,11 @@ export default function OrganisasiMaster() {
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
               Edit Data Organisasi
             </h3>
+            {updateError && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+                {updateError}
+              </div>
+            )}
             <div>
               <div className="mb-2 block">
                 <Label htmlFor="nama">Nama Organisasi</Label>
@@ -221,7 +241,12 @@ export default function OrganisasiMaster() {
               <div className="mb-2 block">
                 <Label htmlFor="desc">Deskripsi</Label>
               </div>
-              <Textarea id='desc' name='desc' defaultValue={selectedOrganisasi?.deskripsi} required></Textarea>
+              <Textarea
+                id="desc"
+                name="desc"
+                defaultValue={selectedOrganisasi?.deskripsi}
+                required
+              />
             </div>
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               <button
@@ -263,7 +288,6 @@ export default function OrganisasiMaster() {
           </div>
         </ModalBody>
       </Modal>
-      
       <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Organisasi</h1>
@@ -283,7 +307,6 @@ export default function OrganisasiMaster() {
               <HiSearch />
             </button>
           </form>
-          
         </div>
         <div className="w-full overflow-x-auto">
           <Table hoverable className="w-full border-1">
@@ -306,16 +329,16 @@ export default function OrganisasiMaster() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center">
-                    Loading...
+                    Memuat...
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center">
-                    Error loading data
+                    Error memuat data
                   </TableCell>
                 </TableRow>
-              ) : data && data[0].length > 0 ? (
+              ) : data && data[0]?.length > 0 ? (
                 data[0].map((organisasi: Organisasi, index: number) => (
                   <TableRow
                     key={organisasi.id_organisasi}
@@ -354,7 +377,7 @@ export default function OrganisasiMaster() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center">
-                    No data found
+                    Tidak ada data
                   </TableCell>
                 </TableRow>
               )}
@@ -363,12 +386,12 @@ export default function OrganisasiMaster() {
         </div>
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-gray-700">
-            Showing{" "}
-            <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+            Menampilkan{" "}
+            <span className="font-medium">{(page - 1) * limit + 1}</span> sampai{" "}
             <span className="font-medium">
               {Math.min(page * limit, totalItems)}
             </span>{" "}
-            of <span className="font-medium">{totalItems}</span> entries
+            dari <span className="font-medium">{totalItems}</span> entri
           </p>
           <div className="flex gap-2">
             <button
@@ -376,14 +399,14 @@ export default function OrganisasiMaster() {
               disabled={page === 1}
               className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
             >
-              Previous
+              Sebelumnya
             </button>
             <button
               onClick={() => handlePageChange(page + 1)}
               disabled={page === totalPages}
               className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
             >
-              Next
+              Selanjutnya
             </button>
           </div>
         </div>
