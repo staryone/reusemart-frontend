@@ -3,9 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { getListBarang } from "@/lib/api/barang.api";
-
 import { createDonasi, getListDonasi } from "@/lib/api/donasi.api";
-
 import { Barang } from "@/lib/interface/barang.interface";
 import { Donasi } from "@/lib/interface/donasi.interface";
 import { getOrganisasi } from "@/lib/api/organisasi.api";
@@ -24,202 +22,274 @@ export default function BeriDonasi() {
   const [historiDonasi, setHistoriDonasi] = useState<Donasi[]>([]);
   const [semuaBarang, setSemuaBarang] = useState<Barang[]>([]);
   const [organisasi, setOrganisasi] = useState<Organisasi | null>(null);
-  // const [token, setToken] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [barangError, setBarangError] = useState<string | null>(null);
+  const [donasiError, setDonasiError] = useState<string | null>(null);
+  const [organisasiError, setOrganisasiError] = useState<string | null>(null);
 
   const token = getToken() || "";
 
   const paramsBarang = useMemo(
-  () =>
-    new URLSearchParams({
-      status: "DIDONASIKAN",
-    }),
-  []
-);
-  const paramsDonasi = useMemo(
-  () =>
-    new URLSearchParams({}),
-  []
-);
-  // const paramsDonasi = new URLSearchParams({});
+    () =>
+      new URLSearchParams({
+        status: "DIDONASIKAN",
+      }),
+    []
+  );
 
-//   useEffect(() => {
-//   const tokenTemp = getToken();
-//   if (tokenTemp) {
-//     setToken(tokenTemp);
-//   } else {
-//     // Handle missing token (e.g., redirect to login)
-//     console.error("No token found");
-//   }
-// }, []);
+  const paramsDonasi = useMemo(() => new URLSearchParams({}), []);
 
   useEffect(() => {
+    if (!token) {
+      setFormError("Sesi tidak valid. Silakan login kembali.");
+      router.push("/login");
+      return;
+    }
+
     async function fetchBarang() {
       try {
         const response = await getListBarang(paramsBarang);
-        setSemuaBarang(response[0]);
-      } catch (error) {
+        if (response[0]) {
+          setSemuaBarang(response[0]);
+        } else {
+          throw new Error("Tidak ada barang tersedia");
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Gagal memuat daftar barang";
+        setBarangError(errorMessage);
         console.error("Gagal memuat barang:", error);
       }
     }
-    fetchBarang();
-  }, [paramsBarang]);
 
-  useEffect(() => {
     async function fetchDonasi() {
       try {
-        console.log(token);
-        const response = await getListDonasi(
-          id?.toString(),
-          paramsDonasi,
-          token
-        );
-        console.log(response);
-        setHistoriDonasi(response[0]);
-      } catch (error) {
-        console.error("Gagal memuat history:", error);
+        if (!id) throw new Error("ID organisasi tidak valid");
+        const response = await getListDonasi(id.toString(), paramsDonasi, token);
+        if (response[0]) {
+          setHistoriDonasi(response[0]);
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Gagal memuat histori donasi";
+        setDonasiError(errorMessage);
+        console.error("Gagal memuat histori donasi:", error);
       }
     }
-    fetchDonasi();
-  }, [id, paramsDonasi, token]);
-  useEffect(() => {
+
     async function fetchOrganisasi() {
       try {
-        const response = await getOrganisasi(id?.toString(), token);
-        console.log(response);
-        setOrganisasi(response);
-      } catch (error) {
-        console.error("Gagal memuat history:", error);
+        if (!id) throw new Error("ID organisasi tidak valid");
+        const response = await getOrganisasi(id.toString(), token);
+        if (response) {
+          setOrganisasi(response);
+        } else {
+          throw new Error("Organisasi tidak ditemukan");
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Gagal memuat data organisasi";
+        setOrganisasiError(errorMessage);
+        console.error("Gagal memuat organisasi:", error);
       }
     }
+
+    fetchBarang();
+    fetchDonasi();
     fetchOrganisasi();
-  }, [id, token]);
+  }, [id, paramsBarang, paramsDonasi, token, router]);
 
   const filteredBarang = semuaBarang.filter((barang) =>
     barang.nama_barang.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleInputChange = () => {
+    // Clear form error when user modifies inputs
+    if (formError) {
+      setFormError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const currentDate = new Date();
-    const formattedDate = currentDate.toISOString().slice(0, 19) + "Z";
-    const formData = new FormData(e.currentTarget);
-    const createData = new FormData();
-
-    if (formData.get("nama")) {
-      createData.set("nama_penerima", formData.get("nama") as string);
-    }
-
-    createData.set("id_barang", barangDonasi?.id_barang as string);
-
-    createData.set("id_request", id_request as string);
-
-    createData.set("tanggal_donasi", formattedDate as string);
+    setFormError(null);
 
     try {
+      // Validasi input
+      if (!namaPenerima || namaPenerima.trim().length < 2) {
+        throw new Error("Nama penerima harus diisi dan minimal 2 karakter");
+      }
+      if (!barangDonasi) {
+        throw new Error("Pilih barang donasi terlebih dahulu");
+      }
+      if (!id_request) {
+        throw new Error("ID request tidak valid");
+      }
+      if (!id) {
+        throw new Error("ID organisasi tidak valid");
+      }
+
+      const currentDate = new Date();
+      const formattedDate = currentDate.toISOString().slice(0, 19) + "Z";
+      const formData = new FormData(e.currentTarget);
+      const createData = new FormData();
+
+      if (formData.get("nama")) {
+        createData.set("nama_penerima", formData.get("nama") as string);
+      }
+      createData.set("id_barang", barangDonasi.id_barang);
+      createData.set("id_request", id_request);
+      createData.set("tanggal_donasi", formattedDate);
+
       const res = await createDonasi(createData, token);
 
       if (res) {
+        setNamaPenerima(""); // Reset form only on success
+        setBarangDonasi(null);
+        setSearchTerm("");
         router.push("/owner/request-donasi");
       } else {
-        console.error("Failed process donasi");
+        throw new Error("Gagal memproses donasi");
       }
-    } catch (error) {
-      console.error("Error:", error);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat memproses donasi";
+      setFormError(errorMessage);
+      console.error("Error memproses donasi:", error);
     }
-    setNamaPenerima("");
-    setBarangDonasi(null);
-    setSearchTerm("");
   };
 
   const formatDate = (dateString: string | undefined): string => {
-    if (!dateString) return "N/A"; // Handle missing dates
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date"; // Handle invalid dates
+    if (isNaN(date.getTime())) return "Tanggal tidak valid";
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
 
   return (
     <div className="w-screen p-10">
-      <h1 className="text-5xl font-bold mb-8">
-        Donasi ke{" "}
-        <span className="text-[#1980e6]">{organisasi?.nama_organisasi}</span>
-      </h1>
-      <div>Request:</div>
+      {organisasiError ? (
+        <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+          {organisasiError}
+        </div>
+      ) : (
+        <h1 className="text-5xl font-bold mb-8">
+          Donasi ke{" "}
+          <span className="text-[#1980e6]">
+            {organisasi?.nama_organisasi || "Memuat..."}
+          </span>
+        </h1>
+      )}
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Formulir */}
-        <form onSubmit={handleSubmit} className="w-full lg:w-1/2 space-y-4">
-          <div>
-            <label className="block font-semibold">Nama Penerima:</label>
-            <input
-              id="nama"
-              name="nama"
-              type="text"
-              value={namaPenerima}
-              onChange={(e) => setNamaPenerima(e.target.value)}
-              className="border p-2 w-full rounded"
-              placeholder="Masukkan nama penerima"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold">
-              Cari & Pilih Barang Donasi:
-            </label>
-
-            <div className="max-h-80 overflow-y-auto border rounded p-2">
-
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Cari barang..."
-                  className="border border-gray-500 p-2 w-full mb-4 rounded sticky top-0 bg-white"
-                />
-              <div className="flex flex-col gap-3">
-                {filteredBarang.map((barang) => (
-                  <button
-                    type="button"
-                    key={barang.id_barang}
-                    onClick={() => setBarangDonasi(barang)}
-                    className={`p-3 border rounded text-left transition text-sm ${
-                      barangDonasi?.id_barang === barang.id_barang
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-100"
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <div>{barang.nama_barang}</div>
-                      <div>Penitip: {barang.penitip.nama}</div>
-                      <div>ID: {barang.id_barang}</div>
-                    </div>
-                  </button>
-                ))}
+        <div className="w-full lg:w-1/2 space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {formError && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+                {formError}
               </div>
-            </div>
-
-            {barangDonasi && (
-              <p className="text-sm text-green-600 mt-2">
-                Barang yang dipilih: <strong>{barangDonasi.nama_barang}</strong>
-              </p>
             )}
-          </div>
-
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            Kirim Donasi
-          </button>
-        </form>
-
+            <div>
+              <label className="block font-semibold">Nama Penerima:</label>
+              <input
+                id="nama"
+                name="nama"
+                type="text"
+                value={namaPenerima}
+                onChange={(e) => {
+                  setNamaPenerima(e.target.value);
+                  handleInputChange();
+                }}
+                className="border p-2 w-full rounded"
+                placeholder="Masukkan nama penerima"
+                required
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">
+                Cari & Pilih Barang Donasi:
+              </label>
+              {barangError ? (
+                <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+                  {barangError}
+                </div>
+              ) : (
+                <div className="max-h-80 overflow-y-auto border rounded p-2">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      handleInputChange();
+                    }}
+                    placeholder="Cari barang..."
+                    className="border border-gray-500 p-2 w-full mb-4 rounded sticky top-0 bg-white"
+                  />
+                  <div className="flex flex-col gap-3">
+                    {filteredBarang.length === 0 ? (
+                      <p className="text-sm text-gray-500">
+                        Tidak ada barang ditemukan
+                      </p>
+                    ) : (
+                      filteredBarang.map((barang) => (
+                        <button
+                          type="button"
+                          key={barang.id_barang}
+                          onClick={() => {
+                            setBarangDonasi(barang);
+                            handleInputChange();
+                          }}
+                          className={`p-3 border rounded text-left transition text-sm ${
+                            barangDonasi?.id_barang === barang.id_barang
+                              ? "bg-blue-600 text-white"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <div>{barang.nama_barang}</div>
+                            <div>Penitip: {barang.penitip.nama}</div>
+                            <div>ID: {barang.id_barang}</div>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+              {barangDonasi && (
+                <p className="text-sm text-green-600 mt-2">
+                  Barang yang dipilih: <strong>{barangDonasi.nama_barang}</strong>
+                </p>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
+              disabled={!!formError}
+            >
+              Kirim Donasi
+            </button>
+          </form>
+        </div>
         {/* Histori */}
         <div className="w-full lg:w-1/2">
           <h2 className="text-2xl font-semibold mb-4">Histori Donasi</h2>
-          {historiDonasi.length === 0 ? (
+          {donasiError ? (
+            <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+              {donasiError}
+            </div>
+          ) : historiDonasi.length === 0 ? (
             <p>Belum ada donasi yang tercatat.</p>
           ) : (
             <ul className="space-y-2">
