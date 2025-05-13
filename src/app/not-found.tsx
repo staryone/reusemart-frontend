@@ -9,7 +9,7 @@ export default function NotFound() {
         Maaf, halaman yang Anda cari tidak ada atau telah dipindahkan.
       </p>
       <Link href="/">
-        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button className="px-6 py-3 bg-[#72C678] text-white rounded-lg hover:from-[#72C678] hover:to-[#008E6D] transition-colors">
           Kembali ke Homepage
         </button>
       </Link>

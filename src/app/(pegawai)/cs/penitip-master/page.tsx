@@ -45,7 +45,7 @@ export default function PenitipMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPenitip, setSelectedPenitip] = useState<Penitip | null>(null);
-  
+
   const token = getToken() || "";
 
   const queryParams = useMemo(() => {
@@ -60,7 +60,7 @@ export default function PenitipMaster() {
   }, [page, searchQuery]);
 
   // ini nanti diganti sama token yang di session
-  
+
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -473,7 +473,7 @@ export default function PenitipMaster() {
         </ModalBody>
       </Modal>
       <SideBar />
-      <div className="flex-1 p-4 ml-64">
+      <div className="flex-1 p-4 ml-64 w-screen">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Penitip</h1>
         <div className="flex justify-between items-center my-5">
           <form className="flex gap-3" onSubmit={handleSearch}>
@@ -493,23 +493,20 @@ export default function PenitipMaster() {
           </form>
           <Button
             onClick={() => setOpenCreateModal(true)}
-            className="bg-[#1980e6] hover:bg-[#1980e6]/80 "
+            className="bg-[#1980e6] hover:bg-[#1980e6]/80"
           >
             Tambah Penitip
           </Button>
         </div>
-        <div className="w-full overflow-x-auto">
-          <Table hoverable className="w-full border-1">
+        {/* Updated Table Container */}
+        <div className="overflow-x-auto">
+          <Table hoverable className="min-w-full border">
             <TableHead>
               <TableRow>
                 <TableHeadCell>No.</TableHeadCell>
                 <TableHeadCell>ID</TableHeadCell>
                 <TableHeadCell>Email</TableHeadCell>
                 <TableHeadCell>Nomor KTP</TableHeadCell>
-                {/* <TableHeadCell>
-                  Foto KTP
-                  <span className="sr-only">ShowS</span>
-                </TableHeadCell> */}
                 <TableHeadCell>Nama</TableHeadCell>
                 <TableHeadCell>Alamat</TableHeadCell>
                 <TableHeadCell>No. Telepon</TableHeadCell>
@@ -578,17 +575,6 @@ export default function PenitipMaster() {
                         Delete
                       </button>
                     </TableCell>
-                    {/* <TableCell>
-                      <button
-                        onClick={() => {
-                          setSelectedPenitip(penitip);
-                          setOpenResetPasswordModal(true);
-                        }}
-                        className="font-medium text-yellow-600 hover:underline dark:text-yellow-500"
-                      >
-                        Reset Password
-                      </button>
-                    </TableCell> */}
                   </TableRow>
                 ))
               ) : (

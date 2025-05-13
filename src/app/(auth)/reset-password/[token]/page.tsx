@@ -1,7 +1,7 @@
 "use client";
 
 import { checkValidTokenReset, resetPasswordUser } from "@/lib/api/user.api";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import Navbar from "@/components/utama/navbar";
 import toast, { Toaster } from "react-hot-toast";
