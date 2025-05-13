@@ -29,8 +29,6 @@ import {
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
-// const [ktp, setKtp] = useState('');
-// const [isAvailable, setIsAvailable] = useState(null);
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPenitip(params, token);
@@ -38,7 +36,6 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 export default function PenitipMaster() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  // const [openResetPasswordModal, setOpenResetPasswordModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -57,11 +54,8 @@ export default function PenitipMaster() {
       params.append("search", searchQuery);
     }
     return params;
-  }, [page, searchQuery]);
+  }, [page, searchQuery, limit]);
 
-  // ini nanti diganti sama token yang di session
-
-  // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
     fetcher,
@@ -87,11 +81,6 @@ export default function PenitipMaster() {
     setOpenDeleteModal(false);
     setSelectedPenitip(null);
   }
-
-  //   function onCloseResetPasswordModal() {
-  //     setOpenResetPasswordModal(false);
-  //     setSelectedPegawai(null);
-  //   }
 
   function onCloseCreateModal() {
     setOpenCreateModal(false);
@@ -127,55 +116,13 @@ export default function PenitipMaster() {
     }
   };
 
-  //   const handleResetPassword = async () => {
-  //     if (!selectedPegawai) return;
-
-  //     try {
-  //       const res = await resetPasswordPegawai(selectedPegawai.id_pegawai, token);
-
-  //       if (res) {
-  //         mutate(); // Revalidate data after deletion
-  //         onCloseResetPasswordModal();
-  //       } else {
-  //         console.error("Failed to reset password pegawai");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error reset password pegawai:", error);
-  //     }
-  //   };
-
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
-    const createData = new FormData();
-
-    if (formData.get("email")) {
-      createData.set("email", formData.get("email") as string);
-    }
-
-    if (formData.get("ktp")) {
-      createData.set("nomor_ktp", formData.get("ktp") as string);
-    }
-
-    if (formData.get("foto_ktp")) {
-      createData.set("foto_ktp", formData.get("foto_ktp") as string);
-    }
-
-    if (formData.get("nama")) {
-      createData.set("nama", formData.get("nama") as string);
-    }
-
-    if (formData.get("alamat")) {
-      createData.set("alamat", formData.get("alamat") as string);
-    }
-
-    if (formData.get("telp")) {
-      createData.set("nomor_telepon", formData.get("telp") as string);
-    }
 
     try {
-      const res = await createPenitip(createData, token);
+      const res = await createPenitip(formData, token);
 
       if (res) {
         mutate(); // Revalidate data after creation
@@ -236,20 +183,6 @@ export default function PenitipMaster() {
       setPage(newPage);
     }
   };
-
-  //   useEffect(() => {
-  //     // Debounce the KTP check to avoid excessive calls
-  //     const timer = setTimeout(async () => {
-  //       if (ktp.length >= 16) { // Assuming KTP is 16 digits
-  //         const available = await checkKtpAvailability(ktp);
-  //         setIsAvailable(available);
-  //       } else {
-  //         setIsAvailable(null);
-  //       }
-  //     }, 300);
-
-  //     return () => clearTimeout(timer);
-  //   }, [ktp]);
 
   return (
     <div className="flex">
@@ -344,35 +277,7 @@ export default function PenitipMaster() {
           </div>
         </ModalBody>
       </Modal>
-      {/* <Modal
-        show={openResetPasswordModal}
-        size="md"
-        onClose={onCloseResetPasswordModal}
-        popup
-      >
-        <ModalHeader />
-        <ModalBody>
-          <div className="text-center">
-            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Apakah Anda yakin ingin reset password data ini?
-            </h3>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={onCloseResetPasswordModal}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleResetPassword}
-                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
-              >
-                Reset Password
-              </button>
-            </div>
-          </div>
-        </ModalBody>
-      </Modal> */}
+
       <Modal
         show={openCreateModal}
         size="md"
@@ -381,7 +286,11 @@ export default function PenitipMaster() {
       >
         <ModalHeader />
         <ModalBody>
-          <form className="space-y-6" onSubmit={handleCreate}>
+          <form
+            className="space-y-6"
+            onSubmit={handleCreate}
+            encType="multipart/form-data"
+          >
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">
               Tambah Penitip Baru
             </h3>
@@ -399,6 +308,30 @@ export default function PenitipMaster() {
             </div>
             <div>
               <div className="mb-2 block">
+                <Label htmlFor="password">Password</Label>
+              </div>
+              <TextInput
+                id="password"
+                name="password"
+                placeholder="Masukkan password"
+                type="password"
+                required
+              />
+            </div>
+            <div>
+              <div className="mb-2 block">
+                <Label htmlFor="confirm_password">Konfirmasi Password</Label>
+              </div>
+              <TextInput
+                id="confirm_password"
+                name="confirm_password"
+                placeholder="Konfirmasi password"
+                type="password"
+                required
+              />
+            </div>
+            <div>
+              <div className="mb-2 block">
                 <Label htmlFor="ktp">Nomor KTP</Label>
               </div>
               <TextInput
@@ -408,26 +341,19 @@ export default function PenitipMaster() {
                 required
               />
             </div>
-            {/* <div className="relative">
-        <TextInput
-          id="ktp"
-          name="ktp"
-          placeholder="Masukkan nomor KTP"
-          required
-          value={ktp}
-          onChange={(e) => setKtp(e.target.value)}
-          className="pr-10"
-        />
-        {isAvailable !== null && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2">
-            {isAvailable ? (
-              <HiCheck className="h-5 w-5 text-green-500" />
-            ) : (
-              <HiX className="h-5 w-5 text-red-500" />
-            )}
-          </span>
-        )}
-      </div> */}
+            <div>
+              <div className="mb-2 block">
+                <Label htmlFor="foto_ktp">Foto KTP</Label>
+              </div>
+              <input
+                id="foto_ktp"
+                name="foto_ktp"
+                type="file"
+                accept="image/*"
+                required
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
             <div>
               <div className="mb-2 block">
                 <Label htmlFor="nama">Nama Penitip</Label>
@@ -441,7 +367,7 @@ export default function PenitipMaster() {
             </div>
             <div>
               <div className="mb-2 block">
-                <Label htmlFor="telp">Alamat</Label>
+                <Label htmlFor="alamat">Alamat</Label>
               </div>
               <TextInput
                 id="alamat"
@@ -464,7 +390,7 @@ export default function PenitipMaster() {
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               <Button
                 type="submit"
-                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80 "
+                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80"
               >
                 Tambah Penitip
               </Button>
