@@ -20,6 +20,12 @@ export async function getListPenitip(
   return await GET(`/penitip/lists?${params}`, accessToken);
 }
 
+export async function getListHistoryPenjualan(
+  accessToken: string
+): Promise<any> {
+  return await GET(`/penitip/history-penjualan`, accessToken);
+}
+
 export async function createPenitip(
   data: FormData,
   accessToken?: string

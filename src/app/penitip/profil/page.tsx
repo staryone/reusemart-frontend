@@ -1,6 +1,7 @@
 "use client";
 
-import Navbar from "@/components/penitip/navbar";
+// import Navbar from "@/components/penitip/navbar";
+import Sidebar from "@/components/penitip/sidebar";
 import { getProfilPenitip } from "@/lib/api/penitip.api";
 import { getToken } from "@/lib/auth/auth";
 import { Penitip } from "@/lib/interface/penitip.interface";
@@ -25,7 +26,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8 pt-24 pb-10">
-      <Navbar />
+      <Sidebar />
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {/* Left: Profile Summary */}
@@ -52,7 +53,7 @@ export default function ProfilePage() {
               <h2 className="text-base sm:text-lg font-semibold text-gray-800">
                 Total Saldo
               </h2>
-              <p className="text-blue-600 text-xl sm:text-2xl font-bold mt-1">
+              <p className="text-[#72C678] text-xl sm:text-2xl font-bold mt-1">
                 Rp
                 {penitip?.saldo !== undefined
                   ? new Intl.NumberFormat("id-ID").format(penitip.saldo)
@@ -63,12 +64,12 @@ export default function ProfilePage() {
               <h2 className="text-base sm:text-lg font-semibold text-gray-800">
                 Total Poin
               </h2>
-              <p className="text-blue-600 text-xl sm:text-2xl font-bold mt-1">
+              <p className="text-[#72C678] text-xl sm:text-2xl font-bold mt-1">
                 {penitip?.poin || 0} Poin
               </p>
             </div>
             <Link href="/penitip/transactions">
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base">
+              <button className="w-full bg-[#72C678] text-white py-2 px-4 rounded-lg hover:from-[#72C678] hover:to-[#008E6D] transition-colors text-sm sm:text-base">
                 Lihat Transaksi
               </button>
             </Link>

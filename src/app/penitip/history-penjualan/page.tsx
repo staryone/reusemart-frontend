@@ -1,58 +1,280 @@
 "use client";
-import Navbar from "@/components/utama/navbar";
-import "react-responsive-carousel/lib/styles/carousel.min.css";
-import Image from "next/image";
-import Link from "next/link";
 
+import { useState } from "react";
+import Head from "next/head";
+import Sidebar from "@/components/penitip/sidebar";
+import { getListHistoryPenjualan } from "@/lib/api/penitip.api";
+import { getToken } from "@/lib/auth/auth";
+import useSWR from "swr";
+import { HiX } from "react-icons/hi";
 
+// TypeScript interfaces
+interface Pembeli {
+  nama: string;
+}
 
-export default function HistoryPenjualan() {
+interface Transaksi {
+  id_transaksi: number;
+  tanggal_transaksi: string;
+  total_harga: number;
+  status_Pembayaran: string;
+  total_akhir: number;
+  pembeli: Pembeli;
+}
+
+interface DetailTransaksi {
+  id_dtl_transaksi: number;
+  poin: number;
+  komisi_penitip: number;
+  transaksi: Transaksi;
+}
+
+interface Barang {
+  id_barang: number;
+  nama_barang: string;
+  harga: number;
+  detail_transaksi: DetailTransaksi | null;
+}
+
+interface DetailPenitipan {
+  barang: Barang;
+}
+
+interface Penitipan {
+  id_penitipan: number;
+  tanggal_masuk: string;
+  tanggal_laku: string | null;
+  detail_penitipan: DetailPenitipan[];
+}
+
+// interface ApiResponse {
+//   nama: string;
+//   penitipan: Penitipan[];
+// }
+
+const fetcher = async (token: string) => await getListHistoryPenjualan(token);
+
+export default function Home() {
+  const [selectedItem, setSelectedItem] = useState<Barang | null>(null);
+  const token = getToken() || "";
+
+  const { data, error, isLoading } = useSWR(token, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const pad = (num: number) => num.toString().padStart(2, "0");
+    const months = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+    return `${pad(date.getDate())} ${
+      months[date.getMonth()]
+    } ${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(amount);
+  };
+
+  const openModal = (item: Barang) => {
+    setSelectedItem(item);
+  };
+
+  const closeModal = () => {
+    setSelectedItem(null);
+  };
+
   return (
-    <div className="overflow-x-hidden bg-gray-100 min-h-screen pb-40 pt-16">
-      <Navbar />
-      <div className="overflow-x-hidden w-screen py-10 px-24">
-        <h1 className="text-2xl font-bold mb-12">History Penjualan</h1>
-        <div className="p-8 bg-white rounded-2xl my-2">
-          <div className="flex">
-            <div className="flex justify-between ml-5 w-full">
-              <Link href={"/pages/product-details"} className="flex gap-5">
-                <div className="w-18 h-18">
-                  <Image
-                    src={"/product.png"}
-                    alt=""
-                    fill
-                    style={{ objectFit: "cover" }}
-                    className="rounded-xl relative!"
-                  />
+    <div className="min-h-screen bg-gray-100 p-4">
+      <Sidebar />
+      <Head>
+        <title>History Penjualan Penitip</title>
+        <meta name="description" content="Transaction history for penitip" />
+      </Head>
+
+      <div className="ml-64 p-4">
+        {isLoading ? (
+          <div className="text-center p-4">Loading...</div>
+        ) : error ? (
+          <div className="text-center p-4 text-red-500">Error memuat data</div>
+        ) : !data?.penitipan?.length ? (
+          <div className="text-center p-4">Tidak ada data penitipan</div>
+        ) : (
+          <div className="space-y-4">
+            {data.penitipan.map((penitipan: Penitipan) => (
+              <div
+                key={penitipan.id_penitipan}
+                className="bg-white border border-gray-300 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Penitipan ID: {penitipan.id_penitipan}
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  Tanggal Masuk: {formatDate(penitipan.tanggal_masuk)}
+                </p>
+                <p className="text-gray-600">
+                  Status:{" "}
+                  <span
+                    className={
+                      penitipan.tanggal_laku
+                        ? "text-green-600"
+                        : "text-yellow-600"
+                    }
+                  >
+                    {penitipan.tanggal_laku
+                      ? `Terjual (${formatDate(penitipan.tanggal_laku)})`
+                      : "Belum Terjual"}
+                  </span>
+                </p>
+
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-700">
+                    Detail Barang:
+                  </h3>
+                  <ul className="mt-2 divide-y divide-gray-200">
+                    {penitipan.detail_penitipan.map((detail) => (
+                      <li
+                        key={detail.barang.id_barang}
+                        className="py-3 flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {detail.barang.nama_barang}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Harga: {formatCurrency(detail.barang.harga)}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Status:{" "}
+                            <span
+                              className={
+                                detail.barang.detail_transaksi
+                                  ? "text-green-600"
+                                  : "text-yellow-600"
+                              }
+                            >
+                              {detail.barang.detail_transaksi
+                                ? "Terjual"
+                                : "Belum Terjual"}
+                            </span>
+                          </p>
+                        </div>
+                        {detail.barang.detail_transaksi && (
+                          <button
+                            onClick={() => openModal(detail.barang)}
+                            className="px-4 py-2 bg-[#72C678] text-white rounded-md hover:bg-[#008E6D] transition-colors"
+                          >
+                            Lihat Detail
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div className="flex flex-col">
-                  <div className="text-sm text-gray-400">
-                    Nomor nota: 25.04.202
-                  </div>
-                  <div>
-                    Apple watch keren bagus mahal{" "}
-                    <span className="text-gray-500">(+ 1 barang lainnya)</span>
-                  </div>
-                  <div className="text-gray-400 text-sm">20 April 2025</div>
-                </div>
-              </Link>
-              <div className="flex flex-col gap-3 items-end justify-between">
-                <div className="flex items-center gap-5">
-                  <div className="px-2 py-1 rounded-lg bg-amber-200 text-orange-500 font-bold text-sm">
-                    Diproses
-                  </div>
-                  <div className="text-xl font-semibold">Rp2.500.000</div>
-                </div>
-                <Link
-                  href={"/"}
-                  className="my-3 rounded-lg py-2 px-8 bg-blue-500 text-white hover:bg-white hover:text-blue-500 hover:border-1 hover:border-blue-500 transition-colors"
-                >
-                  Lihat detail
-                </Link>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Modal for Transaction Details */}
+        {selectedItem && (
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full border border-gray-300 shadow-xl">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Detail Transaksi
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <HiX size={24} />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <p>
+                  <strong className="text-gray-700">Nama Barang:</strong>{" "}
+                  {selectedItem.nama_barang}
+                </p>
+                <p>
+                  <strong className="text-gray-700">Harga:</strong>{" "}
+                  {formatCurrency(selectedItem.harga)}
+                </p>
+                <p>
+                  <strong className="text-gray-700">Pembeli:</strong>{" "}
+                  {selectedItem.detail_transaksi?.transaksi.pembeli.nama}
+                </p>
+                <p>
+                  <strong className="text-gray-700">Tanggal Transaksi:</strong>{" "}
+                  {formatDate(
+                    selectedItem.detail_transaksi?.transaksi
+                      .tanggal_transaksi as string
+                  )}
+                </p>
+                <p>
+                  <strong className="text-gray-700">Total Harga:</strong>{" "}
+                  {formatCurrency(
+                    selectedItem.detail_transaksi?.transaksi
+                      .total_harga as number
+                  )}
+                </p>
+                <p>
+                  <strong className="text-gray-700">Total Akhir:</strong>{" "}
+                  {formatCurrency(
+                    selectedItem.detail_transaksi?.transaksi
+                      .total_akhir as number
+                  )}
+                </p>
+                <p>
+                  <strong className="text-gray-700">Status Pembayaran:</strong>{" "}
+                  <span
+                    className={
+                      selectedItem.detail_transaksi?.transaksi
+                        .status_Pembayaran === "DITERIMA"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {selectedItem.detail_transaksi?.transaksi.status_Pembayaran}
+                  </span>
+                </p>
+                <p>
+                  <strong className="text-gray-700">Poin:</strong>{" "}
+                  {selectedItem.detail_transaksi?.poin}
+                </p>
+                <p>
+                  <strong className="text-gray-700">Komisi Penitip:</strong>{" "}
+                  {formatCurrency(
+                    selectedItem.detail_transaksi?.komisi_penitip as number
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={closeModal}
+                className="mt-6 w-full py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              >
+                Tutup
+              </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
