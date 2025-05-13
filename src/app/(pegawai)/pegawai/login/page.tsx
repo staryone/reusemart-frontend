@@ -52,7 +52,7 @@ export default function Login() {
         if (verifyData.decoded.jabatan?.toUpperCase() === "ADMIN") {
           router.push("/admin/pegawai-master");
         } else if (verifyData.decoded.jabatan?.toUpperCase() === "GUDANG") {
-          router.push("/gudang");
+          router.push("/gudang/dashboard");
         } else if (verifyData.decoded.jabatan?.toUpperCase() === "CS") {
           router.push("/cs/penitip-master");
         } else if (verifyData.decoded.jabatan?.toUpperCase() === "OWNER") {
