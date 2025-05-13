@@ -39,7 +39,7 @@ export default function SideBar() {
   return (
     <Sidebar
       aria-label="Default sidebar example"
-      className="fixed top-0 left-0 h-screen w-64"
+      className="fixed top-0 left-0 h-screen w-64 z-10"
     >
       <Toaster />
       <SidebarItems>
