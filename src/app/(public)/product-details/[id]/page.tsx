@@ -9,7 +9,6 @@ import { getListByBarangId, createDiskusi } from "@/lib/api/diskusi.api";
 import { getToken } from "@/lib/auth/auth";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import Image from "next/image";
 
 export interface DiskusiPublic {
   id_diskusi: number;
@@ -99,7 +98,7 @@ export default function ProductDetails() {
                   key={item.id_gambar}
                   className="slide relative w-full h-full"
                 >
-                  <Image
+                  <img
                     alt="sample_file"
                     src={item.url_gambar}
                     key={item.id_gambar}
