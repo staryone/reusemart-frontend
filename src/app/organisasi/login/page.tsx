@@ -49,7 +49,7 @@ export default function Login() {
 
       if (verifyResponse.ok && verifyData.valid) {
         setToken(token);
-        router.push("/");
+        router.push("/organisasi/request-donasi");
       } else {
         setError(verifyData.error || "Invalid user role or token");
         removeToken();

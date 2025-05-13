@@ -24,6 +24,7 @@ import {
   ModalBody,
   ModalHeader,
   TextInput,
+  Button,
 } from "flowbite-react";
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
@@ -164,7 +165,7 @@ export default function RequestDonasiMaster() {
       const res = await createRequestDonasi(createData, token);
 
       if (res) {
-        mutate(); // Revalidate data after creation
+        mutate();
         onCloseCreateModal();
       } else {
         console.error("Failed to create request donasi");
@@ -243,9 +244,48 @@ export default function RequestDonasiMaster() {
         </ModalBody>
       </Modal>
 
+      <Modal
+        show={openCreateModal}
+        size="md"
+        onClose={onCloseCreateModal}
+        popup
+      >
+        <ModalHeader />
+        <ModalBody>
+          <form
+            className="space-y-6"
+            onSubmit={handleCreate}
+            encType="multipart/form-data"
+          >
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+              Tambah Request Donasi
+            </h3>
+            <div>
+              <div className="mb-2 block">
+                <Label htmlFor="deskripsi">Deskripsi</Label>
+              </div>
+              <TextInput
+                id="deskripsi"
+                name="deskripsi"
+                placeholder="Masukkan deskripsi request"
+                required
+              />
+            </div>
+            <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
+              <Button
+                type="submit"
+                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80"
+              >
+                Tambah Request
+              </Button>
+            </div>
+          </form>
+        </ModalBody>
+      </Modal>
+
       {/* <SideBar /> */}
-      <div className="flex-1 p-4 ml-64">
-        <h1 className="text-4xl font-bold mt-12 mb-4">Requst Donasi</h1>
+      <div className="flex-1 p-4 mx-10">
+        <h1 className="text-4xl font-bold mt-10 mb-4">Requst Donasi</h1>
         <div className="flex justify-between items-center my-5">
           <form className="flex gap-3" onSubmit={handleSearch}>
             <input
@@ -262,6 +302,12 @@ export default function RequestDonasiMaster() {
               <HiSearch />
             </button>
           </form>
+          <Button
+            onClick={() => setOpenCreateModal(true)}
+            className="bg-[#1980e6] hover:bg-[#1980e6]/80"
+          >
+            Tambah Request
+          </Button>
         </div>
         <div className="w-full overflow-x-auto">
           <Table hoverable className="w-full border-1">
@@ -282,20 +328,24 @@ export default function RequestDonasiMaster() {
             <TableBody className="divide-y">
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     Error loading data
                   </TableCell>
                 </TableRow>
-              ) : data && data[0].length > 0 ? (
+              ) : data &&
+                Array.isArray(data) &&
+                data.length > 0 &&
+                Array.isArray(data[0]) &&
+                data[0].length > 0 ? (
                 data[0].map((reqDonasi: RequestDonasi, index: number) => (
                   <TableRow
-                    key={reqDonasi.id_organisasi}
+                    key={reqDonasi.id_request}
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                   >
                     <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
