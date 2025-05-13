@@ -39,7 +39,8 @@ export default function OrganisasiMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrganisasi, setSelectedOrganisasi] = useState<Organisasi | null>(null);
-  const [token, setToken] = useState("");
+  
+  const token = getToken() || "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -52,10 +53,7 @@ export default function OrganisasiMaster() {
     return params;
   }, [page, searchQuery]);
 
-  // ini nanti diganti sama token yang di session
-  const tokenTemp = getToken();
-    if(tokenTemp)
-      setToken(tokenTemp);
+  
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],

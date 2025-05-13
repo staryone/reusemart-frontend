@@ -41,10 +41,11 @@ export default function PegawaiMaster() {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [token, setToken] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
+
+  const token = getToken() || "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -58,10 +59,6 @@ export default function PegawaiMaster() {
   }, [page, searchQuery]);
 
   // ini nanti diganti sama token yang di session
-  const tokenTemp = getToken();
-  if(tokenTemp)
-    setToken(tokenTemp);
-  
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
