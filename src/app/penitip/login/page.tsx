@@ -143,7 +143,7 @@ export default function Login() {
             </div>
             <div className="w-full text-right text-sm font-medium">
               <Link
-                href="#"
+                href="/forgot-password"
                 className="text-[#72C678] hover:text-[#008E6D] font-medium text-right"
               >
                 Forgot Password?
