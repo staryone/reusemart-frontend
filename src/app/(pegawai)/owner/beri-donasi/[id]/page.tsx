@@ -8,7 +8,8 @@ import { Barang } from "@/lib/interface/barang.interface";
 import { Donasi } from "@/lib/interface/donasi.interface";
 import { getOrganisasi } from "@/lib/api/organisasi.api";
 import { Organisasi } from "@/lib/interface/organisasi.interface";
-import { getToken } from "@/lib/auth/auth";
+import { User } from "@/types/auth";
+import useSWR from "swr";
 
 export default function BeriDonasi() {
   const searchParams = useSearchParams();
@@ -27,7 +28,17 @@ export default function BeriDonasi() {
   const [donasiError, setDonasiError] = useState<string | null>(null);
   const [organisasiError, setOrganisasiError] = useState<string | null>(null);
 
-  const token = getToken() || "";
+  const fetcher = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
+
+  const token = currentUser ? currentUser.token : "";
 
   const paramsBarang = useMemo(
     () =>
@@ -56,9 +67,7 @@ export default function BeriDonasi() {
         }
       } catch (error: unknown) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Gagal memuat daftar barang";
+          error instanceof Error ? error.message : "Gagal memuat daftar barang";
         setBarangError(errorMessage);
         console.error("Gagal memuat barang:", error);
       }
@@ -67,7 +76,11 @@ export default function BeriDonasi() {
     async function fetchDonasi() {
       try {
         if (!id) throw new Error("ID organisasi tidak valid");
-        const response = await getListDonasi(id.toString(), paramsDonasi, token);
+        const response = await getListDonasi(
+          id.toString(),
+          paramsDonasi,
+          token
+        );
         if (response[0]) {
           setHistoriDonasi(response[0]);
         }
@@ -269,7 +282,8 @@ export default function BeriDonasi() {
               )}
               {barangDonasi && (
                 <p className="text-sm text-green-600 mt-2">
-                  Barang yang dipilih: <strong>{barangDonasi.nama_barang}</strong>
+                  Barang yang dipilih:{" "}
+                  <strong>{barangDonasi.nama_barang}</strong>
                 </p>
               )}
             </div>

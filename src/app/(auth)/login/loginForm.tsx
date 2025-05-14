@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { setToken } from "@/lib/auth/auth";
-import { removeToken } from "@/lib/auth/auth";
-import { BASE_URL, API_LOGIN_PENITIP } from "@/lib/env";
 import Image from "next/image";
+// import { handleSubmit } from "./actions";
+import { useRouter } from "next/navigation";
+import { Jabatan, Role, User } from "@/types/auth";
+import useSWR from "swr";
+import { getCurrentUserServer, getRedirectUrl } from "@/lib/auth";
+import { GetServerSidePropsContext } from "next";
 
-export default function Login() {
+export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -16,54 +18,11 @@ export default function Login() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      const loginResponse = await fetch(BASE_URL + API_LOGIN_PENITIP, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!loginResponse.ok) {
-        setError("Email atau password salah");
-
-        return;
-      }
-
-      const loginData = await loginResponse.json();
-      const token = loginData.data.token;
-
-      const verifyResponse = await fetch("/api/auth/verify/penitip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-
-      const verifyData = await verifyResponse.json();
-
-      if (verifyResponse.ok && verifyData.valid) {
-        setToken(token);
-        router.push("/penitip/profil");
-      } else {
-        setError(verifyData.error || "Invalid user role or token");
-        removeToken();
-      }
-    } catch (err) {
-      setError("An error occurred during login");
-      console.error(err);
-    }
-  };
-
   const validateForm = () => {
     let isValid = true;
     setEmailError("");
     setPasswordError("");
+    setError("");
 
     if (!email.trim()) {
       setEmailError("Email harus diisi");
@@ -78,6 +37,41 @@ export default function Login() {
     return isValid;
   };
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!email || !password) {
+      setError("All fields are required");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        router.refresh();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Internal server error");
+    }
+  }
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
     if (e.target.value.trim()) {
@@ -87,7 +81,7 @@ export default function Login() {
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
-    if (e.target.value.length >= 8) {
+    if (e.target.value) {
       setPasswordError("");
     }
   };
@@ -113,14 +107,25 @@ export default function Login() {
             className="flex flex-col items-start border border-gray-300 rounded-lg w-full max-w-md p-10 bg-white"
           >
             <div className="text-5xl mb-3 font-bold">Login</div>
+            <div className="my-3">
+              Belum punya akun?{" "}
+              <Link
+                href={"/register"}
+                className="text-[#72C678] hover:text-[#008E6D] font-semibold"
+              >
+                Daftar disini!
+              </Link>
+            </div>
+            {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
             <div className="my-4 w-full">
               <label className="block mb-1 text-gray-700">Email</label>
               <input
                 type="email"
+                name="email"
                 value={email}
                 onChange={handleEmailChange}
                 className={`w-full h-11 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72C678] focus:border-[#72C678] transition duration-200 border ${
-                  emailError || error ? "border-red-700" : "border-gray-500"
+                  emailError ? "border-red-700" : "border-gray-500"
                 }`}
               />
               {emailError && (
@@ -131,10 +136,11 @@ export default function Login() {
               <label className="block mb-1 text-gray-700">Password</label>
               <input
                 type="password"
+                name="password"
                 value={password}
                 onChange={handlePasswordChange}
                 className={`w-full h-11 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72C678] focus:border-[#72C678] transition duration-200 border ${
-                  passwordError || error ? "border-red-700" : "border-gray-500"
+                  passwordError ? "border-red-700" : "border-gray-500"
                 }`}
               />
               {passwordError && (
@@ -149,11 +155,6 @@ export default function Login() {
                 Forgot Password?
               </Link>
             </div>
-            {error && (
-              <div className="text-red-500 text-sm mt-3 w-full text-center">
-                {error}
-              </div>
-            )}
             <button
               type="submit"
               className="my-5 py-2 px-8 rounded-[0.5rem] bg-[#72C678] text-white font-semibold hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300 w-full"
