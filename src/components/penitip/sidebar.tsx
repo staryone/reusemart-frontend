@@ -1,6 +1,4 @@
 "use client";
-
-import { getToken, removeToken } from "@/lib/auth/auth";
 import {
   Sidebar,
   SidebarItem,
@@ -16,25 +14,20 @@ export default function SideBar() {
   const router = useRouter();
   const handleLogout = async () => {
     try {
-      const token = getToken();
-
-      const response = await fetch("http://localhost:3001/api/penitip/logout", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
       });
 
       if (response.ok) {
-        removeToken();
-        toast.success("Gagal logout berhasil!");
-        router.push("/penitip/login");
+        toast.success("Berhasil logout");
+        router.push("/login");
+        router.refresh();
       } else {
-        toast.error("Gagal logout dari server");
+        const errorData = await response.json();
+        toast.error(errorData.error || "Login failed");
       }
-    } catch (error: any) {
-      toast.error("Logout error: ", error);
+    } catch (error) {
+      toast.error("Internal server error: ");
     }
   };
 

@@ -2,7 +2,6 @@
 
 import SideBar from "@/components/cs/sidebar";
 import { getListDiskusi, createDiskusi } from "@/lib/api/diskusi.api";
-import { getToken } from "@/lib/auth/auth";
 import {
   Modal,
   ModalBody,
@@ -14,6 +13,7 @@ import {
 import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { HiSearch } from "react-icons/hi";
+import { User } from "@/types/auth";
 
 interface Diskusi {
   id_diskusi: number;
@@ -39,7 +39,17 @@ export default function Diskusi() {
   const [searchQuery, setSearchQuery] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
 
-  const token = getToken() || "";
+  const fetcherToken = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+
+  const token = currentUser ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({

@@ -6,9 +6,10 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { getBarang } from "@/lib/api/barang.api";
 import { Barang, Gambar } from "@/lib/interface/barang.interface";
 import { getListByBarangId, createDiskusi } from "@/lib/api/diskusi.api";
-import { getToken } from "@/lib/auth/auth";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { User } from "@/types/auth";
+import useSWR from "swr";
 
 export interface DiskusiPublic {
   id_diskusi: number;
@@ -29,7 +30,17 @@ export default function ProductDetails() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { id } = useParams();
 
-  const token = getToken() || "";
+  const fetcher = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
+
+  const token = currentUser ? currentUser.token : "";
 
   useEffect(() => {
     async function fetchData() {
@@ -43,13 +54,12 @@ export default function ProductDetails() {
 
         const diskusiResponse = await getListByBarangId(id?.toString());
         setDiskusi(diskusiResponse[0] || []);
-
       } catch (error) {
         console.error("Gagal memuat data:", error);
       }
     }
     fetchData();
-  }, [id, token]);
+  }, [id]);
 
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return "N/A";
@@ -71,7 +81,7 @@ export default function ProductDetails() {
       formData.append("pesan", newMessage);
       formData.append("id_barang", id?.toString() || "");
 
-      await createDiskusi(formData, token);
+      await createDiskusi(formData, currentUser ? currentUser.token : "");
 
       // Refresh discussion list
       const diskusiResponse = await getListByBarangId(id?.toString());
@@ -154,34 +164,35 @@ export default function ProductDetails() {
         </div>
         <div>
           <div className="text-2xl mt-10 mb-3 font-bold">Diskusi Produk</div>
-            {token ? 
-              <div>
-                <div className="mb-5">
-                  <form
-                    onSubmit={handleSubmitDiscussion}
-                    className="flex flex-col gap-3"
+          {token ? (
+            <div>
+              <div className="mb-5">
+                <form
+                  onSubmit={handleSubmitDiscussion}
+                  className="flex flex-col gap-3"
+                >
+                  <textarea
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Tulis pesan diskusi Anda..."
+                    className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
+                    disabled={isSubmitting}
+                  />
+                  <button
+                    type="submit"
+                    className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
+                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    disabled={isSubmitting}
                   >
-                    <textarea
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Tulis pesan diskusi Anda..."
-                      className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
-                      disabled={isSubmitting}
-                    />
-                    <button
-                      type="submit"
-                      className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
-                        isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Mengirim..." : "Kirim Diskusi"}
-                    </button>
-                  </form>
-                </div>
+                    {isSubmitting ? "Mengirim..." : "Kirim Diskusi"}
+                  </button>
+                </form>
               </div>
-              : <div></div>
-            }
+            </div>
+          ) : (
+            <div></div>
+          )}
           {diskusi && diskusi.length > 0 ? (
             <div>
               {diskusi.map((diskusi: DiskusiPublic) => (

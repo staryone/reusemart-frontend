@@ -1,45 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
-import { removeToken } from "@/lib/auth/auth";
 import Image from "next/image";
+import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-
-  useEffect(() => {
-    const user = sessionStorage.getItem("token");
-    setIsLoggedIn(!!user);
-  }, []);
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      const token = sessionStorage.getItem("token");
-
-      const response = await fetch(
-        "http://localhost:3001/api/organisasi/logout",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
 
       if (response.ok) {
-        removeToken();
-        setIsLoggedIn(false);
-        window.location.href = "/";
+        toast.success("Berhasil logout");
+        router.push("/login");
+        router.refresh();
       } else {
-        console.error("Gagal logout dari server");
+        const errorData = await response.json();
+        toast.error(errorData.error || "Login failed");
       }
     } catch (error) {
-      console.error("Logout error:", error);
+      toast.error("Internal server error");
     }
   };
 
@@ -51,6 +39,7 @@ export default function Navbar() {
 
   return (
     <>
+      <Toaster />
       <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
           {/* Logo */}

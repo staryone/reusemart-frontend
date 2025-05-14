@@ -20,10 +20,7 @@ import {
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
-import { getToken } from "@/lib/auth/auth";
-
-const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getListAlamat(params, token);
+import { User } from "@/types/auth";
 
 export default function ProfilePage() {
   const [openModal, setOpenModal] = useState(false);
@@ -40,10 +37,23 @@ export default function ProfilePage() {
     return params;
   }, [searchQuery]);
 
-  const token = getToken() || "";
+  const fetcherUser = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherUser);
+
+  const fetcher = async ([params, token]: [URLSearchParams, string]) => {
+    if (!token) return null;
+    return await getListAlamat(params, token);
+  };
 
   const { data, error, isLoading, mutate } = useSWR(
-    [queryParams, token],
+    [queryParams, currentUser ? currentUser.token : null],
     fetcher,
     {
       revalidateIfStale: false,
@@ -82,7 +92,10 @@ export default function ProfilePage() {
     if (!selectedAlamat) return;
 
     try {
-      const res = await deleteAlamat(selectedAlamat.id_alamat, token);
+      const res = await deleteAlamat(
+        selectedAlamat.id_alamat,
+        currentUser?.token
+      );
 
       if (res) {
         mutate(); // Revalidate data after deletion
@@ -109,7 +122,7 @@ export default function ProfilePage() {
       createData.set("detail_alamat", formData.get("detail") as string);
     }
     try {
-      const res = await createAlamat(createData, token);
+      const res = await createAlamat(createData, currentUser?.token);
 
       if (res) {
         mutate(); // Revalidate data after creation
@@ -141,7 +154,7 @@ export default function ProfilePage() {
       const res = await updateAlamat(
         selectedAlamat.id_alamat,
         updateData,
-        token
+        currentUser?.token
       );
 
       if (res) {
@@ -160,7 +173,11 @@ export default function ProfilePage() {
     updateData.set("status_default", "true");
 
     try {
-      const res = await updateAlamat(alamat.id_alamat, updateData, token);
+      const res = await updateAlamat(
+        alamat.id_alamat,
+        updateData,
+        currentUser?.token
+      );
 
       if (res) {
         mutate();

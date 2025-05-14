@@ -2,7 +2,6 @@
 
 import SideBar from "@/components/owner/sidebar";
 import { getAllListDonasi, updateDonasi } from "@/lib/api/donasi.api";
-import { getToken } from "@/lib/auth/auth";
 import { Donasi } from "@/lib/interface/donasi.interface";
 import {
   Table,
@@ -21,6 +20,7 @@ import {
 import { HiArrowDown, HiArrowUp } from "react-icons/hi";
 import { useState, useMemo } from "react";
 import useSWR from "swr";
+import { User } from "@/types/auth";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getAllListDonasi(params, token);
@@ -37,7 +37,17 @@ export default function RiwayatDonasi() {
     tanggal_donasi: "",
   });
   const [formError, setFormError] = useState("");
-  const token = getToken() || "";
+  const fetcherToken = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+
+  const token = currentUser ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -144,7 +154,7 @@ export default function RiwayatDonasi() {
       setOpenModal(false);
       mutate(); // Re-fetch data to reflect changes
     } catch (error) {
-      setFormError("Failed to update donation: "+error);
+      setFormError("Failed to update donation: " + error);
     }
   };
 
@@ -225,8 +235,8 @@ export default function RiwayatDonasi() {
         </div>
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-gray-700">
-            Showing <span className="font-medium">{(page - 1) * limit + 1}</span>{" "}
-            to{" "}
+            Showing{" "}
+            <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
             <span className="font-medium">
               {Math.min(page * limit, totalItems)}
             </span>{" "}
@@ -255,9 +265,7 @@ export default function RiwayatDonasi() {
           <ModalHeader>Edit Donasi</ModalHeader>
           <ModalBody>
             <div className="space-y-6">
-              {formError && (
-                <p className="text-red-500 text-sm">{formError}</p>
-              )}
+              {formError && <p className="text-red-500 text-sm">{formError}</p>}
               <div>
                 <label
                   htmlFor="nama_penerima"

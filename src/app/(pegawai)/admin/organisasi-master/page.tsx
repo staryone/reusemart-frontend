@@ -6,8 +6,8 @@ import {
   getListOrganisasi,
   updateOrganisasi,
 } from "@/lib/api/organisasi.api";
-import { getToken } from "@/lib/auth/auth";
 import { Organisasi } from "@/lib/interface/organisasi.interface";
+import { User } from "@/types/auth";
 import {
   Table,
   TableBody,
@@ -42,7 +42,17 @@ export default function OrganisasiMaster() {
     useState<Organisasi | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  const token = getToken() || "";
+  const fetcherToken = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+
+  const token = currentUser ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({

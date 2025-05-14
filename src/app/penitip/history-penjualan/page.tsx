@@ -4,9 +4,9 @@ import { useState } from "react";
 import Head from "next/head";
 import Sidebar from "@/components/penitip/sidebar";
 import { getListHistoryPenjualan } from "@/lib/api/penitip.api";
-import { getToken } from "@/lib/auth/auth";
 import useSWR from "swr";
 import { HiX } from "react-icons/hi";
+import { User } from "@/types/auth";
 
 // TypeScript interfaces
 interface Pembeli {
@@ -62,7 +62,17 @@ const fetcher = async (token: string) => await getListHistoryPenjualan(token);
 
 export default function Home() {
   const [selectedItem, setSelectedItem] = useState<Barang | null>(null);
-  const token = getToken() || "";
+  const fetcherToken = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+
+  const token = currentUser ? currentUser.token : "";
 
   const { data, error, isLoading } = useSWR(token, fetcher, {
     revalidateIfStale: false,

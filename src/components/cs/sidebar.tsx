@@ -9,31 +9,25 @@ import {
 import { HiChartPie, HiUser, HiChat, HiOutlineLogout } from "react-icons/hi";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { getToken, removeToken } from "@/lib/auth/auth";
 
 export default function SideBar() {
   const router = useRouter();
   const handleLogout = async () => {
     try {
-      const token = getToken();
-
-      const response = await fetch("http://localhost:3001/api/pegawai/logout", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
       });
 
       if (response.ok) {
-        removeToken();
-        toast.success("Logout berhasil!");
-        router.push("/pegawai/login");
+        toast.success("Berhasil logout");
+        router.push("/login");
+        router.refresh();
       } else {
-        toast.error("Gagal logout dari server");
+        const errorData = await response.json();
+        toast.error(errorData.error || "Login failed");
       }
-    } catch (error: any) {
-      toast.error("Logout error: ", error);
+    } catch (error) {
+      toast.error("Internal server error");
     }
   };
   return (

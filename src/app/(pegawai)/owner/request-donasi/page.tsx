@@ -2,8 +2,8 @@
 
 import SideBar from "@/components/owner/sidebar";
 import { getAllListRequestDonasi } from "@/lib/api/request-donasi.api";
-import { getToken } from "@/lib/auth/auth";
 import { RequestDonasi } from "@/lib/interface/request-donasi.interface";
+import { User } from "@/types/auth";
 import {
   Table,
   TableBody,
@@ -22,8 +22,18 @@ export default function RequestDonasiMaster() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  // const [token, setToken] = useState("");
-  const token = getToken() || "";
+
+  const fetcherToken = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+
+  const token = currentUser ? currentUser.token : "";
 
   const searchQuery = "MENUNGGU";
   const queryParams = useMemo(() => {
@@ -38,18 +48,13 @@ export default function RequestDonasiMaster() {
   }, [page, limit]);
 
   // ini nanti diganti sama token yang di session
-  
-      
+
   // ini penting
-  const { data, error, isLoading } = useSWR(
-    [queryParams, token],
-    fetcher,
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
+  const { data, error, isLoading } = useSWR([queryParams, token], fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 
   useMemo(() => {
     if (data && data[1] !== undefined) {
@@ -66,7 +71,7 @@ export default function RequestDonasiMaster() {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
-  
+
   const totalPages = Math.ceil(totalItems / limit);
 
   const handlePageChange = (newPage: number) => {
@@ -80,8 +85,7 @@ export default function RequestDonasiMaster() {
       <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Request Donasi</h1>
-        <div className="flex justify-between items-center my-5">
-        </div>
+        <div className="flex justify-between items-center my-5"></div>
         <div className="w-full overflow-x-auto">
           <Table hoverable className="w-full border-1">
             <TableHead>

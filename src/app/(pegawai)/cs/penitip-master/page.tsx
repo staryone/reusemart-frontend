@@ -8,8 +8,8 @@ import {
   //   resetPasswordPenitip,
   updatePenitip,
 } from "@/lib/api/penitip.api";
-import { getToken } from "@/lib/auth/auth";
 import { Penitip } from "@/lib/interface/penitip.interface";
+import { User } from "@/types/auth";
 import {
   Table,
   TableBody,
@@ -43,7 +43,17 @@ export default function PenitipMaster() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPenitip, setSelectedPenitip] = useState<Penitip | null>(null);
 
-  const token = getToken() || "";
+  const fetcherToken = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+
+  const token = currentUser ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -130,8 +140,8 @@ export default function PenitipMaster() {
       } else {
         console.error("Failed to create penitip ", res.errors);
       }
-    } catch (error: any) {
-      console.error("Error creating penitip:");
+    } catch (error: unknown) {
+      console.error("Error creating penitip:", error);
     }
   };
 

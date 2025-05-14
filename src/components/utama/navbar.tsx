@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
-import { getToken, removeToken } from "@/lib/auth/auth";
 import Image from "next/image";
+import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,27 +13,19 @@ export default function Navbar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
-    const token = getToken();
     const verifyToken = async () => {
-      if (!token) {
-        return;
-      }
-
       try {
-        const response = await fetch("/api/auth/verify/pembeli", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
         });
 
-        const data = await response.json();
-
-        if (!data.valid) {
-          setIsLoggedIn(false);
-        } else {
+        if (response.ok) {
           setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
         }
       } catch (error) {
+        console.error("Logout error:", error);
         setIsLoggedIn(false);
       }
     };
@@ -41,25 +34,20 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const token = sessionStorage.getItem("token");
-
-      const response = await fetch("http://localhost:3001/api/pembeli/logout", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
       });
 
       if (response.ok) {
-        removeToken();
+        toast.success("Berhasil logout");
+        setShowLogoutModal(false);
         setIsLoggedIn(false);
-        window.location.href = "/";
       } else {
-        console.error("Gagal logout dari server");
+        const errorData = await response.json();
+        toast.error(errorData.error || "Login failed");
       }
     } catch (error) {
-      console.error("Logout error:", error);
+      toast.error("Internal server error");
     }
   };
 
@@ -77,6 +65,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10">
+        <Toaster position="top-right" reverseOrder={false} />
         <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">

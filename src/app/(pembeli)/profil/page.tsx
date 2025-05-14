@@ -6,58 +6,49 @@ import Link from "next/link";
 import { getProfilPembeli } from "@/lib/api/pembeli.api";
 import { Pembeli } from "@/lib/interface/pembeli.interface";
 import { Alamat } from "@/lib/interface/alamat.interface";
-import { Transaksi } from "@/lib/interface/transaksi.interface";
 
-import { useState, useEffect } from "react";
-import { getToken } from "@/lib/auth/auth";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import useSWR from "swr";
+import { User } from "@/types/auth";
 
 export default function ProfilePage() {
   const [pembeli, setPembeli] = useState<Pembeli | null>(null);
   const [alamat, setAlamat] = useState<Alamat | null>(null);
 
-  const token = getToken() || "";
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      const verifyResponse = await fetch("/api/auth/verify/pembeli", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-      const verifyData = await verifyResponse.json();
-
-      if (verifyResponse.ok && verifyData.valid) {
-        return;
-      } else {
-        router.push("/");
-      }
-    };
-    checkLogin();
-  });
-
-  useEffect(() => {
-    async function fetchPembeli() {
-      try {
-        const response = await getProfilPembeli(token);
-
-        setPembeli(response);
-      } catch (error) {
-        console.error("Gagal memuat history:", error);
-      }
+  const fetcher = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
     }
-    fetchPembeli();
-  }, [token]);
+    return null;
+  };
 
-  useEffect(() => {
-    if (pembeli?.alamat) {
-      const defaultAlamat = pembeli.alamat.find(
+  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
+
+  const pembeliFetcher = async (token: string) => {
+    if (!token) return null;
+    return await getProfilPembeli(token);
+  };
+
+  const { data: pembeliData } = useSWR(
+    currentUser ? currentUser.token : null,
+    pembeliFetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+
+  if (pembeliData && pembeli !== pembeliData) {
+    setPembeli(pembeliData);
+    if (pembeliData?.alamat) {
+      const defaultAlamat = pembeliData.alamat.find(
         (element) => element.status_default
       );
       setAlamat(defaultAlamat || null);
     }
-  }, [pembeli]);
+  }
 
   const transaksiList = pembeli?.transaksi || [];
 
@@ -119,20 +110,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-      {/* <div className="mt-5 max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="block">Daftar Transaksi</div>
-        <div>
-          {transaksiList.length === 0 ? (
-            <p>Tidak ada transaksi.</p>
-          ) : (
-            <div className="space-y-4">
-              {transaksiList.map((trx) => (
-                <CardTransaksi key={trx.id_transaksi} transaksi={trx} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div> */}
       <div className="mt-5 max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8">
         <h2 className="text-xl font-bold mb-4">Daftar Transaksi</h2>
         {transaksiList.length === 0 ? (

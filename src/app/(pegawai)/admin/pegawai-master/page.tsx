@@ -8,8 +8,8 @@ import {
   resetPasswordPegawai,
   updatePegawai,
 } from "@/lib/api/pegawai.api";
-import { getToken } from "@/lib/auth/auth";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
+import { User } from "@/types/auth";
 import {
   Table,
   TableBody,
@@ -47,7 +47,17 @@ export default function PegawaiMaster() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  const token = getToken() || "";
+  const fetcherToken = async (url: string): Promise<User | null> => {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+
+  const token = currentUser ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({

@@ -138,7 +138,7 @@ export default function Home() {
           {isLoading ? (
             <div>Loading...</div>
           ) : error ? (
-            <div>Error memuat data</div> 
+            <div>Error memuat data</div>
           ) : data && data[0].length > 0 ? (
             data[0].map((barang: Barang) => (
               <div
