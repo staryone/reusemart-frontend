@@ -40,10 +40,10 @@ export default function ProductDetails() {
         setGambar(barangResponse.gambar);
 
         // Fetch diskusi
-        if (token) {
-          const diskusiResponse = await getListByBarangId(id?.toString());
-          setDiskusi(diskusiResponse[0] || []);
-        }
+
+        const diskusiResponse = await getListByBarangId(id?.toString());
+        setDiskusi(diskusiResponse[0] || []);
+
       } catch (error) {
         console.error("Gagal memuat data:", error);
       }
@@ -153,38 +153,35 @@ export default function ProductDetails() {
           <div className="text-md">{barang?.deskripsi}</div>
         </div>
         <div>
-          {token ? (
-            <div>
-              <div className="text-2xl mt-10 mb-3 font-bold">
-                Diskusi Produk
-              </div>
-              <div className="mb-5">
-                <form
-                  onSubmit={handleSubmitDiscussion}
-                  className="flex flex-col gap-3"
-                >
-                  <textarea
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Tulis pesan diskusi Anda..."
-                    className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
-                    disabled={isSubmitting}
-                  />
-                  <button
-                    type="submit"
-                    className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
-                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    disabled={isSubmitting}
+          <div className="text-2xl mt-10 mb-3 font-bold">Diskusi Produk</div>
+            {token ? 
+              <div>
+                <div className="mb-5">
+                  <form
+                    onSubmit={handleSubmitDiscussion}
+                    className="flex flex-col gap-3"
                   >
-                    {isSubmitting ? "Mengirim..." : "Kirim Diskusi"}
-                  </button>
-                </form>
+                    <textarea
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Tulis pesan diskusi Anda..."
+                      className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
+                      disabled={isSubmitting}
+                    />
+                    <button
+                      type="submit"
+                      className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
+                        isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Mengirim..." : "Kirim Diskusi"}
+                    </button>
+                  </form>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div></div>
-          )}
+              : <div></div>
+            }
           {diskusi && diskusi.length > 0 ? (
             <div>
               {diskusi.map((diskusi: DiskusiPublic) => (
@@ -209,7 +206,9 @@ export default function ProductDetails() {
               ))}
             </div>
           ) : (
-            <div>{token ? "Belum ada diskusi" : ""}</div>
+            <div>
+              <div className="flex flex-col">Belum ada diskusi</div>
+            </div>
           )}
         </div>
       </div>

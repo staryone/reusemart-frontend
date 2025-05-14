@@ -11,12 +11,20 @@ const fetcher = async ([params]: [URLSearchParams, string]) =>
   await getListBarang(params);
 
 export default function Home() {
-  // const [searchQuery] = useState("");
+  const [searchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   const formData = new FormData(e.currentTarget);
+  //   const search = formData.get("search-barang") as string;
+  //   setSearchQuery(search);
+  // };
 
   const tersediaOnly = "TERSEDIA";
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({});
+
     if (selectedCategory) {
       params.append("search", selectedCategory);
     }
@@ -24,7 +32,7 @@ export default function Home() {
       params.append("status", tersediaOnly);
     }
     return params;
-  }, [selectedCategory]);
+  }, [searchQuery]);
 
   const { data, error, isLoading } = useSWR([queryParams], fetcher, {
     revalidateIfStale: false,
@@ -36,13 +44,7 @@ export default function Home() {
     const primaryGambar = gambars.find((gambar: Gambar) => gambar.is_primary);
     return primaryGambar ? primaryGambar.url_gambar : null;
   };
-
-  // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const formData = new FormData(e.currentTarget);
-  //   const search = formData.get("search-alamat") as string;
-  //   setSearchQuery(search);
-  // };
+  // const barangList = Array.isArray(data) && data[0] ? data[0] : []
 
   const categories = [
     { id: "", name: "Semua" },
@@ -76,7 +78,7 @@ export default function Home() {
                 return (
                   new Date(b.createdAt).getTime() -
                   new Date(a.createdAt).getTime()
-                ); // Newest first
+                );
               })
               .slice(0, 10)
               .map((barang: Barang) => (
@@ -88,11 +90,6 @@ export default function Home() {
                     href={`/product-details/${barang.id_barang}`}
                     className="flex flex-col h-full"
                   >
-                    {/* <img
-                      className="p-8 rounded-t-lg"
-                      src={getPrimaryGambar(barang.gambar)}
-                      alt="product image"
-                    /> */}
                     <Image
                       src={getPrimaryGambar(barang.gambar) as string}
                       alt="product image"
@@ -141,7 +138,7 @@ export default function Home() {
           {isLoading ? (
             <div>Loading...</div>
           ) : error ? (
-            <div>Error memuat data</div>
+            <div>Error memuat data</div> 
           ) : data && data[0].length > 0 ? (
             data[0].map((barang: Barang) => (
               <div
