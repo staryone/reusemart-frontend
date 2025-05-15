@@ -495,7 +495,7 @@ export default function PenitipanMaster() {
               name="search-pegawai"
               id="search-pegawai"
               className="border rounded-md p-2 w-72"
-              placeholder="Cari pegawai"
+              placeholder="Cari penitipan"
             />
             <button
               type="submit"
@@ -508,7 +508,7 @@ export default function PenitipanMaster() {
             // onClick={() => setOpenCreateModal(true)}
             className="bg-[#1980e6] hover:bg-[#1980e6]/80"
           >
-            Tambah Pegawai
+            Tambah Penitipan
           </Button>
         </div>
         <div className="w-full overflow-x-auto">
@@ -526,9 +526,6 @@ export default function PenitipanMaster() {
                 </TableHeadCell>
                 <TableHeadCell>
                   <span className="sr-only">Delete</span>
-                </TableHeadCell>
-                <TableHeadCell>
-                  <span className="sr-only">Reset Password</span>
                 </TableHeadCell>
               </TableRow>
             </TableHead>
@@ -564,17 +561,6 @@ export default function PenitipanMaster() {
                         className="font-medium text-red-600 hover:underline dark:text-red-500"
                       >
                         Delete
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        // onClick={() => {
-                        //   setSelectedPegawai(pegawai);
-                        //   setOpenResetPasswordModal(true);
-                        // }}
-                        className="font-medium text-yellow-600 hover:underline dark:text-yellow-500"
-                      >
-                        Reset Password
                       </button>
                     </TableCell>
                   </TableRow>

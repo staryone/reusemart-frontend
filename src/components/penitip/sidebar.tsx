@@ -5,7 +5,7 @@ import {
   SidebarItemGroup,
   SidebarItems,
 } from "flowbite-react";
-import { HiClipboardList, HiUser, HiOutlineLogout } from "react-icons/hi";
+import { HiClipboardList, HiUser, HiOutlineLogout, HiCash } from "react-icons/hi";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -51,6 +51,9 @@ export default function SideBar() {
           </SidebarItem>
           <SidebarItem href="/penitip/history-penjualan" icon={HiClipboardList}>
             History Penjualan
+          </SidebarItem>
+          <SidebarItem href="/penitip/transaksi" icon={HiCash}>
+            Transaksi
           </SidebarItem>
           <SidebarItem onClick={handleLogout} icon={HiOutlineLogout}>
             Logout
