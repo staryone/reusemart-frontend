@@ -31,7 +31,7 @@ export default function Home() {
     if (tersediaOnly) {
       params.append("status", tersediaOnly);
     }
-    params.append("all","true");
+    params.append("all", "true");
     return params;
   }, [searchQuery]);
 
@@ -43,7 +43,7 @@ export default function Home() {
 
   const getPrimaryGambar = (gambars: Gambar[]): string | null => {
     const primaryGambar = gambars.find((gambar: Gambar) => gambar.is_primary);
-    return primaryGambar ? primaryGambar.url_gambar : null;
+    return primaryGambar ? primaryGambar.url_gambar : "/product.png";
   };
   // const barangList = Array.isArray(data) && data[0] ? data[0] : []
 
@@ -64,7 +64,13 @@ export default function Home() {
     <div className="overflow-x-hidden">
       <Navbar />
       <div className="mt-[5vw] w-[90vw] h-auto mx-auto">
-        <img src="banner.png" alt="image" className="w-screen" />
+        <Image
+          src="/banner.png"
+          width={1200}
+          height={300}
+          alt="image"
+          className="w-screen"
+        />
       </div>
       <div className="flex flex-col items-start justify-items-center px-18 py-18">
         <h2 className="text-4xl mb-4 mt-10">Barang Terbaru</h2>
