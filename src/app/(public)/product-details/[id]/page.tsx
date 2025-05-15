@@ -10,6 +10,8 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { User } from "@/types/auth";
 import useSWR from "swr";
+import { HiStar } from "react-icons/hi";
+
 
 export interface DiskusiPublic {
   id_diskusi: number;
@@ -120,7 +122,16 @@ export default function ProductDetails() {
             </Carousel>
           </div>
           <div className="flex flex-col items-start justify-items-center gap-10 max-w-1/2">
-            <div className="text-xl font-semibold">{barang?.nama_barang}</div>
+            <div>
+              <div className="text-xl font-semibold">{barang?.nama_barang}</div>
+              <div className="flex items-center gap-4">
+                <div className="text-sm mt-2 text-gray-600">{barang?.penitip.nama} </div>
+                <div className="flex justify-center items-center">
+                  <HiStar className="text-2xl text-yellow-300"/> 
+                  {barang?.penitip.rating}/5
+                </div>
+              </div>
+            </div>
             <div className="text-4xl font-semibold">
               Rp
               {barang?.harga !== undefined
@@ -138,10 +149,11 @@ export default function ProductDetails() {
         <div className="mt-10">
           <div className="text-2xl my-5 font-bold">Informasi Produk</div>
           <div className="flex flex-col gap-4 mb-10 text-md">
-            <div className="flex justify-between w-72">
+            {/* <div className="flex justify-between w-72">
               <div>Nama penitip: </div>
               <div>{barang?.penitip.nama}</div>
-            </div>
+              <div>{barang?.penitip.rating}</div>
+            </div> */}
             <div className="flex justify-between w-72">
               <div>Berat produk: </div>
               <div>{barang?.berat} kg</div>
