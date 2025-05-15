@@ -31,6 +31,7 @@ export default function Home() {
     if (tersediaOnly) {
       params.append("status", tersediaOnly);
     }
+    params.append("all","true");
     return params;
   }, [searchQuery]);
 
