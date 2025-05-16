@@ -4,8 +4,10 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Image from "next/image";
 import Link from "next/link";
 import { LucideTrash2 } from "lucide-react";
+import useSWR from "swr";
 
 export default function ProductDetails() {
+  
   return (
     <div className="overflow-x-hidden bg-gray-100 min-h-screen pb-40 pt-16">
       <Navbar />

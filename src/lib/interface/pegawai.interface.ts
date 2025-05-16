@@ -6,6 +6,7 @@ export interface Pegawai {
   komisi: number;
   tgl_lahir: string;
   jabatan: Jabatan;
+  errors?: string;
 }
 
 interface Jabatan {

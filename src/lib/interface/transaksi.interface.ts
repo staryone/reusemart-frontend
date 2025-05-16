@@ -15,4 +15,5 @@ export interface Transaksi {
   total_akhir: number;
   detail_transaksi: DetailTransaksi[];
   pengiriman: Pengiriman;
+  errors?: string;
 }

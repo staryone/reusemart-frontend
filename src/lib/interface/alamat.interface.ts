@@ -3,4 +3,5 @@ export interface Alamat {
   nama_alamat: string;
   detail_alamat: string;
   status_default: boolean;
+  errors?: string;
 }

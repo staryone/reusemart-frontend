@@ -7,6 +7,7 @@ export interface Diskusi {
   nama_barang: string;
   nama: string;
   role: string;
+  errors?: string;
 }
 
 export interface DiskusiPublic {
@@ -18,4 +19,5 @@ export interface DiskusiPublic {
   id_cs?: number;
   nama: string;
   role: string;
+  errors?: string;
 }

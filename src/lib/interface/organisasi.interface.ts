@@ -5,4 +5,5 @@ export interface Organisasi {
   alamat: string;
   nomor_telepon: string;
   deskripsi: string;
+  errors?: string;
 }

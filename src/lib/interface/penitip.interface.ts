@@ -14,4 +14,5 @@ export interface Penitip {
   total_per_bulan: number;
   poin: number;
   transaksi: [];
+  errors?: string;
 }

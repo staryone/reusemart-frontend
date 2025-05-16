@@ -9,4 +9,5 @@ export interface Pembeli {
   poin_loyalitas: number;
   alamat: Alamat[];
   transaksi: Transaksi[];
+  errors?: string;
 }

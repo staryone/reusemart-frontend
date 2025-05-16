@@ -7,5 +7,6 @@ export interface Donasi {
   nama_penerima: string;
   poin_penitip: number;
   barang: Barang;
-  request: RequestDonasi
+  request: RequestDonasi;
+  errors?: string;
 }

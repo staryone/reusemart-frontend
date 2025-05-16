@@ -9,4 +9,5 @@ export interface RequestDonasi {
   nama_organisasi: string;
   id_organisasi: number;
   organisasi: Organisasi;
+  errors?: string;
 }
