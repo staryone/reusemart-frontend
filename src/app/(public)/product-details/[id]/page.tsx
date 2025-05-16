@@ -11,7 +11,8 @@ import { useState, useEffect } from "react";
 import { User } from "@/types/auth";
 import useSWR from "swr";
 import { HiStar } from "react-icons/hi";
-
+import { createKeranjang } from "@/lib/api/keranjang.api";
+import toast, { Toaster } from "react-hot-toast";
 
 export interface DiskusiPublic {
   id_diskusi: number;
@@ -98,6 +99,22 @@ export default function ProductDetails() {
     }
   };
 
+  const handleSubmitKeranjang = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append("id_barang", id?.toString() || "");
+
+      const result = await createKeranjang(formData, token);
+      if (result.data) {
+        return toast.success("Barang berhasil masuk ke keranjang");
+      }
+      return toast.error("Barang gagal masuk ke keranjang");
+    } catch (error: any) {
+      return toast.error("error: ", error.message);
+    }
+  };
+
   return (
     <div className="overflow-x-hidden">
       <Navbar />
@@ -125,9 +142,11 @@ export default function ProductDetails() {
             <div>
               <div className="text-xl font-semibold">{barang?.nama_barang}</div>
               <div className="flex items-center gap-4">
-                <div className="text-sm mt-2 text-gray-600">{barang?.penitip.nama} </div>
+                <div className="text-sm mt-2 text-gray-600">
+                  {barang?.penitip.nama}{" "}
+                </div>
                 <div className="flex justify-center items-center">
-                  <HiStar className="text-2xl text-yellow-300"/> 
+                  <HiStar className="text-2xl text-yellow-300" />
                   {barang?.penitip.rating}/5
                 </div>
               </div>
@@ -138,10 +157,13 @@ export default function ProductDetails() {
                 ? new Intl.NumberFormat("id-ID").format(barang.harga)
                 : "0"}
             </div>
-            <button className="bg-blue-500 text-white p-3 rounded-lg w-64">
+            <button
+              onClick={handleSubmitKeranjang}
+              className="bg-blue-500 text-white p-3 rounded-lg w-64 hover:cursor-pointer hover:bg-blue-300"
+            >
               Tambahkan ke Keranjang
             </button>
-            <button className="text-blue-500 border-2 border-blue-500 p-3 rounded-lg w-64">
+            <button className="text-blue-500 border-2 border-blue-500 p-3 rounded-lg w-64 hover:cursor-pointer">
               Beli Langsung
             </button>
           </div>

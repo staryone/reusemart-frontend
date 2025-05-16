@@ -18,9 +18,10 @@ export async function createKeranjang(
 
 export async function updateStatusKeranjang(
   id: number,
+  data: FormData,
   accessToken?: string
 ): Promise<ResponseAPI> {
-  return await PATCH(`/keranjang/${id}`, undefined, accessToken);
+  return await PATCH(`/keranjang/${id}`, data, accessToken);
 }
 
 export async function deleteKeranjang(

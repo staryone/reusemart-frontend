@@ -23,6 +23,13 @@ const fetcher = async (url: string): Promise<User | null> => {
   return null;
 };
 
+const keranjangFetcher = async ([queryParams, token]: [
+  URLSearchParams,
+  string
+]): Promise<[Keranjang[], number]> => {
+  return await getListKeranjang(queryParams, token);
+};
+
 export default function Cart() {
   const [page] = useState(1);
   const [limit] = useState(10);
@@ -31,7 +38,7 @@ export default function Cart() {
   const { data: currentUser } = useSWR("/api/auth/me", fetcher);
   const token = currentUser ? currentUser.token : "";
 
-  const queryParams = useMemo(() => {
+  const queryParams: URLSearchParams = useMemo(() => {
     return new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -39,8 +46,8 @@ export default function Cart() {
   }, [page, limit]);
 
   const { data, mutate } = useSWR<[Keranjang[], number]>(
-    token ? [queryParams, token] : "",
-    async ([queryParams, token]) => await getListKeranjang(queryParams, token)
+    [queryParams, token],
+    keranjangFetcher
   );
 
   useMemo(() => {
@@ -71,49 +78,59 @@ export default function Cart() {
   }, [data]);
 
   // Handle select all
-  const handleSelectAll = useCallback(async () => {
-    if (!data?.[0]) return;
+  const handleSelectAll = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!data?.[0]) return;
 
-    const newStatus = !allSelected;
-    const updatePromises = data[0].map((item) =>
-      updateStatusKeranjang(item.id_keranjang, token).then(() => ({
-        ...item,
-        is_selected: newStatus,
-      }))
-    );
+      e.preventDefault();
+      const newStatus = e.target.checked;
+      const updateData = new FormData();
+      updateData.set("is_selected", JSON.stringify(newStatus));
 
-    try {
-      await Promise.all(updatePromises);
-      toast.success(
-        `Successfully ${newStatus ? "selected" : "deselected"} all items`
-      );
-      mutate();
-    } catch (error) {
-      toast.error("Failed to update selection status");
-      console.error("Failed to update selection status:", error);
-    }
-  }, [allSelected, data, token, mutate]);
-
-  // Handle select by penitip
-  const handleSelectPenitip = useCallback(
-    async (penitipId: number, items: Keranjang[]) => {
-      const allSelectedInGroup = items.every((item) => item.is_selected);
-      const newStatus = !allSelectedInGroup;
-
-      const updatePromises = items.map((item) =>
-        updateStatusKeranjang(item.id_keranjang, token).then(() => ({
-          ...item,
-          is_selected: newStatus,
-        }))
+      const updatePromises = data[0].map((item) =>
+        updateStatusKeranjang(item.id_keranjang, updateData, token).then(
+          () => ({
+            ...item,
+            is_selected: newStatus,
+          })
+        )
       );
 
       try {
         await Promise.all(updatePromises);
-        toast.success(
-          `Successfully ${
-            newStatus ? "selected" : "deselected"
-          } items from penitip`
-        );
+        mutate();
+      } catch (error) {
+        toast.error("Failed to update selection status");
+        console.error("Failed to update selection status:", error);
+      }
+    },
+    [data, token, mutate]
+  );
+
+  // Handle select by penitip
+  const handleSelectPenitip = useCallback(
+    async (
+      penitipId: number,
+      items: Keranjang[],
+      e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      e.preventDefault();
+      const newStatus = e.target.checked;
+
+      const updateData = new FormData();
+      updateData.set("is_selected", JSON.stringify(newStatus));
+
+      const updatePromises = items.map((item) =>
+        updateStatusKeranjang(item.id_keranjang, updateData, token).then(
+          () => ({
+            ...item,
+            is_selected: newStatus,
+          })
+        )
+      );
+
+      try {
+        await Promise.all(updatePromises);
         mutate();
       } catch (error) {
         toast.error("Failed to update penitip selection");
@@ -125,12 +142,14 @@ export default function Cart() {
 
   // Handle individual item selection
   const handleSelectItem = useCallback(
-    async (item: Keranjang) => {
+    async (item: Keranjang, e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      const newStatus = e.target.checked;
+      const updateData = new FormData();
+      console.log(JSON.stringify(newStatus));
+      updateData.set("is_selected", JSON.stringify(newStatus));
       try {
-        await updateStatusKeranjang(item.id_keranjang, token);
-        toast.success(
-          `Item ${item.is_selected ? "deselected" : "selected"} successfully`
-        );
+        await updateStatusKeranjang(item.id_keranjang, updateData, token);
         mutate();
       } catch (error) {
         toast.error("Failed to update item selection");
@@ -145,7 +164,6 @@ export default function Cart() {
     async (id: number) => {
       try {
         await deleteKeranjang(id, token);
-        toast.success("Item deleted successfully");
         mutate();
       } catch (error) {
         toast.error("Failed to delete item");
@@ -192,8 +210,8 @@ export default function Cart() {
                 id={`choosePenitip-${penitipId}`}
                 className="w-5 h-5"
                 checked={group.items.every((item) => item.is_selected)}
-                onChange={() =>
-                  handleSelectPenitip(Number(penitipId), group.items)
+                onChange={(event) =>
+                  handleSelectPenitip(Number(penitipId), group.items, event)
                 }
               />
               <label
@@ -211,7 +229,7 @@ export default function Cart() {
                   id={`chooseProduk-${item.id_keranjang}`}
                   className="w-5 h-5"
                   checked={item.is_selected}
-                  onChange={() => handleSelectItem(item)}
+                  onChange={(event) => handleSelectItem(item, event)}
                 />
                 <div className="flex justify-between ml-5 w-full">
                   <Link

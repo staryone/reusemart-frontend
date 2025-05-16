@@ -5,7 +5,6 @@ import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,7 +52,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: "Produk", path: "/" },
-    { label: "Transaksi", path: "/pages-transaksi" },
+    { label: "Transaksi", path: "/transaksi" },
     isLoggedIn
       ? { label: "Profil", path: "/profil" }
       : { label: "Login", path: "/login" },
@@ -65,7 +64,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10">
-        <Toaster position="top-right" reverseOrder={false} />
+        <Toaster position="top-center" reverseOrder={false} />
         <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
@@ -99,7 +98,7 @@ export default function Navbar() {
               </div>
             </div>
             <Link
-              href="#"
+              href="/cart"
               className="hidden md:block px-3 py-2 text-gray-700 rounded hover:bg-gray-100 text-xl"
             >
               <FaCartShopping />

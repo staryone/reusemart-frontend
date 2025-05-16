@@ -1,6 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
-export async function GET(path: String, accessToken?: string) {
+export async function GET(path: string, accessToken?: string) {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method: "GET",
