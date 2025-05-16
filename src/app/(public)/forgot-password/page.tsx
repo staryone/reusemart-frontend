@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { forgotPasswordUser } from "@/lib/api/user.api";
-import Navbar from "@/components/utama/navbar";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function ForgotPassword() {
@@ -55,7 +54,6 @@ export default function ForgotPassword() {
 
   return (
     <div>
-      <Navbar />
       <Toaster position="top-center" reverseOrder={false} />
       <div className="overflow-x-hidden w-screen min-h-screen p-4 sm:p-10 flex items-center justify-center bg-gray-100">
         <form

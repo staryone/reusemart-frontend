@@ -23,8 +23,7 @@ export default function Navbar() {
         } else {
           setIsLoggedIn(false);
         }
-      } catch (error) {
-        console.error("Logout error:", error);
+      } catch {
         setIsLoggedIn(false);
       }
     };
@@ -43,10 +42,10 @@ export default function Navbar() {
         setIsLoggedIn(false);
       } else {
         const errorData = await response.json();
-        toast.error(errorData.error || "Login failed");
+        toast.error(errorData.error || errorData.errors || "Login failed");
       }
-    } catch (error) {
-      toast.error("Internal server error");
+    } catch {
+      toast.error("Terjadi kesalahan saat logout. Silakan coba lagi");
     }
   };
 
@@ -63,9 +62,9 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10">
+      <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10 w-full">
         <Toaster position="top-center" reverseOrder={false} />
-        <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
+        <div className="max-w-screen-xl mx-auto flex items-center justify-between py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
             <Image

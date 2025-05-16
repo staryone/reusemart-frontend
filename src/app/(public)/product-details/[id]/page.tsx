@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "@/components/utama/navbar";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { getBarang } from "@/lib/api/barang.api";
@@ -12,7 +11,7 @@ import { User } from "@/types/auth";
 import useSWR from "swr";
 import { HiStar } from "react-icons/hi";
 import { createKeranjang } from "@/lib/api/keranjang.api";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export interface DiskusiPublic {
   id_diskusi: number;
@@ -110,14 +109,15 @@ export default function ProductDetails() {
         return toast.success("Barang berhasil masuk ke keranjang");
       }
       return toast.error("Barang gagal masuk ke keranjang");
-    } catch (error: any) {
-      return toast.error("error: ", error.message);
+    } catch {
+      return toast.error(
+        "Terjadi kesalahan tidak terduga, silahkan coba lagi! "
+      );
     }
   };
 
   return (
     <div className="overflow-x-hidden">
-      <Navbar />
       <div className="overflow-x-hidden w-screen pt-30 pb-10 px-24">
         <div className="flex justify-center gap-20 h-fit w-full">
           <div className="w-1/3 place-items-center">

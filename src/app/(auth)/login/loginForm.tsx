@@ -1,28 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-// import { handleSubmit } from "./actions";
 import { useRouter } from "next/navigation";
-import { Jabatan, Role, User } from "@/types/auth";
-import useSWR from "swr";
-import { getCurrentUserServer, getRedirectUrl } from "@/lib/auth";
-import { GetServerSidePropsContext } from "next";
+import toast from "react-hot-toast";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [error, setError] = useState("");
   const router = useRouter();
 
   const validateForm = () => {
     let isValid = true;
     setEmailError("");
     setPasswordError("");
-    setError("");
 
     if (!email.trim()) {
       setEmailError("Email harus diisi");
@@ -48,11 +42,6 @@ export default function LoginForm() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    if (!email || !password) {
-      setError("All fields are required");
-      return;
-    }
-
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -64,11 +53,11 @@ export default function LoginForm() {
         router.refresh();
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Login failed");
+        toast.error(errorData.error || "Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
-      setError("Internal server error");
+      toast.error("Internal server error");
     }
   }
 
@@ -116,7 +105,6 @@ export default function LoginForm() {
                 Daftar disini!
               </Link>
             </div>
-            {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
             <div className="my-4 w-full">
               <label className="block mb-1 text-gray-700">Email</label>
               <input

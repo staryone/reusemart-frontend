@@ -1,5 +1,4 @@
 "use client";
-import Navbar from "@/components/utama/navbar";
 import CardTransaksi from "@/components/pembeli/card-transaksi";
 import Link from "next/link";
 
@@ -54,7 +53,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 pb-10 pt-26">
-      <Navbar />
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left: Profile Summary */}
         <div className="flex flex-col justify-between">

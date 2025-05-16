@@ -14,8 +14,8 @@ export async function GET(path: string, accessToken?: string) {
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const json = await res.json();
     return json.totalItems ? [json.data, json.totalItems] : json.data;
-  } catch (error: any) {
-    throw new Error(`Gagal fetch ${path}: ${error.message}`);
+  } catch {
+    throw new Error(`Gagal fetch ${path}`);
   }
 }
 
@@ -37,8 +37,8 @@ export async function PATCH(
 
     const json = await res.json();
     return json;
-  } catch (error: any) {
-    throw new Error(`Gagal fetch ${path}: ${error.message}`);
+  } catch {
+    throw new Error(`Gagal fetch ${path}`);
   }
 }
 
@@ -56,8 +56,8 @@ export async function POST(path: string, data: FormData, accessToken?: string) {
 
     const json = await res.json();
     return json;
-  } catch (error: any) {
-    throw new Error(`Gagal fetch ${path}: ${error.message}`);
+  } catch {
+    throw new Error(`Gagal fetch ${path}`);
   }
 }
 
@@ -74,7 +74,7 @@ export async function DELETE(path: string, accessToken?: string) {
 
     const json = await res.json();
     return json;
-  } catch (error: any) {
-    throw new Error(`Gagal fetch ${path}: ${error.message}`);
+  } catch {
+    throw new Error(`Gagal fetch ${path}`);
   }
 }

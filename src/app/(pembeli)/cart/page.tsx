@@ -1,5 +1,4 @@
 "use client";
-import Navbar from "@/components/utama/navbar";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Image from "next/image";
 import Link from "next/link";
@@ -184,7 +183,6 @@ export default function Cart() {
   return (
     <div className="overflow-x-hidden bg-gray-100 min-h-screen pb-40 pt-16">
       <Toaster position="top-right" reverseOrder={false} />
-      <Navbar />
       <div className="overflow-x-hidden w-screen py-10 px-24">
         <h1 className="text-2xl font-bold mb-12">Keranjang</h1>
         <div className="p-8 bg-white rounded-2xl flex items-center">

@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "@/components/utama/navbar";
 import {
   Label,
   Modal,
@@ -313,7 +312,6 @@ export default function ProfilePage() {
           </form>
         </ModalBody>
       </Modal>
-      <Navbar />
       <div className="overflow-x-hidden w-screen px-24">
         <h1 className="text-2xl font-bold mb-8">Daftar Alamat</h1>
         <div className="flex justify-between">

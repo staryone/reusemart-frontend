@@ -4,7 +4,7 @@ import { checkValidTokenReset, resetPasswordUser } from "@/lib/api/user.api";
 import { useRouter, usePathname } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import Navbar from "@/components/utama/navbar";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function ResetPassword() {
         if (res) {
           setIsLoading(false);
         }
-      } catch (error) {
+      } catch {
         toast.error("Token tidak valid atau kadaluarsa");
         router.push("/login");
       }
@@ -75,7 +75,7 @@ export default function ResetPassword() {
 
       if (response.data) {
         toast.success("Password berhasil direset!");
-        setTimeout(() => router.push("/login"), 5000);
+        setTimeout(() => router.push("/login"), 1000);
       } else {
         toast.error("Gagal mereset password");
       }
@@ -106,7 +106,6 @@ export default function ResetPassword() {
 
   return (
     <div>
-      <Toaster position="top-center" reverseOrder={false} />
       <Navbar />
       <div className="overflow-x-hidden w-screen min-h-screen p-4 sm:p-10 flex items-center justify-center bg-gray-100">
         <form
