@@ -5,7 +5,7 @@ import { GET, POST, PATCH, DELETE } from "./fetch";
 export async function getListKeranjang(
   params?: URLSearchParams,
   accessToken?: string
-): Promise<Keranjang[]> {
+): Promise<[Keranjang[], number]> {
   return await GET(`/keranjang/lists?${params}`, accessToken);
 }
 

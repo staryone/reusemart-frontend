@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState, useMemo } from "react";
 import useSWR from "swr";
 import Footer from "../components/utama/footer";
+import Link from "next/link";
 
 const fetcher = async ([params]: [URLSearchParams, string]) =>
   await getListBarang(params);
@@ -93,7 +94,7 @@ export default function Home() {
                   className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-64"
                   key={barang.id_barang}
                 >
-                  <a
+                  <Link
                     href={`/product-details/${barang.id_barang}`}
                     className="flex flex-col h-full"
                   >
@@ -112,7 +113,7 @@ export default function Home() {
                         Rp{new Intl.NumberFormat("id-ID").format(barang.harga)}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               ))
           ) : (
@@ -152,7 +153,7 @@ export default function Home() {
                 className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-64"
                 key={barang.id_barang}
               >
-                <a
+                <Link
                   href={`/product-details/${barang.id_barang}`}
                   className="flex flex-col h-full"
                 >
@@ -176,7 +177,7 @@ export default function Home() {
                       Rp{new Intl.NumberFormat("id-ID").format(barang.harga)}
                     </div>
                   </div>
-                </a>
+                </Link>
               </div>
             ))
           ) : (
