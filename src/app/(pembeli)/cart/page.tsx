@@ -13,6 +13,7 @@ import {
 } from "@/lib/api/keranjang.api";
 import toast from "react-hot-toast";
 import { useUser } from "@/hooks/use-user";
+import { Modal, ModalBody, ModalHeader } from "flowbite-react";
 
 const keranjangFetcher = async ([queryParams, token]: [
   URLSearchParams,
@@ -27,6 +28,8 @@ export default function Cart() {
   const [, setTotalItems] = useState(0);
   const currentUser = useUser();
   const token = currentUser !== null ? currentUser.token : "";
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
   const queryParams: URLSearchParams = useMemo(() => {
     return new URLSearchParams({
@@ -139,7 +142,14 @@ export default function Cart() {
       console.log(JSON.stringify(newStatus));
       updateData.set("is_selected", JSON.stringify(newStatus));
       try {
-        await updateStatusKeranjang(item.id_keranjang, updateData, token);
+        const result = await updateStatusKeranjang(
+          item.id_keranjang,
+          updateData,
+          token
+        );
+        if (result.errors) {
+          toast.error(result.errors);
+        }
         mutate();
       } catch (error) {
         toast.error("Failed to update item selection");
@@ -155,6 +165,8 @@ export default function Cart() {
       try {
         await deleteKeranjang(id, token);
         mutate();
+        setShowDeleteModal(false);
+        toast.success("Item deleted successfully");
       } catch (error) {
         toast.error("Failed to delete item");
         console.error("Failed to delete item:", error);
@@ -162,6 +174,18 @@ export default function Cart() {
     },
     [token, mutate]
   );
+
+  // Handle opening delete modal
+  const openDeleteModal = useCallback((id: number) => {
+    setItemToDelete(id);
+    setShowDeleteModal(true);
+  }, []);
+
+  // Handle closing delete modal
+  const closeDeleteModal = useCallback(() => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  }, []);
 
   // Calculate subtotal
   const subtotal = useMemo(() => {
@@ -221,7 +245,7 @@ export default function Cart() {
                 />
                 <div className="flex justify-between ml-5 w-full">
                   <Link
-                    href={`/pages/product-details/${item.id_barang}`}
+                    href={`/product-details/${item.id_barang}`}
                     className="flex gap-5"
                   >
                     <div className="w-18 h-18 relative">
@@ -241,7 +265,7 @@ export default function Cart() {
                     </div>
                     <LucideTrash2
                       className="text-gray-500 cursor-pointer"
-                      onClick={() => handleDelete(item.id_keranjang)}
+                      onClick={() => openDeleteModal(item.id_keranjang)}
                     />
                   </div>
                 </div>
@@ -250,7 +274,32 @@ export default function Cart() {
           </div>
         ))}
 
-        <div className="p-8 bg-white rounded-2xl flex items-center justify-between fixed bottom-16 right-20 left-24 shadow-lg shadow-blue-600/50">
+        <Modal show={showDeleteModal} onClose={closeDeleteModal}>
+          <ModalHeader>Konfirmasi Hapus</ModalHeader>
+          <ModalBody>
+            <div className="space-y-6">
+              <p className="text-base leading-relaxed text-gray-500">
+                Apakah Anda yakin ingin menghapus item ini dari keranjang?
+              </p>
+              <div className="flex justify-end gap-4">
+                <button
+                  className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400"
+                  onClick={closeDeleteModal}
+                >
+                  Batal
+                </button>
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                  onClick={() => itemToDelete && handleDelete(itemToDelete)}
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </ModalBody>
+        </Modal>
+
+        <div className="p-8 bg-white rounded-2xl flex items-center justify-between fixed bottom-16 right-20 left-24 shadow-lg shadow-[#72C678]">
           <div className="flex flex-col">
             <div>Subtotal:</div>
             <div className="text-xl font-semibold">
@@ -260,7 +309,7 @@ export default function Cart() {
           <div>
             <button
               type="submit"
-              className="bg-blue-600 text-white px-7 py-2 rounded-lg hover:bg-white hover:border-2 hover:border-blue-600 hover:text-blue-600 transition"
+              className="bg-[#72C678] text-white px-7 py-2 rounded-lg hover:bg-white hover:border-2 hover:border-[#72C678] hover:text-[#72C678] transition"
             >
               Checkout
             </button>

@@ -150,11 +150,11 @@ export default function ProductDetails() {
             </div>
             <button
               onClick={handleSubmitKeranjang}
-              className="bg-blue-500 text-white p-3 rounded-lg w-64 hover:cursor-pointer hover:bg-blue-300"
+              className="bg-[#72C678] text-white p-3 rounded-xl w-64 hover:cursor-pointer hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300"
             >
               Tambahkan ke Keranjang
             </button>
-            <button className="text-blue-500 border-2 border-blue-500 p-3 rounded-lg w-64 hover:cursor-pointer">
+            <button className="text-[#72C678] border-2 border-[#72C678] p-3 rounded-xl w-64 hover:cursor-pointer">
               Beli Langsung
             </button>
           </div>
@@ -200,12 +200,12 @@ export default function ProductDetails() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Tulis pesan diskusi Anda..."
-                    className="border-2 border-gray-300 rounded-lg p-3 w-full h-24 resize-none"
+                    className="border-2 border-gray-300 rounded-xl p-3 w-full h-24 resize-none"
                     disabled={isSubmitting}
                   />
                   <button
                     type="submit"
-                    className={`bg-[#1980e6] text-white p-3 rounded-[0.5rem] w-48 hover:bg-[#1980e6]/80 ${
+                    className={`bg-[#72C678] text-white p-3 rounded-xl w-48 hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300 ${
                       isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     disabled={isSubmitting}

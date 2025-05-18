@@ -33,6 +33,7 @@ export default function Navbar() {
         toast.success("Berhasil logout");
         setShowLogoutModal(false);
         setIsLoggedIn(false);
+        router.refresh();
         router.push("/");
       } else {
         const errorData = await response.json();
@@ -76,7 +77,7 @@ export default function Navbar() {
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-xl bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
@@ -148,7 +149,7 @@ export default function Navbar() {
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-xl bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
@@ -195,13 +196,13 @@ export default function Navbar() {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200"
               >
                 Batal
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-[#72C678] text-white rounded hover:bg-[#008E6D]"
+                className="px-4 py-2 bg-[#72C678] text-white rounded-xl hover:bg-[#008E6D]"
               >
                 Logout
               </button>

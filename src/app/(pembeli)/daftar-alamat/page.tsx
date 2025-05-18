@@ -21,7 +21,7 @@ import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
 import { useUser } from "@/hooks/use-user";
 
-export default function ProfilePage() {
+export default function DaftarAlamat() {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
@@ -187,41 +187,48 @@ export default function ProfilePage() {
         return a.nama_alamat.localeCompare(b.nama_alamat);
       })
     : [];
+
   return (
-    <div className="min-h-screen bg-gray-50 px-6 pb-10 pt-26 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 px-6 pb-10 pt-26">
       <Modal show={openModal} size="md" onClose={onCloseModal} popup>
         <ModalHeader />
         <ModalBody>
           <form className="space-y-6" onSubmit={handleUpdate}>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               Edit Data Alamat
             </h3>
             <div>
               <div className="mb-2 block">
-                <Label htmlFor="nama">Label Alamat</Label>
+                <Label htmlFor="nama" className="text-gray-800 font-semibold">
+                  Label Alamat
+                </Label>
               </div>
               <TextInput
                 id="nama"
                 name="nama"
                 defaultValue={selectedAlamat?.nama_alamat}
                 required
+                className="border-gray-200 rounded-xl"
               />
             </div>
             <div>
               <div className="mb-2 block">
-                <Label htmlFor="detail">Detail Alamat</Label>
+                <Label htmlFor="detail" className="text-gray-800 font-semibold">
+                  Detail Alamat
+                </Label>
               </div>
               <TextInput
                 id="detail"
                 name="detail"
                 defaultValue={selectedAlamat?.detail_alamat}
                 required
+                className="border-gray-200 rounded-xl"
               />
             </div>
-            <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
+            <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-4 py-2 text-white bg-cyan-600 rounded-md hover:bg-cyan-700"
+                className="px-4 py-2 text-white bg-[#72C678] rounded-xl hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300 font-semibold"
               >
                 Update Data
               </button>
@@ -238,19 +245,19 @@ export default function ProfilePage() {
         <ModalHeader />
         <ModalBody>
           <div className="text-center">
-            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+            <h3 className="mb-5 text-lg font-semibold text-gray-800">
               Apakah Anda yakin ingin menghapus data ini?
             </h3>
             <div className="flex justify-center gap-4">
               <button
                 onClick={onCloseDeleteModal}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 font-semibold"
               >
                 Batal
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
+                className="px-4 py-2 text-white bg-red-600 rounded-xl hover:bg-red-700 font-semibold"
               >
                 Hapus
               </button>
@@ -267,35 +274,41 @@ export default function ProfilePage() {
         <ModalHeader />
         <ModalBody>
           <form className="space-y-6" onSubmit={handleCreate}>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               Tambah Alamat Baru
             </h3>
             <div>
               <div className="mb-2 block">
-                <Label htmlFor="nama">Label Alamat</Label>
+                <Label htmlFor="nama" className="text-gray-800 font-semibold">
+                  Label Alamat
+                </Label>
               </div>
               <TextInput
                 id="nama"
                 name="nama"
                 placeholder="Contoh: Rumah, Kos, Kantor"
                 required
+                className="border-gray-200 rounded-xl"
               />
             </div>
             <div>
-              <div className="mb-2 block ">
-                <Label htmlFor="detail">Detail Alamat</Label>
+              <div className="mb-2 block">
+                <Label htmlFor="detail" className="text-gray-800 font-semibold">
+                  Detail Alamat
+                </Label>
               </div>
               <TextInput
                 id="detail"
                 name="detail"
                 placeholder="Contoh: Jalan Merdeka, No. 20, Caturtunggal, Depok, Sleman"
                 required
+                className="border-gray-200 rounded-xl"
               />
             </div>
-            <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
+            <div className="flex justify-end">
               <Button
                 type="submit"
-                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80 "
+                className="px-4 py-2 text-white bg-[#72C678] rounded-xl hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300 font-semibold"
               >
                 Tambah Alamat
               </Button>
@@ -303,36 +316,36 @@ export default function ProfilePage() {
           </form>
         </ModalBody>
       </Modal>
-      <div className="overflow-x-hidden w-screen px-24">
-        <h1 className="text-2xl font-bold mb-8">Daftar Alamat</h1>
-        <div className="flex justify-between">
-          <form className="flex gap-3 mb-4" onSubmit={handleSearch}>
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Daftar Alamat</h1>
+        <div className="flex justify-between mb-4">
+          <form className="flex gap-3" onSubmit={handleSearch}>
             <input
               type="text"
               name="search-alamat"
               id="search-alamat"
-              className="border rounded-md p-2 w-72"
+              className="border border-gray-200 rounded-xl p-2 w-72 text-gray-700"
               placeholder="Cari alamat"
             />
             <button
               type="submit"
-              className="p-3 bg-blue-500 text-white rounded-md"
+              className="p-2 bg-[#72C678] text-white rounded-xl hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300"
             >
               <HiSearch />
             </button>
           </form>
           <Button
             onClick={() => setOpenCreateModal(true)}
-            className="bg-[#1980e6] hover:bg-[#1980e6]/80 "
+            className="px-4 py-2 text-white bg-[#72C678] rounded-xl hover:bg-gradient-to-r hover:from-[#72C678] hover:to-[#008E6D] transition-all duration-300 font-semibold"
           >
             Tambah Alamat
           </Button>
         </div>
-        <div className="bg-white rounded-2xl p-8">
+        <div className="bg-white rounded-2xl shadow-md p-8">
           {isLoading ? (
-            <div>Loading...</div>
+            <div className="text-gray-700">Loading...</div>
           ) : error ? (
-            <div>Error memuat data</div>
+            <div className="text-gray-700">Error memuat data</div>
           ) : sortedData && sortedData.length > 0 ? (
             sortedData.map((alamat: Alamat) => (
               <div
@@ -352,17 +365,17 @@ export default function ProfilePage() {
                   )}
                 </div>
                 <p className="text-gray-700">{alamat.detail_alamat}</p>
-                <hr className=" mt-3" />
+                <hr className="mt-3 border-gray-200" />
                 <div className="flex gap-5 mt-2">
                   <button
-                    className="text-cyan-600 hover:underline "
+                    className="text-[#72C678] hover:text-[#008E6D] font-semibold"
                     onClick={() => handleEdit(alamat)}
                   >
                     Edit
                   </button>
                   {!alamat.status_default ? (
                     <button
-                      className="text-red-600 hover:underline "
+                      className="text-red-600 hover:text-red-700 font-semibold"
                       onClick={() => {
                         setSelectedAlamat(alamat);
                         setOpenDeleteModal(true);
@@ -375,7 +388,7 @@ export default function ProfilePage() {
                   )}
                   {!alamat.status_default ? (
                     <button
-                      className="text-cyan-600 hover:underline "
+                      className="text-[#72C678] hover:text-[#008E6D] font-semibold"
                       onClick={() => handleUpdateDefault(alamat)}
                     >
                       Jadikan alamat utama
@@ -387,7 +400,7 @@ export default function ProfilePage() {
               </div>
             ))
           ) : (
-            <div>Tidak ada data</div>
+            <div className="text-gray-700">Tidak ada data</div>
           )}
         </div>
       </div>
