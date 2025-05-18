@@ -26,7 +26,7 @@ export default function Navbar() {
         const errorData = await response.json();
         toast.error(errorData.error || "Login failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Internal server error");
     }
   };

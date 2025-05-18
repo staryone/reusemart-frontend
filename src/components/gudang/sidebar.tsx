@@ -16,6 +16,7 @@ import {
 } from "react-icons/hi";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SideBar() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function SideBar() {
         const errorData = await response.json();
         toast.error(errorData.error || "Login failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Internal server error");
     }
   };
@@ -45,19 +46,23 @@ export default function SideBar() {
       <Toaster />
       <SidebarItems>
         <SidebarItemGroup>
-          <SidebarItem href="#" icon={HiChartPie}>
+          <SidebarItem href="#" icon={HiChartPie} as={Link}>
             Dashboard
           </SidebarItem>
           {/* <SidebarItem href="/admin/pegawai-master" icon={HiUser}>
             Pegawai
           </SidebarItem> */}
-          <SidebarItem href="/admin/jabatan-master" icon={HiBriefcase}>
+          <SidebarItem
+            href="/admin/jabatan-master"
+            icon={HiBriefcase}
+            as={Link}
+          >
             Penitipan
           </SidebarItem>
-          {/* <SidebarItem href="/admin/organisasi-master" icon={HiOfficeBuilding}>
+          {/* <SidebarItem href="/admin/organisasi-master" icon={HiOfficeBuilding} as={Link}>
             Organisasi
           </SidebarItem>
-          <SidebarItem href="/admin/merch-master" icon={HiGift}>
+          <SidebarItem href="/admin/merch-master" icon={HiGift} as={Link}>
             Merchandise
           </SidebarItem> */}
           <hr />

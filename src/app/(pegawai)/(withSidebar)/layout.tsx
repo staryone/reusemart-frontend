@@ -10,6 +10,7 @@ import { Jabatan } from "@/types/auth";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const user = useUser();
+
   return (
     <>
       {user?.jabatan === Jabatan.ADMIN ? (

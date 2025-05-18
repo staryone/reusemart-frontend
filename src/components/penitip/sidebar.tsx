@@ -5,7 +5,12 @@ import {
   SidebarItemGroup,
   SidebarItems,
 } from "flowbite-react";
-import { HiClipboardList, HiUser, HiOutlineLogout, HiCash } from "react-icons/hi";
+import {
+  HiClipboardList,
+  HiUser,
+  HiOutlineLogout,
+  HiCash,
+} from "react-icons/hi";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -26,7 +31,7 @@ export default function SideBar() {
         const errorData = await response.json();
         toast.error(errorData.error || "Login failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Internal server error: ");
     }
   };

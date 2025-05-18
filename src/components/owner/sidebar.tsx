@@ -15,6 +15,7 @@ import {
 } from "react-icons/hi";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SideBar() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function SideBar() {
         const errorData = await response.json();
         toast.error(errorData.error || "Login failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Internal server error");
     }
   };
@@ -44,16 +45,16 @@ export default function SideBar() {
       <Toaster />
       <SidebarItems>
         <SidebarItemGroup>
-          <SidebarItem href="#" icon={HiChartPie}>
+          <SidebarItem href="#" icon={HiChartPie} as={Link}>
             Dashboard
           </SidebarItem>
-          <SidebarItem href="/owner/request-donasi" icon={HiGift}>
+          <SidebarItem href="/owner/request-donasi" icon={HiGift} as={Link}>
             Request Donasi
           </SidebarItem>
-          <SidebarItem href="/owner/riwayat-donasi" icon={HiCalendar}>
+          <SidebarItem href="/owner/riwayat-donasi" icon={HiCalendar} as={Link}>
             Riwayat Donasi
           </SidebarItem>
-          <SidebarItem href="/owner/laporan" icon={HiNewspaper}>
+          <SidebarItem href="/owner/laporan" icon={HiNewspaper} as={Link}>
             Laporan
           </SidebarItem>
           <hr />

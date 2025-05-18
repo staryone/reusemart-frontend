@@ -2,26 +2,17 @@
 
 // import Navbar from "@/components/penitip/navbar";
 import Sidebar from "@/components/penitip/sidebar";
+import { useUser } from "@/hooks/use-user";
 import { getProfilPenitip } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
-import { User } from "@/types/auth";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import useSWR from "swr";
 
 export default function ProfilePage() {
   const [penitip, setPenitip] = useState<Penitip | null>(null);
-  const fetcher = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   useEffect(() => {
     async function fetchPenitip() {

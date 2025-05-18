@@ -9,6 +9,7 @@ import {
 import { HiChartPie, HiUser, HiChat, HiOutlineLogout } from "react-icons/hi";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SideBar() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function SideBar() {
         const errorData = await response.json();
         toast.error(errorData.error || "Login failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Internal server error");
     }
   };
@@ -38,13 +39,13 @@ export default function SideBar() {
       <Toaster />
       <SidebarItems>
         <SidebarItemGroup>
-          <SidebarItem href="#" icon={HiChartPie}>
+          <SidebarItem href="#" icon={HiChartPie} as={Link}>
             Dashboard
           </SidebarItem>
-          <SidebarItem href="/cs/diskusi" icon={HiChat}>
+          <SidebarItem href="/cs/diskusi" icon={HiChat} as={Link}>
             Diskusi
           </SidebarItem>
-          <SidebarItem href="/cs/penitip-master" icon={HiUser}>
+          <SidebarItem href="/cs/penitip-master" icon={HiUser} as={Link}>
             Penitip
           </SidebarItem>
           <hr />

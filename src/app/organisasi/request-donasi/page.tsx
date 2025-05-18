@@ -27,7 +27,7 @@ import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
 import Navbar from "@/components/organisasi/navbar";
-import { User } from "@/types/auth";
+import { useUser } from "@/hooks/use-user";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListRequestDonasi(params, token);
@@ -54,17 +54,9 @@ export default function RequestDonasiMaster() {
     return params;
   }, [page, searchQuery]);
 
-  const fetcherToken = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   // ini penting
   const { data, error, isLoading, mutate } = useSWR(
