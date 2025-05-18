@@ -8,8 +8,7 @@ import { Barang } from "@/lib/interface/barang.interface";
 import { Donasi } from "@/lib/interface/donasi.interface";
 import { getOrganisasi } from "@/lib/api/organisasi.api";
 import { Organisasi } from "@/lib/interface/organisasi.interface";
-import { User } from "@/types/auth";
-import useSWR from "swr";
+import { useUser } from "@/hooks/use-user";
 
 export default function BeriDonasi() {
   const searchParams = useSearchParams();
@@ -28,17 +27,9 @@ export default function BeriDonasi() {
   const [donasiError, setDonasiError] = useState<string | null>(null);
   const [organisasiError, setOrganisasiError] = useState<string | null>(null);
 
-  const fetcher = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   const paramsBarang = useMemo(
     () =>

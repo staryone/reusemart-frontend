@@ -8,21 +8,12 @@ import { Alamat } from "@/lib/interface/alamat.interface";
 
 import { useState } from "react";
 import useSWR from "swr";
-import { User } from "@/types/auth";
+import { useUser } from "@/hooks/use-user";
 
 export default function ProfilePage() {
   const [pembeli, setPembeli] = useState<Pembeli | null>(null);
   const [alamat, setAlamat] = useState<Alamat | null>(null);
-
-  const fetcher = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
-
-  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
+  const currentUser = useUser();
 
   const pembeliFetcher = async (token: string) => {
     if (!token) return null;
@@ -30,7 +21,7 @@ export default function ProfilePage() {
   };
 
   const { data: pembeliData } = useSWR(
-    currentUser ? currentUser.token : null,
+    currentUser !== null ? currentUser.token : null,
     pembeliFetcher,
     {
       revalidateIfStale: false,

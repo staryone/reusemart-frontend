@@ -1,6 +1,5 @@
 "use client";
 
-import SideBar from "@/components/gudang/sidebar";
 // import {
 //   createPegawai,
 //   deletePegawai,
@@ -19,12 +18,12 @@ import {
   TableRow,
 } from "flowbite-react";
 import {
-//   Select,
-//   Label,
-//   Modal,
-//   ModalBody,
-//   ModalHeader,
-//   TextInput,
+  //   Select,
+  //   Label,
+  //   Modal,
+  //   ModalBody,
+  //   ModalHeader,
+  //   TextInput,
   Button,
 } from "flowbite-react";
 // import { useState, useMemo } from "react";
@@ -35,232 +34,232 @@ import { HiSearch } from "react-icons/hi";
 //   await getListPegawai(params, token);
 
 export default function PenitipanMaster() {
-//   const [openModal, setOpenModal] = useState(false);
-//   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-//   const [openResetPasswordModal, setOpenResetPasswordModal] = useState(false);
-//   const [openCreateModal, setOpenCreateModal] = useState(false);
-//   const [page, setPage] = useState(1);
-//   const [limit] = useState(10);
-//   const [totalItems, setTotalItems] = useState(0);
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
-//   const [createError, setCreateError] = useState<string | null>(null);
-//   const [updateError, setUpdateError] = useState<string | null>(null);
+  //   const [openModal, setOpenModal] = useState(false);
+  //   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  //   const [openResetPasswordModal, setOpenResetPasswordModal] = useState(false);
+  //   const [openCreateModal, setOpenCreateModal] = useState(false);
+  //   const [page, setPage] = useState(1);
+  //   const [limit] = useState(10);
+  //   const [totalItems, setTotalItems] = useState(0);
+  //   const [searchQuery, setSearchQuery] = useState("");
+  //   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
+  //   const [createError, setCreateError] = useState<string | null>(null);
+  //   const [updateError, setUpdateError] = useState<string | null>(null);
 
-//   const token = getToken() || "";
+  //   const token = getToken() || "";
 
-//   const queryParams = useMemo(() => {
-//     const params = new URLSearchParams({
-//       page: page.toString(),
-//       limit: limit.toString(),
-//     });
-//     if (searchQuery) {
-//       params.append("search", searchQuery);
-//     }
-//     return params;
-//   }, [page, searchQuery, limit]);
+  //   const queryParams = useMemo(() => {
+  //     const params = new URLSearchParams({
+  //       page: page.toString(),
+  //       limit: limit.toString(),
+  //     });
+  //     if (searchQuery) {
+  //       params.append("search", searchQuery);
+  //     }
+  //     return params;
+  //   }, [page, searchQuery, limit]);
 
-//   const { data, error, isLoading, mutate } = useSWR(
-//     [queryParams, token],
-//     fetcher,
-//     {
-//       revalidateIfStale: false,
-//       revalidateOnFocus: false,
-//       revalidateOnReconnect: false,
-//     }
-//   );
+  //   const { data, error, isLoading, mutate } = useSWR(
+  //     [queryParams, token],
+  //     fetcher,
+  //     {
+  //       revalidateIfStale: false,
+  //       revalidateOnFocus: false,
+  //       revalidateOnReconnect: false,
+  //     }
+  //   );
 
-//   useMemo(() => {
-//     if (data && data[1] !== undefined) {
-//       setTotalItems(data[1]);
-//     }
-//   }, [data]);
+  //   useMemo(() => {
+  //     if (data && data[1] !== undefined) {
+  //       setTotalItems(data[1]);
+  //     }
+  //   }, [data]);
 
-//   function onCloseModal() {
-//     setOpenModal(false);
-//     setSelectedPegawai(null);
-//     setUpdateError(null);
-//   }
+  //   function onCloseModal() {
+  //     setOpenModal(false);
+  //     setSelectedPegawai(null);
+  //     setUpdateError(null);
+  //   }
 
-//   function onCloseDeleteModal() {
-//     setOpenDeleteModal(false);
-//     setSelectedPegawai(null);
-//   }
+  //   function onCloseDeleteModal() {
+  //     setOpenDeleteModal(false);
+  //     setSelectedPegawai(null);
+  //   }
 
-//   function onCloseResetPasswordModal() {
-//     setOpenResetPasswordModal(false);
-//     setSelectedPegawai(null);
-//   }
+  //   function onCloseResetPasswordModal() {
+  //     setOpenResetPasswordModal(false);
+  //     setSelectedPegawai(null);
+  //   }
 
-//   function onCloseCreateModal() {
-//     setOpenCreateModal(false);
-//     setCreateError(null);
-//   }
+  //   function onCloseCreateModal() {
+  //     setOpenCreateModal(false);
+  //     setCreateError(null);
+  //   }
 
-//   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-//     e.preventDefault();
-//     const formData = new FormData(e.currentTarget);
-//     const search = formData.get("search-pegawai") as string;
-//     setSearchQuery(search);
-//     setPage(1);
-//   };
+  //   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  //     e.preventDefault();
+  //     const formData = new FormData(e.currentTarget);
+  //     const search = formData.get("search-pegawai") as string;
+  //     setSearchQuery(search);
+  //     setPage(1);
+  //   };
 
-//   const handleEdit = (pegawai: Pegawai) => {
-//     setSelectedPegawai(pegawai);
-//     setOpenModal(true);
-//   };
+  //   const handleEdit = (pegawai: Pegawai) => {
+  //     setSelectedPegawai(pegawai);
+  //     setOpenModal(true);
+  //   };
 
-//   const handleDelete = async () => {
-//     if (!selectedPegawai) return;
+  //   const handleDelete = async () => {
+  //     if (!selectedPegawai) return;
 
-//     try {
-//       const res = await deletePegawai(selectedPegawai.id_pegawai, token);
+  //     try {
+  //       const res = await deletePegawai(selectedPegawai.id_pegawai, token);
 
-//       if (res) {
-//         mutate();
-//         onCloseDeleteModal();
-//       } else {
-//         console.error("Gagal menghapus pegawai");
-//       }
-//     } catch (error: unknown) {
-//       console.error("Error menghapus pegawai:", error);
-//     }
-//   };
+  //       if (res) {
+  //         mutate();
+  //         onCloseDeleteModal();
+  //       } else {
+  //         console.error("Gagal menghapus pegawai");
+  //       }
+  //     } catch (error: unknown) {
+  //       console.error("Error menghapus pegawai:", error);
+  //     }
+  //   };
 
-//   const handleResetPassword = async () => {
-//     if (!selectedPegawai) return;
+  //   const handleResetPassword = async () => {
+  //     if (!selectedPegawai) return;
 
-//     try {
-//       const res = await resetPasswordPegawai(selectedPegawai.id_pegawai, token);
+  //     try {
+  //       const res = await resetPasswordPegawai(selectedPegawai.id_pegawai, token);
 
-//       if (res) {
-//         mutate();
-//         onCloseResetPasswordModal();
-//       } else {
-//         console.error("Gagal reset password pegawai");
-//       }
-//     } catch (error: unknown) {
-//       console.error("Error reset password pegawai:", error);
-//     }
-//   };
+  //       if (res) {
+  //         mutate();
+  //         onCloseResetPasswordModal();
+  //       } else {
+  //         console.error("Gagal reset password pegawai");
+  //       }
+  //     } catch (error: unknown) {
+  //       console.error("Error reset password pegawai:", error);
+  //     }
+  //   };
 
-//   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
-//     e.preventDefault();
-//     setCreateError(null);
+  //   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+  //     e.preventDefault();
+  //     setCreateError(null);
 
-//     const formData = new FormData(e.currentTarget);
-//     const createData = new FormData();
+  //     const formData = new FormData(e.currentTarget);
+  //     const createData = new FormData();
 
-//     try {
-//       // Validasi input
-//       const nama = formData.get("nama") as string;
-//       const email = formData.get("email") as string;
-//       const telp = formData.get("telp") as string;
-//       const jabatan = formData.get("jabatan") as string;
-//       const tglLahir = formData.get("tgl_lahir") as string;
+  //     try {
+  //       // Validasi input
+  //       const nama = formData.get("nama") as string;
+  //       const email = formData.get("email") as string;
+  //       const telp = formData.get("telp") as string;
+  //       const jabatan = formData.get("jabatan") as string;
+  //       const tglLahir = formData.get("tgl_lahir") as string;
 
-//       if (!nama || nama.trim().length < 2) {
-//         throw new Error("Nama harus diisi dan minimal 2 karakter");
-//       }
-//       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-//         throw new Error("Email tidak valid");
-//       }
-//       if (!telp || !/^\d{10,13}$/.test(telp)) {
-//         throw new Error("Nomor telepon tidak valid (10-13 digit)");
-//       }
-//       if (!jabatan) {
-//         throw new Error("Jabatan harus dipilih");
-//       }
-//       if (!tglLahir) {
-//         throw new Error("Tanggal lahir harus diisi");
-//       }
+  //       if (!nama || nama.trim().length < 2) {
+  //         throw new Error("Nama harus diisi dan minimal 2 karakter");
+  //       }
+  //       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  //         throw new Error("Email tidak valid");
+  //       }
+  //       if (!telp || !/^\d{10,13}$/.test(telp)) {
+  //         throw new Error("Nomor telepon tidak valid (10-13 digit)");
+  //       }
+  //       if (!jabatan) {
+  //         throw new Error("Jabatan harus dipilih");
+  //       }
+  //       if (!tglLahir) {
+  //         throw new Error("Tanggal lahir harus diisi");
+  //       }
 
-//       if (nama) createData.set("nama", nama);
-//       if (email) createData.set("email", email);
-//       if (telp) createData.set("nomor_telepon", telp);
-//       if (jabatan) createData.set("id_jabatan", jabatan);
-//       if (tglLahir) createData.set("tgl_lahir", tglLahir);
+  //       if (nama) createData.set("nama", nama);
+  //       if (email) createData.set("email", email);
+  //       if (telp) createData.set("nomor_telepon", telp);
+  //       if (jabatan) createData.set("id_jabatan", jabatan);
+  //       if (tglLahir) createData.set("tgl_lahir", tglLahir);
 
-//       const res = await createPegawai(createData, token);
+  //       const res = await createPegawai(createData, token);
 
-//       if (res) {
-//         mutate();
-//         onCloseCreateModal();
-//       } else {
-//         throw new Error("Gagal membuat pegawai");
-//       }
-//     } catch (error: unknown) {
-//       const errorMessage =
-//         error instanceof Error
-//           ? error.message
-//           : "Terjadi kesalahan saat membuat pegawai";
-//       setCreateError(errorMessage);
-//       console.error("Error creating pegawai:", error);
-//     }
-//   };
+  //       if (res) {
+  //         mutate();
+  //         onCloseCreateModal();
+  //       } else {
+  //         throw new Error("Gagal membuat pegawai");
+  //       }
+  //     } catch (error: unknown) {
+  //       const errorMessage =
+  //         error instanceof Error
+  //           ? error.message
+  //           : "Terjadi kesalahan saat membuat pegawai";
+  //       setCreateError(errorMessage);
+  //       console.error("Error creating pegawai:", error);
+  //     }
+  //   };
 
-//   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-//     e.preventDefault();
-//     if (!selectedPegawai) return;
-//     setUpdateError(null);
+  //   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+  //     e.preventDefault();
+  //     if (!selectedPegawai) return;
+  //     setUpdateError(null);
 
-//     const formData = new FormData(e.currentTarget);
-//     const updateData = new FormData();
+  //     const formData = new FormData(e.currentTarget);
+  //     const updateData = new FormData();
 
-//     try {
-//       // Validasi input
-//       const nama = formData.get("nama") as string;
-//       const email = formData.get("email") as string;
-//       const telp = formData.get("telp") as string;
-//       const jabatan = formData.get("jabatan") as string;
+  //     try {
+  //       // Validasi input
+  //       const nama = formData.get("nama") as string;
+  //       const email = formData.get("email") as string;
+  //       const telp = formData.get("telp") as string;
+  //       const jabatan = formData.get("jabatan") as string;
 
-//       if (!nama || nama.trim().length < 2) {
-//         throw new Error("Nama harus diisi dan minimal 2 karakter");
-//       }
-//       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-//         throw new Error("Email tidak valid");
-//       }
-//       if (!telp || !/^\d{10,13}$/.test(telp)) {
-//         throw new Error("Nomor telepon tidak valid (10-13 digit)");
-//       }
-//       if (!jabatan) {
-//         throw new Error("Jabatan harus dipilih");
-//       }
+  //       if (!nama || nama.trim().length < 2) {
+  //         throw new Error("Nama harus diisi dan minimal 2 karakter");
+  //       }
+  //       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  //         throw new Error("Email tidak valid");
+  //       }
+  //       if (!telp || !/^\d{10,13}$/.test(telp)) {
+  //         throw new Error("Nomor telepon tidak valid (10-13 digit)");
+  //       }
+  //       if (!jabatan) {
+  //         throw new Error("Jabatan harus dipilih");
+  //       }
 
-//       if (nama) updateData.set("nama", nama);
-//       if (email) updateData.set("email", email);
-//       if (telp) updateData.set("nomor_telepon", telp);
-//       if (jabatan) updateData.set("id_jabatan", jabatan);
+  //       if (nama) updateData.set("nama", nama);
+  //       if (email) updateData.set("email", email);
+  //       if (telp) updateData.set("nomor_telepon", telp);
+  //       if (jabatan) updateData.set("id_jabatan", jabatan);
 
-//       const res = await updatePegawai(
-//         selectedPegawai.id_pegawai,
-//         updateData,
-//         token
-//       );
+  //       const res = await updatePegawai(
+  //         selectedPegawai.id_pegawai,
+  //         updateData,
+  //         token
+  //       );
 
-//       if (res) {
-//         mutate();
-//         onCloseModal();
-//       } else {
-//         throw new Error("Gagal memperbarui pegawai");
-//       }
-//     } catch (error: unknown) {
-//       const errorMessage =
-//         error instanceof Error
-//           ? error.message
-//           : "Terjadi kesalahan saat memperbarui pegawai";
-//       setUpdateError(errorMessage);
-//       console.error("Error updating pegawai:", error);
-//     }
-//   };
+  //       if (res) {
+  //         mutate();
+  //         onCloseModal();
+  //       } else {
+  //         throw new Error("Gagal memperbarui pegawai");
+  //       }
+  //     } catch (error: unknown) {
+  //       const errorMessage =
+  //         error instanceof Error
+  //           ? error.message
+  //           : "Terjadi kesalahan saat memperbarui pegawai";
+  //       setUpdateError(errorMessage);
+  //       console.error("Error updating pegawai:", error);
+  //     }
+  //   };
 
-//   const totalPages = Math.ceil(totalItems / limit);
+  //   const totalPages = Math.ceil(totalItems / limit);
 
-//   const handlePageChange = (newPage: number) => {
-//     if (newPage >= 1 && newPage <= totalPages) {
-//       setPage(newPage);
-//     }
-//   };
+  //   const handlePageChange = (newPage: number) => {
+  //     if (newPage >= 1 && newPage <= totalPages) {
+  //       setPage(newPage);
+  //     }
+  //   };
 
   return (
     <div className="flex">
@@ -485,7 +484,6 @@ export default function PenitipanMaster() {
           </form>
         </ModalBody>
       </Modal> */}
-      <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Penitipan</h1>
         <div className="flex justify-between items-center my-5">
@@ -530,41 +528,37 @@ export default function PenitipanMaster() {
               </TableRow>
             </TableHead>
             <TableBody className="divide-y">
-              
-                  <TableRow
-                    className="bg-white dark:border-gray-700 dark:bg-gray-800"
+              <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                <TableCell>1.</TableCell>
+                <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                  Vacuum Cleaner
+                </TableCell>
+                <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                  Jono Rusdi
+                </TableCell>
+                <TableCell>Rp2.500.000</TableCell>
+                <TableCell>20-03-2025</TableCell>
+                <TableCell>20-04-2025</TableCell>
+                <TableCell>
+                  <button
+                    className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                    // onClick={() => handleEdit(pegawai)}
                   >
-                    <TableCell>1.</TableCell>
-                    <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      Vacuum Cleaner
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      Jono Rusdi
-                    </TableCell>
-                    <TableCell>Rp2.500.000</TableCell>
-                    <TableCell>20-03-2025</TableCell>
-                    <TableCell>20-04-2025</TableCell>
-                    <TableCell>
-                      <button
-                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                        // onClick={() => handleEdit(pegawai)}
-                      >
-                        Edit
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        // onClick={() => {
-                        //   setSelectedPegawai(pegawai);
-                        //   setOpenDeleteModal(true);
-                        // }}
-                        className="font-medium text-red-600 hover:underline dark:text-red-500"
-                      >
-                        Delete
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                
+                    Edit
+                  </button>
+                </TableCell>
+                <TableCell>
+                  <button
+                    // onClick={() => {
+                    //   setSelectedPegawai(pegawai);
+                    //   setOpenDeleteModal(true);
+                    // }}
+                    className="font-medium text-red-600 hover:underline dark:text-red-500"
+                  >
+                    Delete
+                  </button>
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </div>

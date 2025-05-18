@@ -1,6 +1,6 @@
 "use client";
 
-import SideBar from "@/components/cs/sidebar";
+import { useUser } from "@/hooks/use-user";
 import {
   createPenitip,
   deletePenitip,
@@ -9,7 +9,6 @@ import {
   updatePenitip,
 } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
-import { User } from "@/types/auth";
 import {
   Table,
   TableBody,
@@ -43,17 +42,9 @@ export default function PenitipMaster() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPenitip, setSelectedPenitip] = useState<Penitip | null>(null);
 
-  const fetcherToken = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -408,7 +399,6 @@ export default function PenitipMaster() {
           </form>
         </ModalBody>
       </Modal>
-      <SideBar />
       <div className="flex-1 p-4 ml-64 w-screen">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Penitip</h1>
         <div className="flex justify-between items-center my-5">

@@ -12,15 +12,7 @@ import {
   updateStatusKeranjang,
 } from "@/lib/api/keranjang.api";
 import toast, { Toaster } from "react-hot-toast";
-import { User } from "@/types/auth";
-
-const fetcher = async (url: string): Promise<User | null> => {
-  const response = await fetch(url, { method: "GET" });
-  if (response.ok) {
-    return await response.json();
-  }
-  return null;
-};
+import { useUser } from "@/hooks/use-user";
 
 const keranjangFetcher = async ([queryParams, token]: [
   URLSearchParams,
@@ -33,9 +25,8 @@ export default function Cart() {
   const [page] = useState(1);
   const [limit] = useState(10);
   const [, setTotalItems] = useState(0);
-
-  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
-  const token = currentUser ? currentUser.token : "";
+  const currentUser = useUser();
+  const token = currentUser !== null ? currentUser.token : "";
 
   const queryParams: URLSearchParams = useMemo(() => {
     return new URLSearchParams({

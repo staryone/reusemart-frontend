@@ -1,6 +1,5 @@
 "use client";
 
-import SideBar from "@/components/cs/sidebar";
 import { getListDiskusi, createDiskusi } from "@/lib/api/diskusi.api";
 import {
   Modal,
@@ -13,7 +12,7 @@ import {
 import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { HiSearch } from "react-icons/hi";
-import { User } from "@/types/auth";
+import { useUser } from "@/hooks/use-user";
 
 interface Diskusi {
   id_diskusi: number;
@@ -39,17 +38,9 @@ export default function Diskusi() {
   const [searchQuery, setSearchQuery] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
 
-  const fetcherToken = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -245,7 +236,6 @@ export default function Diskusi() {
         </ModalBody>
       </Modal>
 
-      <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-4 mb-4">Diskusi</h1>
         <div className="flex justify-between items-center mb-5">

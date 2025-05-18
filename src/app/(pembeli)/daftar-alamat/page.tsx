@@ -19,7 +19,7 @@ import {
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
-import { User } from "@/types/auth";
+import { useUser } from "@/hooks/use-user";
 
 export default function ProfilePage() {
   const [openModal, setOpenModal] = useState(false);
@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAlamat, setSelectedAlamat] = useState<Alamat | null>(null);
+  const currentUser = useUser();
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({});
@@ -36,23 +37,13 @@ export default function ProfilePage() {
     return params;
   }, [searchQuery]);
 
-  const fetcherUser = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
-
-  const { data: currentUser } = useSWR("/api/auth/me", fetcherUser);
-
   const fetcher = async ([params, token]: [URLSearchParams, string]) => {
     if (!token) return null;
     return await getListAlamat(params, token);
   };
 
   const { data, error, isLoading, mutate } = useSWR(
-    [queryParams, currentUser ? currentUser.token : null],
+    [queryParams, currentUser !== null ? currentUser.token : null],
     fetcher,
     {
       revalidateIfStale: false,

@@ -12,7 +12,7 @@ const fetcher = async ([params]: [URLSearchParams, string]) =>
   await getListBarang(params);
 
 export default function Home() {
-  const [searchQuery] = useState("");
+  // const [searchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,7 +34,7 @@ export default function Home() {
     }
     params.append("all", "true");
     return params;
-  }, [searchQuery]);
+  }, [selectedCategory]);
 
   const { data, error, isLoading } = useSWR([queryParams], fetcher, {
     revalidateIfStale: false,

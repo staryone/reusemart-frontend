@@ -5,30 +5,23 @@ import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
+import { useUser } from "@/hooks/use-user";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const user = useUser();
+  const router = useRouter();
 
   useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-        });
-
-        if (response.ok) {
-          setIsLoggedIn(true);
-        } else {
-          setIsLoggedIn(false);
-        }
-      } catch {
-        setIsLoggedIn(false);
-      }
-    };
-    verifyToken();
-  }, []);
+    if (user !== null) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -40,6 +33,7 @@ export default function Navbar() {
         toast.success("Berhasil logout");
         setShowLogoutModal(false);
         setIsLoggedIn(false);
+        router.push("/");
       } else {
         const errorData = await response.json();
         toast.error(errorData.error || errorData.errors || "Login failed");
@@ -68,6 +62,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
             <Image
+              loading="lazy"
               src="/logo.png"
               alt="Logo"
               width={1000}

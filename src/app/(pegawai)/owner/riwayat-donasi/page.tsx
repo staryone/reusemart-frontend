@@ -1,6 +1,5 @@
 "use client";
 
-import SideBar from "@/components/owner/sidebar";
 import { getAllListDonasi, updateDonasi } from "@/lib/api/donasi.api";
 import { Donasi } from "@/lib/interface/donasi.interface";
 import {
@@ -20,7 +19,7 @@ import {
 import { HiArrowDown, HiArrowUp } from "react-icons/hi";
 import { useState, useMemo } from "react";
 import useSWR from "swr";
-import { User } from "@/types/auth";
+import { useUser } from "@/hooks/use-user";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getAllListDonasi(params, token);
@@ -37,17 +36,10 @@ export default function RiwayatDonasi() {
     tanggal_donasi: "",
   });
   const [formError, setFormError] = useState("");
-  const fetcherToken = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
+  const currentUser = useUser();
 
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -160,7 +152,6 @@ export default function RiwayatDonasi() {
 
   return (
     <div className="flex">
-      <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Request Donasi</h1>
         <div className="w-full overflow-x-auto">

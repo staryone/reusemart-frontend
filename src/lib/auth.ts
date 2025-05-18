@@ -80,7 +80,7 @@ export function getRedirectUrl(user: User): string {
     case Role.PEGAWAI:
       switch (user.jabatan) {
         case Jabatan.OWNER:
-          return "/owner/beri-donasi";
+          return "/owner/request-donasi";
         case Jabatan.ADMIN:
           return "/admin/pegawai-master";
         case Jabatan.GUDANG:

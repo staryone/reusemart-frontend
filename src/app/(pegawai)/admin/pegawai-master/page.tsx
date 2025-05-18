@@ -1,6 +1,5 @@
 "use client";
-
-import SideBar from "@/components/admin/sidebar";
+import { useUser } from "@/hooks/use-user";
 import {
   createPegawai,
   deletePegawai,
@@ -9,7 +8,6 @@ import {
   updatePegawai,
 } from "@/lib/api/pegawai.api";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
-import { User } from "@/types/auth";
 import {
   Table,
   TableBody,
@@ -47,17 +45,9 @@ export default function PegawaiMaster() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  const fetcherToken = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -495,7 +485,6 @@ export default function PegawaiMaster() {
           </form>
         </ModalBody>
       </Modal>
-      <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Pegawai</h1>
         <div className="flex justify-between items-center my-5">

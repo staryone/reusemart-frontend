@@ -7,11 +7,10 @@ import { Barang, Gambar } from "@/lib/interface/barang.interface";
 import { getListByBarangId, createDiskusi } from "@/lib/api/diskusi.api";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { User } from "@/types/auth";
-import useSWR from "swr";
 import { HiStar } from "react-icons/hi";
 import { createKeranjang } from "@/lib/api/keranjang.api";
 import toast from "react-hot-toast";
+import { useUser } from "@/hooks/use-user";
 
 export interface DiskusiPublic {
   id_diskusi: number;
@@ -32,17 +31,9 @@ export default function ProductDetails() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { id } = useParams();
 
-  const fetcher = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcher);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   useEffect(() => {
     async function fetchData() {

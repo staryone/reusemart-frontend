@@ -1,9 +1,8 @@
 "use client";
 
-import SideBar from "@/components/owner/sidebar";
+import { useUser } from "@/hooks/use-user";
 import { getAllListRequestDonasi } from "@/lib/api/request-donasi.api";
 import { RequestDonasi } from "@/lib/interface/request-donasi.interface";
-import { User } from "@/types/auth";
 import {
   Table,
   TableBody,
@@ -23,17 +22,9 @@ export default function RequestDonasiMaster() {
   const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
 
-  const fetcherToken = async (url: string): Promise<User | null> => {
-    const response = await fetch(url, { method: "GET" });
-    if (response.ok) {
-      return await response.json();
-    }
-    return null;
-  };
+  const currentUser = useUser();
 
-  const { data: currentUser } = useSWR("/api/auth/me", fetcherToken);
-
-  const token = currentUser ? currentUser.token : "";
+  const token = currentUser !== null ? currentUser.token : "";
 
   const searchQuery = "MENUNGGU";
   const queryParams = useMemo(() => {
@@ -82,7 +73,6 @@ export default function RequestDonasiMaster() {
   // console.log(data);
   return (
     <div className="flex">
-      <SideBar />
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Request Donasi</h1>
         <div className="flex justify-between items-center my-5"></div>

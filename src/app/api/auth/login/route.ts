@@ -18,7 +18,6 @@ export async function POST(request: Request) {
     });
 
     const jsonRes: TokenAPIResponse = await response.json();
-    console.log(jsonRes);
 
     if (!response.ok || !jsonRes.data.token) {
       return NextResponse.json({ error: jsonRes.errors }, { status: 401 });
