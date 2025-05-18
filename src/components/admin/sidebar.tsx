@@ -14,7 +14,7 @@ import {
   HiGift,
   HiOutlineLogout,
 } from "react-icons/hi";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -32,7 +32,7 @@ export default function SideBar() {
         router.refresh();
       } else {
         const errorData = await response.json();
-        toast.error(errorData.error || "Login failed");
+        toast.error(errorData.errors || "Login failed");
       }
     } catch {
       toast.error("Internal server error");
@@ -43,7 +43,6 @@ export default function SideBar() {
       aria-label="Default sidebar example"
       className="fixed top-0 left-0 h-screen w-64"
     >
-      <Toaster />
       <SidebarItems>
         <SidebarItemGroup>
           <SidebarItem href="#" icon={HiChartPie} as={Link}>

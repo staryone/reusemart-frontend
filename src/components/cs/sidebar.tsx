@@ -7,7 +7,7 @@ import {
   SidebarItems,
 } from "flowbite-react";
 import { HiChartPie, HiUser, HiChat, HiOutlineLogout } from "react-icons/hi";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -36,7 +36,6 @@ export default function SideBar() {
       aria-label="Default sidebar example"
       className="fixed top-0 left-0 h-screen w-64 z-10"
     >
-      <Toaster />
       <SidebarItems>
         <SidebarItemGroup>
           <SidebarItem href="#" icon={HiChartPie} as={Link}>

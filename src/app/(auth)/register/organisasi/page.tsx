@@ -3,7 +3,7 @@
 import { createOrganisasi } from "@/lib/api/organisasi.api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useState } from "react";
 import Image from "next/image";
 
@@ -163,7 +163,6 @@ export default function RegisterOrganisasi() {
 
   return (
     <div className="overflow-x-hidden w-screen min-h-screen p-6 sm:p-10 bg-gray-100">
-      <Toaster position="top-center" reverseOrder={false} />
       <div className="flex flex-col h-full">
         <div className="mb-6 flex justify-center">
           <Link href="/" className="flex items-center space-x-3">

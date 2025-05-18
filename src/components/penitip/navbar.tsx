@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
-import { removeToken } from "@/lib/auth/auth";
 import Image from "next/image";
 
 export default function Navbar() {
@@ -29,7 +28,6 @@ export default function Navbar() {
       });
 
       if (response.ok) {
-        removeToken();
         setIsLoggedIn(false);
         window.location.href = "/";
       } else {

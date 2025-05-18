@@ -4,6 +4,7 @@ import "./globals.css";
 import { Poppins } from "next/font/google";
 import { UserProvider } from "@/provider/UserProvider";
 import { getCurrentUser } from "@/lib/auth";
+import { Toaster } from "react-hot-toast";
 
 // Configure the font
 const poppins = Poppins({
@@ -29,6 +30,7 @@ export default async function RootLayout({
         className={`${poppins.variable} antialiased`}
         style={{ fontFamily: "var(--font-poppins), sans-serif" }}
       >
+        <Toaster position="top-center" reverseOrder={false} />
         <UserProvider user={user}>{children}</UserProvider>
       </body>
     </html>

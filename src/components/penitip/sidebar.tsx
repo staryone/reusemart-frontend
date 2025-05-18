@@ -12,8 +12,9 @@ import {
   HiCash,
 } from "react-icons/hi";
 import Image from "next/image";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SideBar() {
   const router = useRouter();
@@ -41,7 +42,6 @@ export default function SideBar() {
       aria-label="Default sidebar example"
       className="fixed top-0 left-0 h-screen w-64"
     >
-      <Toaster />
       <Image
         src="/logo.png"
         alt="Logo"
@@ -51,13 +51,17 @@ export default function SideBar() {
       />
       <SidebarItems>
         <SidebarItemGroup>
-          <SidebarItem href="/penitip/profil" icon={HiUser}>
+          <SidebarItem href="/penitip/profil" icon={HiUser} as={Link}>
             Profil
           </SidebarItem>
-          <SidebarItem href="/penitip/history-penjualan" icon={HiClipboardList}>
+          <SidebarItem
+            href="/penitip/history-penjualan"
+            icon={HiClipboardList}
+            as={Link}
+          >
             History Penjualan
           </SidebarItem>
-          <SidebarItem href="/penitip/transaksi" icon={HiCash}>
+          <SidebarItem href="/penitip/transaksi" icon={HiCash} as={Link}>
             Transaksi
           </SidebarItem>
           <SidebarItem onClick={handleLogout} icon={HiOutlineLogout}>

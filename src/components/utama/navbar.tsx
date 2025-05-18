@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
 import Image from "next/image";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useUser } from "@/hooks/use-user";
 import { useRouter } from "next/navigation";
 
@@ -57,7 +57,6 @@ export default function Navbar() {
   return (
     <>
       <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10 w-full">
-        <Toaster position="top-center" reverseOrder={false} />
         <div className="max-w-screen-xl mx-auto flex items-center justify-between py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">

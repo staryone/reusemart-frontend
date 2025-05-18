@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { forgotPasswordUser } from "@/lib/api/user.api";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -54,7 +54,6 @@ export default function ForgotPassword() {
 
   return (
     <div>
-      <Toaster position="top-center" reverseOrder={false} />
       <div className="overflow-x-hidden w-screen min-h-screen p-4 sm:p-10 flex items-center justify-center bg-gray-100">
         <form
           onSubmit={handleForgotPassword}

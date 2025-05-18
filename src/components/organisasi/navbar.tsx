@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { FaCartShopping } from "react-icons/fa6";
 import Image from "next/image";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
@@ -39,7 +39,6 @@ export default function Navbar() {
 
   return (
     <>
-      <Toaster />
       <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-10">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between p-4">
           {/* Logo */}
