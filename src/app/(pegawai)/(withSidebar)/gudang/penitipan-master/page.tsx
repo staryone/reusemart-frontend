@@ -18,7 +18,7 @@ import {
   Select,
 } from "flowbite-react";
 import { HiSearch } from "react-icons/hi";
-import { createPenitipan } from "@/lib/api/penitipan.api";
+import { createPenitipan, getListPenitipan } from "@/lib/api/penitipan.api";
 
 // import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
 // import { Penitipan } from "@/lib/interface/penitipan.interface";
@@ -27,6 +27,8 @@ import { getListPegawai } from "@/lib/api/pegawai.api";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
 import { getListPenitip } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
+import useSWR from "swr";
+import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
 
 // Form-specific interfaces
 interface BarangFormData {
@@ -83,6 +85,9 @@ const computeBatasAmbil = (tanggalAkhir: Date): string => {
   return batasAmbil.toISOString();
 };
 
+const fetcher = async ([params, token]: [URLSearchParams, string]) =>
+  await getListPenitipan(params, token);
+
 export default function PenitipanMaster() {
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -93,6 +98,10 @@ export default function PenitipanMaster() {
   const [penitipSearch, setPenitipSearch] = useState<string>("");
   const [qcSearch, setQCSearch] = useState<string>("");
   const [hunterSearch, setHunterSearch] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [totalItems, setTotalItems] = useState(0);
   const [formData, setFormData] = useState<FormDataState>({
     barangData: [
       {
@@ -112,8 +121,33 @@ export default function PenitipanMaster() {
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const currentUser = useUser();
-
   const token = currentUser !== null ? currentUser.token : "";
+
+  const queryParams = useMemo(() => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (searchQuery) {
+      params.append("search", searchQuery);
+    }
+    return params;
+  }, [page, searchQuery, limit]);
+
+  const { data, error, isLoading, mutate } = useSWR(
+    [queryParams, token],
+    fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+  useMemo(() => {
+    if (data && data[1] !== undefined) {
+      setTotalItems(data[1]);
+    }
+  }, [data]);
 
   const paramsHunter = useMemo(
       () =>
@@ -139,7 +173,6 @@ export default function PenitipanMaster() {
           const response = await getListPegawai(paramsHunter, token);
           if (response[0]) {
             setSemuaHunter(response[0]);
-            console.log(response[0]);
           } else {
             throw new Error("Tidak ada hunter tersedia");
           }
@@ -320,6 +353,7 @@ export default function PenitipanMaster() {
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    console.log("handleCreate triggered");
     setCreateError(null);
     setCreateSuccess(null);
 
@@ -369,6 +403,8 @@ export default function PenitipanMaster() {
       )
     );
 
+    console.log(formData);
+
     formData.barangData.forEach((barang, index) => {
       barang.gambar.forEach((file) => {
         formDataToSend.append(`gambar[${index}]`, file);
@@ -393,9 +429,25 @@ export default function PenitipanMaster() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
+  // const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
+  //   e.preventDefault();
+  //   console.log("Search:", e.currentTarget["search-pegawai"].value);
+  // };
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Search:", e.currentTarget["search-pegawai"].value);
+    const formData = new FormData(e.currentTarget);
+    const search = formData.get("search-penitipan") as string;
+    setSearchQuery(search);
+    setPage(1);
+  };
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
   };
 
   // Filter functions for searchable dropdowns
@@ -415,6 +467,16 @@ export default function PenitipanMaster() {
       hunter.email.toLowerCase().includes(hunterSearch.toLowerCase())
   );
 
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Tanggal tidak valid";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   return (
     <div className="flex">
       <div className="flex-1 p-4 ml-64">
@@ -423,8 +485,8 @@ export default function PenitipanMaster() {
           <form className="flex gap-3" onSubmit={handleSearch}>
             <input
               type="text"
-              name="search-pegawai"
-              id="search-pegawai"
+              name="search-penitipan"
+              id="search-penitipan"
               className="border rounded-md p-2 w-72"
               placeholder="Cari penitipan"
             />
@@ -449,6 +511,7 @@ export default function PenitipanMaster() {
                 <TableHeadCell>Harga</TableHeadCell>
                 <TableHeadCell>Tanggal Masuk</TableHeadCell>
                 <TableHeadCell>Tanggal Akhir</TableHeadCell>
+                <TableHeadCell>Status</TableHeadCell>
                 <TableHeadCell>
                   <span className="sr-only">Edit</span>
                 </TableHeadCell>
@@ -458,17 +521,32 @@ export default function PenitipanMaster() {
               </TableRow>
             </TableHead>
             <TableBody className="divide-y">
-              <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                <TableCell>1.</TableCell>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center">
+                    Error memuat data
+                  </TableCell>
+                </TableRow>
+              ) : data && data[0]?.length > 0 ? (
+                data[0].map((dtlPenitipan: DetailPenitipan, index: number) => (
+                  <TableRow key={dtlPenitipan.id_dtl_penitipan} className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                  Vacuum Cleaner
+                  {dtlPenitipan.barang.nama_barang}
                 </TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                  Jono Rusdi
+                  {dtlPenitipan.penitipan.penitip.nama}
                 </TableCell>
-                <TableCell>Rp2.500.000</TableCell>
-                <TableCell>20-03-2025</TableCell>
-                <TableCell>20-04-2025</TableCell>
+                <TableCell>Rp{new Intl.NumberFormat("id-ID").format(dtlPenitipan.barang.harga)}</TableCell>
+                <TableCell>{formatDate(dtlPenitipan.tanggal_masuk)}</TableCell>
+                <TableCell>{formatDate(dtlPenitipan.tanggal_akhir)}</TableCell>
+                <TableCell>{dtlPenitipan.barang.status}</TableCell>
                 <TableCell>
                   <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
                     Edit
@@ -480,8 +558,43 @@ export default function PenitipanMaster() {
                   </button>
                 </TableCell>
               </TableRow>
+              ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center">
+                    Tidak ada data
+                  </TableCell>
+                </TableRow>
+              )}
+              
             </TableBody>
           </Table>
+        </div>
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-sm text-gray-700">
+            Showing{" "}
+            <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+            <span className="font-medium">
+              {Math.min(page * limit, totalItems)}
+            </span>{" "}
+            of <span className="font-medium">{totalItems}</span> entries
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === totalPages}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 
