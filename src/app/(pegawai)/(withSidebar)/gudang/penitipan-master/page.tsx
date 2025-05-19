@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -23,6 +23,10 @@ import { createPenitipan } from "@/lib/api/penitipan.api";
 // import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
 // import { Penitipan } from "@/lib/interface/penitipan.interface";
 import { useUser } from "@/hooks/use-user";
+import { getListPegawai } from "@/lib/api/pegawai.api";
+import { Pegawai } from "@/lib/interface/pegawai.interface";
+import { getListPenitip } from "@/lib/api/penitip.api";
+import { Penitip } from "@/lib/interface/penitip.interface";
 
 // Form-specific interfaces
 interface BarangFormData {
@@ -37,9 +41,9 @@ interface BarangFormData {
 }
 
 interface PenitipanFormData {
-  id_penitip: string;
-  id_pegawai_qc: string;
-  id_hunter: string;
+  penitip: Penitip | null;
+  pegawai_qc: Pegawai | null;
+  hunter: Pegawai | null;
 }
 
 type DetailPenitipanFormData = object
@@ -83,6 +87,12 @@ export default function PenitipanMaster() {
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [semuaHunter, setSemuaHunter] = useState<Pegawai[]>([]);
+  const [semuaQC, setSemuaQC] = useState<Pegawai[]>([]);
+  const [semuaPenitip, setSemuaPenitip] = useState<Penitip[]>([]);
+  const [penitipSearch, setPenitipSearch] = useState<string>("");
+  const [qcSearch, setQCSearch] = useState<string>("");
+  const [hunterSearch, setHunterSearch] = useState<string>("");
   const [formData, setFormData] = useState<FormDataState>({
     barangData: [
       {
@@ -96,7 +106,7 @@ export default function PenitipanMaster() {
         gambar: [],
       },
     ],
-    penitipanData: { id_penitip: "", id_pegawai_qc: "", id_hunter: "" },
+    penitipanData: { penitip: null, pegawai_qc: null, hunter: null },
     detailPenitipanData: [],
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -105,11 +115,76 @@ export default function PenitipanMaster() {
 
   const token = currentUser !== null ? currentUser.token : "";
 
+  const paramsHunter = useMemo(
+      () =>
+        new URLSearchParams({
+          search: "HUNTER",
+        }),
+      []
+    );
+  const paramsQC = useMemo(
+      () =>
+        new URLSearchParams({
+          search: "GUDANG",
+        }),
+      []
+    );
+
+  const paramsPenitip = useMemo(() => new URLSearchParams({}), []);
+
+  useEffect(() => {
+    
+      async function fetchHunter() {
+        try {
+          const response = await getListPegawai(paramsHunter, token);
+          if (response[0]) {
+            setSemuaHunter(response[0]);
+            console.log(response[0]);
+          } else {
+            throw new Error("Tidak ada hunter tersedia");
+          }
+        } catch (error: unknown) {
+          console.error("Gagal memuat hunter:", error);
+        }
+      }
+      async function fetchQC() {
+        try {
+          const response = await getListPegawai(paramsQC, token);
+          if (response[0]) {
+            setSemuaQC(response[0]);
+          } else {
+            throw new Error("Tidak ada QC tersedia");
+          }
+        } catch (error: unknown) {
+          console.error("Gagal memuat barang:", error);
+        }
+      }
+      async function fetchPenitip() {
+        try {
+          const response = await getListPenitip(paramsPenitip, token);
+          if (response[0]) {
+            setSemuaPenitip(response[0]);
+          } else {
+            throw new Error("Tidak ada penitip tersedia");
+          }
+        } catch (error: unknown) {
+          console.error("Gagal memuat penitip:", error);
+        }
+      }
+  
+      fetchHunter();
+      fetchQC();
+      fetchPenitip();
+    }, [paramsHunter, paramsQC, paramsPenitip, token]);
+
   const onCloseCreateModal = (): void => {
     setOpenCreateModal(false);
     setCreateError(null);
     setCreateSuccess(null);
     setFormErrors({});
+    setPenitipSearch("");
+    setQCSearch("");
+    setHunterSearch("");
     setFormData({
       barangData: [
         {
@@ -123,7 +198,7 @@ export default function PenitipanMaster() {
           gambar: [],
         },
       ],
-      penitipanData: { id_penitip: "", id_pegawai_qc: "", id_hunter: "" },
+      penitipanData: { penitip: null, pegawai_qc: null, hunter: null },
       detailPenitipanData: [{ tanggal_akhir: "", batas_ambil: "", tanggal_laku: "", isDiperpanjang: false }],
     });
   };
@@ -132,7 +207,7 @@ export default function PenitipanMaster() {
     section: "barangData" | "penitipanData" | "detailPenitipanData",
     index: number,
     field: string,
-    value: string | boolean
+    value: string | Penitip | Pegawai | null
   ): void => {
     setFormData((prev) => {
       const newData = { ...prev };
@@ -233,20 +308,11 @@ export default function PenitipanMaster() {
         newErrors[`barangData_${index}_gambar`] = "At least 2 images are required";
       }
     });
-    if (
-      !formData.penitipanData.id_penitip ||
-      isNaN(Number(formData.penitipanData.id_penitip)) ||
-      Number(formData.penitipanData.id_penitip) <= 0
-    ) {
-      newErrors["penitipanData_0_id_penitip"] = "ID Penitip is required and must be a positive number";
+    if (!formData.penitipanData.penitip) {
+      newErrors["penitipanData_0_penitip"] = "Penitip is required";
     }
-    if (
-      !formData.penitipanData.id_pegawai_qc ||
-      isNaN(Number(formData.penitipanData.id_pegawai_qc)) ||
-      Number(formData.penitipanData.id_pegawai_qc) <= 0
-    ) {
-      newErrors["penitipanData_0_id_pegawai_qc"] =
-        "ID Pegawai QC is required and must be a positive number";
+    if (!formData.penitipanData.pegawai_qc) {
+      newErrors["penitipanData_0_pegawai_qc"] = "Pegawai QC is required";
     }
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -285,9 +351,9 @@ export default function PenitipanMaster() {
     formDataToSend.append(
       "penitipanData",
       JSON.stringify({
-        id_penitip: Number(formData.penitipanData.id_penitip),
-        id_pegawai_qc: Number(formData.penitipanData.id_pegawai_qc),
-        id_hunter: formData.penitipanData.id_hunter ? Number(formData.penitipanData.id_hunter) : null,
+        id_penitip: Number(formData.penitipanData.penitip?.id_penitip),
+        id_pegawai_qc: Number(formData.penitipanData.pegawai_qc?.id_pegawai),
+        id_hunter: formData.penitipanData.hunter ? Number(formData.penitipanData.hunter.id_pegawai) : null,
       })
     );
     formDataToSend.append(
@@ -331,6 +397,23 @@ export default function PenitipanMaster() {
     e.preventDefault();
     console.log("Search:", e.currentTarget["search-pegawai"].value);
   };
+
+  // Filter functions for searchable dropdowns
+  const filteredPenitip = semuaPenitip.filter(
+    (penitip) =>
+      penitip.nama.toLowerCase().includes(penitipSearch.toLowerCase()) ||
+      penitip.email.toLowerCase().includes(penitipSearch.toLowerCase())
+  );
+  const filteredQC = semuaQC.filter(
+    (qc) =>
+      qc.nama.toLowerCase().includes(qcSearch.toLowerCase()) ||
+      qc.email.toLowerCase().includes(qcSearch.toLowerCase())
+  );
+  const filteredHunter = semuaHunter.filter(
+    (hunter) =>
+      hunter.nama.toLowerCase().includes(hunterSearch.toLowerCase()) ||
+      hunter.email.toLowerCase().includes(hunterSearch.toLowerCase())
+  );
 
   return (
     <div className="flex">
@@ -415,49 +498,103 @@ export default function PenitipanMaster() {
             )}
             <div className="space-y-4">
               <h4 className="text-lg font-medium">Penitipan Data</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex flex-col gap-4">
                 <div>
-                  <Label htmlFor="id_penitip">ID Penitip</Label>
+                  <Label htmlFor="penitip">Penitip</Label>
                   <TextInput
-                    id="id_penitip"
-                    type="number"
-                    value={formData.penitipanData.id_penitip}
+                    id="penitip_search"
+                    placeholder="Cari penitip (nama atau email)..."
+                    value={penitipSearch}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("penitipanData", 0, "id_penitip", e.target.value)
+                      setPenitipSearch(e.target.value)
                     }
-                    required
-                    color={formErrors["penitipanData_0_id_penitip"] ? "failure" : undefined}
+                    className="mb-2"
                   />
-                  {formErrors["penitipanData_0_id_penitip"] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_id_penitip"]}</p>
+                  <Select
+                    id="penitip"
+                    value={formData.penitipanData.penitip?.id_penitip || ""}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      const selectedPenitip = semuaPenitip.find(
+                        (p) => p.id_penitip.toString() === e.target.value
+                      );
+                      handleInputChange("penitipanData", 0, "penitip", selectedPenitip || null);
+                    }}
+                    required
+                    color={formErrors["penitipanData_0_penitip"] ? "failure" : undefined}
+                  >
+                    <option value="">Pilih Penitip</option>
+                    {filteredPenitip.map((penitip) => (
+                      <option key={penitip.id_penitip} value={penitip.id_penitip}>
+                        {`${penitip.nama} (${penitip.email})`}
+                      </option>
+                    ))}
+                  </Select>
+                  {formErrors["penitipanData_0_penitip"] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_penitip"]}</p>
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="id_pegawai_qc">ID Pegawai QC</Label>
+                  <Label htmlFor="pegawai_qc">Pegawai QC</Label>
                   <TextInput
-                    id="id_pegawai_qc"
-                    type="number"
-                    value={formData.penitipanData.id_pegawai_qc}
+                    id="qc_search"
+                    placeholder="Cari QC (nama atau email)..."
+                    value={qcSearch}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("penitipanData", 0, "id_pegawai_qc", e.target.value)
+                      setQCSearch(e.target.value)
                     }
-                    required
-                    color={formErrors["penitipanData_0_id_pegawai_qc"] ? "failure" : undefined}
+                    className="mb-2"
                   />
-                  {formErrors["penitipanData_0_id_pegawai_qc"] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_id_pegawai_qc"]}</p>
+                  <Select
+                    id="pegawai_qc"
+                    value={formData.penitipanData.pegawai_qc?.id_pegawai || ""}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      const selectedQC = semuaQC.find(
+                        (q) => q.id_pegawai.toString() === e.target.value
+                      );
+                      handleInputChange("penitipanData", 0, "pegawai_qc", selectedQC || null);
+                    }}
+                    required
+                    color={formErrors["penitipanData_0_pegawai_qc"] ? "failure" : undefined}
+                  >
+                    <option value="">Pilih Pegawai QC</option>
+                    {filteredQC.map((qc) => (
+                      <option key={qc.id_pegawai} value={qc.id_pegawai}>
+                        {`${qc.nama} (${qc.email}) - ${qc.jabatan.nama_jabatan}`}
+                      </option>
+                    ))}
+                  </Select>
+                  {formErrors["penitipanData_0_pegawai_qc"] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_pegawai_qc"]}</p>
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="id_hunter">ID Hunter (Optional)</Label>
+                  <Label htmlFor="hunter">Hunter (Optional)</Label>
                   <TextInput
-                    id="id_hunter"
-                    type="number"
-                    value={formData.penitipanData.id_hunter}
+                    id="hunter_search"
+                    placeholder="Cari Hunter (nama atau email)..."
+                    value={hunterSearch}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("penitipanData", 0, "id_hunter", e.target.value)
+                      setHunterSearch(e.target.value)
                     }
+                    className="mb-2"
                   />
+                  <Select
+                    id="hunter"
+                    value={formData.penitipanData.hunter?.id_pegawai || ""}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      const selectedHunter = semuaHunter.find(
+                        (h) => h.id_pegawai.toString() === e.target.value
+                      );
+                      handleInputChange("penitipanData", 0, "hunter", selectedHunter || null);
+                    }}
+                  >
+                    <option value="">Pilih Hunter (Opsional)</option>
+                    {filteredHunter.map((hunter) => (
+                      <option key={hunter.id_pegawai} value={hunter.id_pegawai}>
+                        {`${hunter.nama} (${hunter.email}) - ${hunter.jabatan.nama_jabatan}`}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
               </div>
             </div>
