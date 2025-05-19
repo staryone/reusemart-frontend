@@ -14,8 +14,8 @@ import {
   ModalHeader,
   TextInput,
   Label,
-  Checkbox,
   FileInput,
+  Select,
 } from "flowbite-react";
 import { HiSearch } from "react-icons/hi";
 import { createPenitipan } from "@/lib/api/penitipan.api";
@@ -42,12 +42,7 @@ interface PenitipanFormData {
   id_hunter: string;
 }
 
-interface DetailPenitipanFormData {
-  tanggal_akhir: string;
-  batas_ambil: string;
-  tanggal_laku: string;
-  isDiperpanjang: boolean;
-}
+type DetailPenitipanFormData = object
 
 interface FormDataState {
   barangData: BarangFormData[];
@@ -55,9 +50,34 @@ interface FormDataState {
   detailPenitipanData: DetailPenitipanFormData[];
 }
 
+const categories = [
+  { id: "1", name: "Elektronik & Gadget" },
+  { id: "2", name: "Pakaian & Aksesori" },
+  { id: "3", name: "Perabotan Rumah Tangga" },
+  { id: "4", name: "Buku, Alat Tulis, & Peralatan Sekolah" },
+  { id: "5", name: "Hobi, Mainan, & Koleksi" },
+  { id: "6", name: "Peralengkapan Bayi & Anak" },
+  { id: "7", name: "Otomotif & Aksesori" },
+  { id: "8", name: "Peralengkapan Taman & Outdoor" },
+  { id: "9", name: "Peralatan Kantor & Industri" },
+  { id: "10", name: "Kosmetik & Perawatan Diri" },
+];
+
 interface FormErrors {
   [key: string]: string;
 }
+
+const computeTanggalAkhir = (tanggalMasuk: Date): string => {
+  const tanggalAkhir = new Date(tanggalMasuk);
+  tanggalAkhir.setDate(tanggalAkhir.getDate() + 30);
+  return tanggalAkhir.toISOString();
+};
+
+const computeBatasAmbil = (tanggalAkhir: Date): string => {
+  const batasAmbil = new Date(tanggalAkhir);
+  batasAmbil.setDate(batasAmbil.getDate() + 7);
+  return batasAmbil.toISOString();
+};
 
 export default function PenitipanMaster() {
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
@@ -77,7 +97,7 @@ export default function PenitipanMaster() {
       },
     ],
     penitipanData: { id_penitip: "", id_pegawai_qc: "", id_hunter: "" },
-    detailPenitipanData: [{ tanggal_akhir: "", batas_ambil: "", tanggal_laku: "", isDiperpanjang: false }],
+    detailPenitipanData: [],
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
@@ -170,7 +190,6 @@ export default function PenitipanMaster() {
       ],
       detailPenitipanData: [
         ...prev.detailPenitipanData,
-        { tanggal_akhir: "", batas_ambil: "", tanggal_laku: "", isDiperpanjang: false },
       ],
     }));
   };
@@ -229,16 +248,6 @@ export default function PenitipanMaster() {
       newErrors["penitipanData_0_id_pegawai_qc"] =
         "ID Pegawai QC is required and must be a positive number";
     }
-    formData.detailPenitipanData.forEach((detail, index) => {
-      if (!detail.tanggal_akhir) {
-        newErrors[`detailPenitipanData_${index}_tanggal_akhir`] = "Tanggal akhir is required";
-      }
-      if (!detail.batas_ambil) {
-        newErrors[`detailPenitipanData_${index}_batas_ambil`] = "Batas ambil is required";
-      } else if (new Date(detail.batas_ambil) <= new Date(detail.tanggal_akhir)) {
-        newErrors[`detailPenitipanData_${index}_batas_ambil`] = "Batas ambil must be after tanggal akhir";
-      }
-    });
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -252,15 +261,24 @@ export default function PenitipanMaster() {
       return;
     }
 
+    const tanggalMasuk = new Date(); 
+
+    const tanggalAkhir = computeTanggalAkhir(tanggalMasuk); 
+
+    const batasAmbil = computeBatasAmbil(new Date(tanggalAkhir)); 
+
     const formDataToSend = new FormData();
     formDataToSend.append(
       "barangData",
       JSON.stringify(
-        formData.barangData.map(({ gambar, ...rest }) => ({
-          ...rest,
-          id_kategori: Number(rest.id_kategori),
-          harga: Number(rest.harga),
-          berat: Number(rest.berat),
+        formData.barangData.map((item) => ({
+          prefix: item.nama_barang.charAt(0),
+          nama_barang: item.nama_barang,
+          deskripsi: item.deskripsi,
+          harga: Number(item.harga),
+          berat: Number(item.berat),
+          id_kategori: Number(item.id_kategori),
+          garansi: item.garansi,
         }))
       )
     );
@@ -275,9 +293,12 @@ export default function PenitipanMaster() {
     formDataToSend.append(
       "detailPenitipanData",
       JSON.stringify(
-        formData.detailPenitipanData.map((detail) => ({
-          ...detail,
-          isDiperpanjang: detail.isDiperpanjang,
+        formData.detailPenitipanData.map(() => ({
+          tanggal_masuk: tanggalMasuk.toISOString(),
+          tanggal_akhir: tanggalAkhir,
+          batas_ambil: batasAmbil,
+          tanggal_laku: null,
+          isDiperpanjang: false,
         }))
       )
     );
@@ -452,21 +473,6 @@ export default function PenitipanMaster() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor={`prefix_${index}`}>Prefix</Label>
-                    <TextInput
-                      id={`prefix_${index}`}
-                      value={barang.prefix}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("barangData", index, "prefix", e.target.value)
-                      }
-                      required
-                      color={formErrors[`barangData_${index}_prefix`] ? "failure" : undefined}
-                    />
-                    {formErrors[`barangData_${index}_prefix`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_prefix`]}</p>
-                    )}
-                  </div>
-                  <div>
                     <Label htmlFor={`nama_barang_${index}`}>Nama Barang</Label>
                     <TextInput
                       id={`nama_barang_${index}`}
@@ -529,17 +535,23 @@ export default function PenitipanMaster() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor={`id_kategori_${index}`}>ID Kategori</Label>
-                    <TextInput
+                    <Label htmlFor={`id_kategori_${index}`}>Kategori</Label>
+                    <Select
                       id={`id_kategori_${index}`}
-                      type="number"
                       value={barang.id_kategori}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                         handleInputChange("barangData", index, "id_kategori", e.target.value)
                       }
                       required
                       color={formErrors[`barangData_${index}_id_kategori`] ? "failure" : undefined}
-                    />
+                    >
+                      <option value="">Pilih Kategori</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </Select>
                     {formErrors[`barangData_${index}_id_kategori`] && (
                       <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_id_kategori`]}</p>
                     )}
@@ -579,64 +591,6 @@ export default function PenitipanMaster() {
                         />
                       ))}
                     </div>
-                  </div>
-                </div>
-                <h4 className="text-lg font-medium mt-4">Detail Penitipan {index + 1}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`tanggal_akhir_${index}`}>Tanggal Akhir</Label>
-                    <TextInput
-                      id={`tanggal_akhir_${index}`}
-                      type="datetime-local"
-                      value={formData.detailPenitipanData[index].tanggal_akhir}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("detailPenitipanData", index, "tanggal_akhir", e.target.value)
-                      }
-                      required
-                      color={formErrors[`detailPenitipanData_${index}_tanggal_akhir`] ? "failure" : undefined}
-                    />
-                    {formErrors[`detailPenitipanData_${index}_tanggal_akhir`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`detailPenitipanData_${index}_tanggal_akhir`]}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`batas_ambil_${index}`}>Batas Ambil</Label>
-                    <TextInput
-                      id={`batas_ambil_${index}`}
-                      type="datetime-local"
-                      value={formData.detailPenitipanData[index].batas_ambil}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("detailPenitipanData", index, "batas_ambil", e.target.value)
-                      }
-                      required
-                      color={formErrors[`detailPenitipanData_${index}_batas_ambil`] ? "failure" : undefined}
-                    />
-                    {formErrors[`detailPenitipanData_${index}_batas_ambil`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`detailPenitipanData_${index}_batas_ambil`]}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`tanggal_laku_${index}`}>Tanggal Laku (Optional)</Label>
-                    <TextInput
-                      id={`tanggal_laku_${index}`}
-                      type="datetime-local"
-                      value={formData.detailPenitipanData[index].tanggal_laku}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("detailPenitipanData", index, "tanggal_laku", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <Checkbox
-                      id={`isDiperpanjang_${index}`}
-                      checked={formData.detailPenitipanData[index].isDiperpanjang}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("detailPenitipanData", index, "isDiperpanjang", e.target.checked)
-                      }
-                    />
-                    <Label htmlFor={`isDiperpanjang_${index}`} className="ml-2">
-                      Diperpanjang
-                    </Label>
                   </div>
                 </div>
               </div>
