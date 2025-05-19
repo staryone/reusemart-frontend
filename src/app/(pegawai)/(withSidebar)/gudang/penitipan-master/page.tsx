@@ -1,14 +1,6 @@
 "use client";
 
-// import {
-//   createPegawai,
-//   deletePegawai,
-//   getListPegawai,
-//   resetPasswordPegawai,
-//   updatePegawai,
-// } from "@/lib/api/pegawai.api";
-// import { getToken } from "@/lib/auth/auth";
-// import { Pegawai } from "@/lib/interface/pegawai.interface";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -16,478 +8,315 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "flowbite-react";
-import {
-  //   Select,
-  //   Label,
-  //   Modal,
-  //   ModalBody,
-  //   ModalHeader,
-  //   TextInput,
   Button,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  TextInput,
+  Label,
+  Checkbox,
+  FileInput,
 } from "flowbite-react";
-// import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
-// import useSWR from "swr";
+import { createPenitipan } from "@/lib/api/penitipan.api";
 
-// const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-//   await getListPegawai(params, token);
+// import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
+// import { Penitipan } from "@/lib/interface/penitipan.interface";
+import { useUser } from "@/hooks/use-user";
+
+// Form-specific interfaces
+interface BarangFormData {
+  prefix: string;
+  nama_barang: string;
+  deskripsi: string;
+  harga: string;
+  berat: string;
+  id_kategori: string;
+  garansi: string;
+  gambar: File[];
+}
+
+interface PenitipanFormData {
+  id_penitip: string;
+  id_pegawai_qc: string;
+  id_hunter: string;
+}
+
+interface DetailPenitipanFormData {
+  tanggal_akhir: string;
+  batas_ambil: string;
+  tanggal_laku: string;
+  isDiperpanjang: boolean;
+}
+
+interface FormDataState {
+  barangData: BarangFormData[];
+  penitipanData: PenitipanFormData;
+  detailPenitipanData: DetailPenitipanFormData[];
+}
+
+interface FormErrors {
+  [key: string]: string;
+}
 
 export default function PenitipanMaster() {
-  //   const [openModal, setOpenModal] = useState(false);
-  //   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  //   const [openResetPasswordModal, setOpenResetPasswordModal] = useState(false);
-  //   const [openCreateModal, setOpenCreateModal] = useState(false);
-  //   const [page, setPage] = useState(1);
-  //   const [limit] = useState(10);
-  //   const [totalItems, setTotalItems] = useState(0);
-  //   const [searchQuery, setSearchQuery] = useState("");
-  //   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
-  //   const [createError, setCreateError] = useState<string | null>(null);
-  //   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormDataState>({
+    barangData: [
+      {
+        prefix: "",
+        nama_barang: "",
+        deskripsi: "",
+        harga: "",
+        berat: "",
+        id_kategori: "",
+        garansi: "",
+        gambar: [],
+      },
+    ],
+    penitipanData: { id_penitip: "", id_pegawai_qc: "", id_hunter: "" },
+    detailPenitipanData: [{ tanggal_akhir: "", batas_ambil: "", tanggal_laku: "", isDiperpanjang: false }],
+  });
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
-  //   const token = getToken() || "";
+  const currentUser = useUser();
 
-  //   const queryParams = useMemo(() => {
-  //     const params = new URLSearchParams({
-  //       page: page.toString(),
-  //       limit: limit.toString(),
-  //     });
-  //     if (searchQuery) {
-  //       params.append("search", searchQuery);
-  //     }
-  //     return params;
-  //   }, [page, searchQuery, limit]);
+  const token = currentUser !== null ? currentUser.token : "";
 
-  //   const { data, error, isLoading, mutate } = useSWR(
-  //     [queryParams, token],
-  //     fetcher,
-  //     {
-  //       revalidateIfStale: false,
-  //       revalidateOnFocus: false,
-  //       revalidateOnReconnect: false,
-  //     }
-  //   );
+  const onCloseCreateModal = (): void => {
+    setOpenCreateModal(false);
+    setCreateError(null);
+    setCreateSuccess(null);
+    setFormErrors({});
+    setFormData({
+      barangData: [
+        {
+          prefix: "",
+          nama_barang: "",
+          deskripsi: "",
+          harga: "",
+          berat: "",
+          id_kategori: "",
+          garansi: "",
+          gambar: [],
+        },
+      ],
+      penitipanData: { id_penitip: "", id_pegawai_qc: "", id_hunter: "" },
+      detailPenitipanData: [{ tanggal_akhir: "", batas_ambil: "", tanggal_laku: "", isDiperpanjang: false }],
+    });
+  };
 
-  //   useMemo(() => {
-  //     if (data && data[1] !== undefined) {
-  //       setTotalItems(data[1]);
-  //     }
-  //   }, [data]);
+  const handleInputChange = (
+    section: "barangData" | "penitipanData" | "detailPenitipanData",
+    index: number,
+    field: string,
+    value: string | boolean
+  ): void => {
+    setFormData((prev) => {
+      const newData = { ...prev };
+      if (section === "penitipanData") {
+        newData.penitipanData = { ...newData.penitipanData, [field]: value };
+      } else {
+        newData[section][index] = { ...newData[section][index], [field]: value };
+      }
+      return newData;
+    });
+    setFormErrors((prev) => ({ ...prev, [`${section}_${index}_${field}`]: "" }));
+  };
 
-  //   function onCloseModal() {
-  //     setOpenModal(false);
-  //     setSelectedPegawai(null);
-  //     setUpdateError(null);
-  //   }
+  const handleFileChange = (index: number, files: FileList | null): void => {
+    const fileArray: File[] = files ? Array.from(files) : [];
+    if (fileArray.length < 2) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [`barangData_${index}_gambar`]: "At least 2 images are required",
+      }));
+      return;
+    }
+    const validTypes = ["image/jpeg", "image/png"];
+    const invalidFiles = fileArray.filter((file) => !validTypes.includes(file.type));
+    if (invalidFiles.length > 0) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [`barangData_${index}_gambar`]: "Only JPEG and PNG images are allowed",
+      }));
+      return;
+    }
+    setFormData((prev) => {
+      const newData = { ...prev };
+      newData.barangData[index].gambar = fileArray;
+      return newData;
+    });
+    setFormErrors((prev) => ({ ...prev, [`barangData_${index}_gambar`]: "" }));
+  };
 
-  //   function onCloseDeleteModal() {
-  //     setOpenDeleteModal(false);
-  //     setSelectedPegawai(null);
-  //   }
+  const addBarang = (): void => {
+    setFormData((prev) => ({
+      ...prev,
+      barangData: [
+        ...prev.barangData,
+        {
+          prefix: "",
+          nama_barang: "",
+          deskripsi: "",
+          harga: "",
+          berat: "",
+          id_kategori: "",
+          garansi: "",
+          gambar: [],
+        },
+      ],
+      detailPenitipanData: [
+        ...prev.detailPenitipanData,
+        { tanggal_akhir: "", batas_ambil: "", tanggal_laku: "", isDiperpanjang: false },
+      ],
+    }));
+  };
 
-  //   function onCloseResetPasswordModal() {
-  //     setOpenResetPasswordModal(false);
-  //     setSelectedPegawai(null);
-  //   }
+  const removeBarang = (index: number): void => {
+    setFormData((prev) => {
+      const newData = { ...prev };
+      newData.barangData.splice(index, 1);
+      newData.detailPenitipanData.splice(index, 1);
+      return newData;
+    });
+    setFormErrors((prev) => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors).forEach((key) => {
+        if (key.startsWith(`barangData_${index}_`) || key.startsWith(`detailPenitipanData_${index}_`)) {
+          delete newErrors[key];
+        }
+      });
+      return newErrors;
+    });
+  };
 
-  //   function onCloseCreateModal() {
-  //     setOpenCreateModal(false);
-  //     setCreateError(null);
-  //   }
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    formData.barangData.forEach((barang, index) => {
+      if (!barang.prefix || barang.prefix.length !== 1) {
+        newErrors[`barangData_${index}_prefix`] = "Prefix must be a single character";
+      }
+      if (!barang.nama_barang) newErrors[`barangData_${index}_nama_barang`] = "Nama barang is required";
+      if (!barang.deskripsi) newErrors[`barangData_${index}_deskripsi`] = "Deskripsi is required";
+      if (!barang.harga || isNaN(Number(barang.harga)) || Number(barang.harga) <= 0) {
+        newErrors[`barangData_${index}_harga`] = "Harga must be a positive number";
+      }
+      if (!barang.berat || isNaN(Number(barang.berat)) || Number(barang.berat) <= 0) {
+        newErrors[`barangData_${index}_berat`] = "Berat must be a positive number";
+      }
+      if (!barang.id_kategori || isNaN(Number(barang.id_kategori)) || Number(barang.id_kategori) <= 0) {
+        newErrors[`barangData_${index}_id_kategori`] = "ID Kategori must be a positive number";
+      }
+      if (barang.gambar.length < 2) {
+        newErrors[`barangData_${index}_gambar`] = "At least 2 images are required";
+      }
+    });
+    if (
+      !formData.penitipanData.id_penitip ||
+      isNaN(Number(formData.penitipanData.id_penitip)) ||
+      Number(formData.penitipanData.id_penitip) <= 0
+    ) {
+      newErrors["penitipanData_0_id_penitip"] = "ID Penitip is required and must be a positive number";
+    }
+    if (
+      !formData.penitipanData.id_pegawai_qc ||
+      isNaN(Number(formData.penitipanData.id_pegawai_qc)) ||
+      Number(formData.penitipanData.id_pegawai_qc) <= 0
+    ) {
+      newErrors["penitipanData_0_id_pegawai_qc"] =
+        "ID Pegawai QC is required and must be a positive number";
+    }
+    formData.detailPenitipanData.forEach((detail, index) => {
+      if (!detail.tanggal_akhir) {
+        newErrors[`detailPenitipanData_${index}_tanggal_akhir`] = "Tanggal akhir is required";
+      }
+      if (!detail.batas_ambil) {
+        newErrors[`detailPenitipanData_${index}_batas_ambil`] = "Batas ambil is required";
+      } else if (new Date(detail.batas_ambil) <= new Date(detail.tanggal_akhir)) {
+        newErrors[`detailPenitipanData_${index}_batas_ambil`] = "Batas ambil must be after tanggal akhir";
+      }
+    });
+    setFormErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-  //   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-  //     e.preventDefault();
-  //     const formData = new FormData(e.currentTarget);
-  //     const search = formData.get("search-pegawai") as string;
-  //     setSearchQuery(search);
-  //     setPage(1);
-  //   };
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setCreateError(null);
+    setCreateSuccess(null);
 
-  //   const handleEdit = (pegawai: Pegawai) => {
-  //     setSelectedPegawai(pegawai);
-  //     setOpenModal(true);
-  //   };
+    if (!validateForm()) {
+      return;
+    }
 
-  //   const handleDelete = async () => {
-  //     if (!selectedPegawai) return;
+    const formDataToSend = new FormData();
+    formDataToSend.append(
+      "barangData",
+      JSON.stringify(
+        formData.barangData.map(({ gambar, ...rest }) => ({
+          ...rest,
+          id_kategori: Number(rest.id_kategori),
+          harga: Number(rest.harga),
+          berat: Number(rest.berat),
+        }))
+      )
+    );
+    formDataToSend.append(
+      "penitipanData",
+      JSON.stringify({
+        id_penitip: Number(formData.penitipanData.id_penitip),
+        id_pegawai_qc: Number(formData.penitipanData.id_pegawai_qc),
+        id_hunter: formData.penitipanData.id_hunter ? Number(formData.penitipanData.id_hunter) : null,
+      })
+    );
+    formDataToSend.append(
+      "detailPenitipanData",
+      JSON.stringify(
+        formData.detailPenitipanData.map((detail) => ({
+          ...detail,
+          isDiperpanjang: detail.isDiperpanjang,
+        }))
+      )
+    );
 
-  //     try {
-  //       const res = await deletePegawai(selectedPegawai.id_pegawai, token);
+    formData.barangData.forEach((barang, index) => {
+      barang.gambar.forEach((file) => {
+        formDataToSend.append(`gambar[${index}]`, file);
+      });
+    });
 
-  //       if (res) {
-  //         mutate();
-  //         onCloseDeleteModal();
-  //       } else {
-  //         console.error("Gagal menghapus pegawai");
-  //       }
-  //     } catch (error: unknown) {
-  //       console.error("Error menghapus pegawai:", error);
-  //     }
-  //   };
+    try {
+      const res = await createPenitipan(formDataToSend, token);
+      if (!res.errors) {
+        setCreateSuccess("Penitipan created successfully");
+        setTimeout(() => {
+          onCloseCreateModal();
+        }, 2000);
+      } else {
+        throw new Error(res.errors || "Gagal membuat penitipan");
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Terjadi kesalahan saat membuat penitipan";
+      setCreateError(errorMessage);
+      console.error("Error creating penitipan:", error);
+    }
+  };
 
-  //   const handleResetPassword = async () => {
-  //     if (!selectedPegawai) return;
-
-  //     try {
-  //       const res = await resetPasswordPegawai(selectedPegawai.id_pegawai, token);
-
-  //       if (res) {
-  //         mutate();
-  //         onCloseResetPasswordModal();
-  //       } else {
-  //         console.error("Gagal reset password pegawai");
-  //       }
-  //     } catch (error: unknown) {
-  //       console.error("Error reset password pegawai:", error);
-  //     }
-  //   };
-
-  //   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
-  //     e.preventDefault();
-  //     setCreateError(null);
-
-  //     const formData = new FormData(e.currentTarget);
-  //     const createData = new FormData();
-
-  //     try {
-  //       // Validasi input
-  //       const nama = formData.get("nama") as string;
-  //       const email = formData.get("email") as string;
-  //       const telp = formData.get("telp") as string;
-  //       const jabatan = formData.get("jabatan") as string;
-  //       const tglLahir = formData.get("tgl_lahir") as string;
-
-  //       if (!nama || nama.trim().length < 2) {
-  //         throw new Error("Nama harus diisi dan minimal 2 karakter");
-  //       }
-  //       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-  //         throw new Error("Email tidak valid");
-  //       }
-  //       if (!telp || !/^\d{10,13}$/.test(telp)) {
-  //         throw new Error("Nomor telepon tidak valid (10-13 digit)");
-  //       }
-  //       if (!jabatan) {
-  //         throw new Error("Jabatan harus dipilih");
-  //       }
-  //       if (!tglLahir) {
-  //         throw new Error("Tanggal lahir harus diisi");
-  //       }
-
-  //       if (nama) createData.set("nama", nama);
-  //       if (email) createData.set("email", email);
-  //       if (telp) createData.set("nomor_telepon", telp);
-  //       if (jabatan) createData.set("id_jabatan", jabatan);
-  //       if (tglLahir) createData.set("tgl_lahir", tglLahir);
-
-  //       const res = await createPegawai(createData, token);
-
-  //       if (res) {
-  //         mutate();
-  //         onCloseCreateModal();
-  //       } else {
-  //         throw new Error("Gagal membuat pegawai");
-  //       }
-  //     } catch (error: unknown) {
-  //       const errorMessage =
-  //         error instanceof Error
-  //           ? error.message
-  //           : "Terjadi kesalahan saat membuat pegawai";
-  //       setCreateError(errorMessage);
-  //       console.error("Error creating pegawai:", error);
-  //     }
-  //   };
-
-  //   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-  //     e.preventDefault();
-  //     if (!selectedPegawai) return;
-  //     setUpdateError(null);
-
-  //     const formData = new FormData(e.currentTarget);
-  //     const updateData = new FormData();
-
-  //     try {
-  //       // Validasi input
-  //       const nama = formData.get("nama") as string;
-  //       const email = formData.get("email") as string;
-  //       const telp = formData.get("telp") as string;
-  //       const jabatan = formData.get("jabatan") as string;
-
-  //       if (!nama || nama.trim().length < 2) {
-  //         throw new Error("Nama harus diisi dan minimal 2 karakter");
-  //       }
-  //       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-  //         throw new Error("Email tidak valid");
-  //       }
-  //       if (!telp || !/^\d{10,13}$/.test(telp)) {
-  //         throw new Error("Nomor telepon tidak valid (10-13 digit)");
-  //       }
-  //       if (!jabatan) {
-  //         throw new Error("Jabatan harus dipilih");
-  //       }
-
-  //       if (nama) updateData.set("nama", nama);
-  //       if (email) updateData.set("email", email);
-  //       if (telp) updateData.set("nomor_telepon", telp);
-  //       if (jabatan) updateData.set("id_jabatan", jabatan);
-
-  //       const res = await updatePegawai(
-  //         selectedPegawai.id_pegawai,
-  //         updateData,
-  //         token
-  //       );
-
-  //       if (res) {
-  //         mutate();
-  //         onCloseModal();
-  //       } else {
-  //         throw new Error("Gagal memperbarui pegawai");
-  //       }
-  //     } catch (error: unknown) {
-  //       const errorMessage =
-  //         error instanceof Error
-  //           ? error.message
-  //           : "Terjadi kesalahan saat memperbarui pegawai";
-  //       setUpdateError(errorMessage);
-  //       console.error("Error updating pegawai:", error);
-  //     }
-  //   };
-
-  //   const totalPages = Math.ceil(totalItems / limit);
-
-  //   const handlePageChange = (newPage: number) => {
-  //     if (newPage >= 1 && newPage <= totalPages) {
-  //       setPage(newPage);
-  //     }
-  //   };
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    console.log("Search:", e.currentTarget["search-pegawai"].value);
+  };
 
   return (
     <div className="flex">
-      {/* <Modal show={openModal} size="md" onClose={onCloseModal} popup>
-        <ModalHeader />
-        <ModalBody>
-          <form className="space-y-6" onSubmit={handleUpdate}>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Edit Data Pegawai
-            </h3>
-            {updateError && (
-              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
-                {updateError}
-              </div>
-            )}
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="nama">Nama Pegawai</Label>
-              </div>
-              <TextInput
-                id="nama"
-                name="nama"
-                defaultValue={selectedPegawai?.nama}
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="jabatan">Jabatan</Label>
-              </div>
-              <Select
-                id="jabatan"
-                name="jabatan"
-                defaultValue={selectedPegawai?.jabatan?.id_jabatan?.toString()}
-                required
-              >
-                <option value="">Pilih Jabatan</option>
-                <option value="1">Owner</option>
-                <option value="2">Admin</option>
-                <option value="3">Gudang</option>
-                <option value="4">Customer Service</option>
-                <option value="5">Kurir</option>
-                <option value="6">Hunter</option>
-              </Select>
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="email">Email</Label>
-              </div>
-              <TextInput
-                id="email"
-                name="email"
-                defaultValue={selectedPegawai?.email}
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="telp">Nomor Telepon</Label>
-              </div>
-              <TextInput
-                id="telp"
-                name="telp"
-                defaultValue={selectedPegawai?.nomor_telepon}
-                required
-              />
-            </div>
-            <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
-              <button
-                type="submit"
-                className="px-4 py-2 text-white bg-cyan-600 rounded-md hover:bg-cyan-700"
-              >
-                Update Data
-              </button>
-            </div>
-          </form>
-        </ModalBody>
-      </Modal>
-      <Modal
-        show={openDeleteModal}
-        size="md"
-        onClose={onCloseDeleteModal}
-        popup
-      >
-        <ModalHeader />
-        <ModalBody>
-          <div className="text-center">
-            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Apakah Anda yakin ingin menghapus data ini?
-            </h3>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={onCloseDeleteModal}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
-              >
-                Hapus
-              </button>
-            </div>
-          </div>
-        </ModalBody>
-      </Modal>
-      <Modal
-        show={openResetPasswordModal}
-        size="md"
-        onClose={onCloseResetPasswordModal}
-        popup
-      >
-        <ModalHeader />
-        <ModalBody>
-          <div className="text-center">
-            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Apakah Anda yakin ingin reset password data ini?
-            </h3>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={onCloseResetPasswordModal}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleResetPassword}
-                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
-              >
-                Reset Password
-              </button>
-            </div>
-          </div>
-        </ModalBody>
-      </Modal>
-      <Modal
-        show={openCreateModal}
-        size="md"
-        onClose={onCloseCreateModal}
-        popup
-      >
-        <ModalHeader />
-        <ModalBody>
-          <form className="space-y-6" onSubmit={handleCreate}>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-              Tambah Pegawai Baru
-            </h3>
-            {createError && (
-              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
-                {createError}
-              </div>
-            )}
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="nama">Nama Pegawai</Label>
-              </div>
-              <TextInput
-                id="nama"
-                name="nama"
-                placeholder="Masukkan nama pegawai"
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="jabatan">Jabatan</Label>
-              </div>
-              <Select id="jabatan" name="jabatan" required>
-                <option value="">Pilih Jabatan</option>
-                <option value="1">Owner</option>
-                <option value="2">Admin</option>
-                <option value="3">Gudang</option>
-                <option value="4">Customer Service</option>
-                <option value="5">Kurir</option>
-                <option value="6">Hunter</option>
-              </Select>
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="email">Email</Label>
-              </div>
-              <TextInput
-                id="email"
-                name="email"
-                placeholder="Masukkan email"
-                type="email"
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="tgl_lahir">Tanggal Lahir</Label>
-              </div>
-              <TextInput
-                id="tgl_lahir"
-                name="tgl_lahir"
-                placeholder="Masukkan tgl_lahir"
-                type="date"
-                required
-              />
-            </div>
-            <div>
-              <div className="mb-2 block">
-                <Label htmlFor="telp">Nomor Telepon</Label>
-              </div>
-              <TextInput
-                id="telp"
-                name="telp"
-                placeholder="Masukkan nomor telepon"
-                required
-              />
-            </div>
-            <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
-              <Button
-                type="submit"
-                className="px-4 py-2 text-white bg-[#1980e6] hover:bg-[#1980e6]/80"
-              >
-                Tambah Pegawai
-              </Button>
-            </div>
-          </form>
-        </ModalBody>
-      </Modal> */}
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Penitipan</h1>
         <div className="flex justify-between items-center my-5">
-          <form className="flex gap-3">
+          <form className="flex gap-3" onSubmit={handleSearch}>
             <input
               type="text"
               name="search-pegawai"
@@ -495,15 +324,12 @@ export default function PenitipanMaster() {
               className="border rounded-md p-2 w-72"
               placeholder="Cari penitipan"
             />
-            <button
-              type="submit"
-              className="p-3 bg-blue-500 text-white rounded-md"
-            >
+            <button type="submit" className="p-3 bg-blue-500 text-white rounded-md">
               <HiSearch />
             </button>
           </form>
           <Button
-            // onClick={() => setOpenCreateModal(true)}
+            onClick={() => setOpenCreateModal(true)}
             className="bg-[#1980e6] hover:bg-[#1980e6]/80"
           >
             Tambah Penitipan
@@ -540,21 +366,12 @@ export default function PenitipanMaster() {
                 <TableCell>20-03-2025</TableCell>
                 <TableCell>20-04-2025</TableCell>
                 <TableCell>
-                  <button
-                    className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                    // onClick={() => handleEdit(pegawai)}
-                  >
+                  <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
                     Edit
                   </button>
                 </TableCell>
                 <TableCell>
-                  <button
-                    // onClick={() => {
-                    //   setSelectedPegawai(pegawai);
-                    //   setOpenDeleteModal(true);
-                    // }}
-                    className="font-medium text-red-600 hover:underline dark:text-red-500"
-                  >
+                  <button className="font-medium text-red-600 hover:underline dark:text-red-500">
                     Delete
                   </button>
                 </TableCell>
@@ -562,33 +379,279 @@ export default function PenitipanMaster() {
             </TableBody>
           </Table>
         </div>
-        {/* <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-700">
-            Showing{" "}
-            <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-            <span className="font-medium">
-              {Math.min(page * limit, totalItems)}
-            </span>{" "}
-            of <span className="font-medium">{totalItems}</span> entries
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
-            >
-              Next
-            </button>
-          </div>
-        </div> */}
       </div>
+
+      <Modal show={openCreateModal} size="2xl" onClose={onCloseCreateModal} popup>
+        <ModalHeader />
+        <ModalBody>
+          <form className="space-y-6" onSubmit={handleCreate}>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white">Tambah Penitipan Baru</h3>
+            {createError && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">{createError}</div>
+            )}
+            {createSuccess && (
+              <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">{createSuccess}</div>
+            )}
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium">Penitipan Data</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="id_penitip">ID Penitip</Label>
+                  <TextInput
+                    id="id_penitip"
+                    type="number"
+                    value={formData.penitipanData.id_penitip}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("penitipanData", 0, "id_penitip", e.target.value)
+                    }
+                    required
+                    color={formErrors["penitipanData_0_id_penitip"] ? "failure" : undefined}
+                  />
+                  {formErrors["penitipanData_0_id_penitip"] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_id_penitip"]}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="id_pegawai_qc">ID Pegawai QC</Label>
+                  <TextInput
+                    id="id_pegawai_qc"
+                    type="number"
+                    value={formData.penitipanData.id_pegawai_qc}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("penitipanData", 0, "id_pegawai_qc", e.target.value)
+                    }
+                    required
+                    color={formErrors["penitipanData_0_id_pegawai_qc"] ? "failure" : undefined}
+                  />
+                  {formErrors["penitipanData_0_id_pegawai_qc"] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_id_pegawai_qc"]}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="id_hunter">ID Hunter (Optional)</Label>
+                  <TextInput
+                    id="id_hunter"
+                    type="number"
+                    value={formData.penitipanData.id_hunter}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("penitipanData", 0, "id_hunter", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+            {formData.barangData.map((barang, index) => (
+              <div key={index} className="space-y-4 border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-lg font-medium">Barang {index + 1}</h4>
+                  {index > 0 && (
+                    <Button color="failure" onClick={() => removeBarang(index)}>
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`prefix_${index}`}>Prefix</Label>
+                    <TextInput
+                      id={`prefix_${index}`}
+                      value={barang.prefix}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("barangData", index, "prefix", e.target.value)
+                      }
+                      required
+                      color={formErrors[`barangData_${index}_prefix`] ? "failure" : undefined}
+                    />
+                    {formErrors[`barangData_${index}_prefix`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_prefix`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`nama_barang_${index}`}>Nama Barang</Label>
+                    <TextInput
+                      id={`nama_barang_${index}`}
+                      value={barang.nama_barang}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("barangData", index, "nama_barang", e.target.value)
+                      }
+                      required
+                      color={formErrors[`barangData_${index}_nama_barang`] ? "failure" : undefined}
+                    />
+                    {formErrors[`barangData_${index}_nama_barang`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_nama_barang`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`deskripsi_${index}`}>Deskripsi</Label>
+                    <TextInput
+                      id={`deskripsi_${index}`}
+                      value={barang.deskripsi}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("barangData", index, "deskripsi", e.target.value)
+                      }
+                      required
+                      color={formErrors[`barangData_${index}_deskripsi`] ? "failure" : undefined}
+                    />
+                    {formErrors[`barangData_${index}_deskripsi`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_deskripsi`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`harga_${index}`}>Harga</Label>
+                    <TextInput
+                      id={`harga_${index}`}
+                      type="number"
+                      value={barang.harga}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("barangData", index, "harga", e.target.value)
+                      }
+                      required
+                      color={formErrors[`barangData_${index}_harga`] ? "failure" : undefined}
+                    />
+                    {formErrors[`barangData_${index}_harga`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_harga`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`berat_${index}`}>Berat (kg)</Label>
+                    <TextInput
+                      id={`berat_${index}`}
+                      type="number"
+                      value={barang.berat}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("barangData", index, "berat", e.target.value)
+                      }
+                      required
+                      color={formErrors[`barangData_${index}_berat`] ? "failure" : undefined}
+                    />
+                    {formErrors[`barangData_${index}_berat`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_berat`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`id_kategori_${index}`}>ID Kategori</Label>
+                    <TextInput
+                      id={`id_kategori_${index}`}
+                      type="number"
+                      value={barang.id_kategori}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("barangData", index, "id_kategori", e.target.value)
+                      }
+                      required
+                      color={formErrors[`barangData_${index}_id_kategori`] ? "failure" : undefined}
+                    />
+                    {formErrors[`barangData_${index}_id_kategori`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_id_kategori`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`garansi_${index}`}>Garansi (Optional)</Label>
+                    <TextInput
+                      id={`garansi_${index}`}
+                      type="datetime-local"
+                      value={barang.garansi}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("barangData", index, "garansi", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`gambar_${index}`}>Images (Min 2, JPEG/PNG)</Label>
+                    <FileInput
+                      id={`gambar_${index}`}
+                      multiple
+                      accept="image/jpeg,image/png"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleFileChange(index, e.target.files)
+                      }
+                      color={formErrors[`barangData_${index}_gambar`] ? "failure" : undefined}
+                    />
+                    {formErrors[`barangData_${index}_gambar`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_gambar`]}</p>
+                    )}
+                    <div className="flex gap-2 mt-2">
+                      {barang.gambar.map((file: File, i: number) => (
+                        <img
+                          key={i}
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${i}`}
+                          className="w-20 h-20 object-cover"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <h4 className="text-lg font-medium mt-4">Detail Penitipan {index + 1}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`tanggal_akhir_${index}`}>Tanggal Akhir</Label>
+                    <TextInput
+                      id={`tanggal_akhir_${index}`}
+                      type="datetime-local"
+                      value={formData.detailPenitipanData[index].tanggal_akhir}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("detailPenitipanData", index, "tanggal_akhir", e.target.value)
+                      }
+                      required
+                      color={formErrors[`detailPenitipanData_${index}_tanggal_akhir`] ? "failure" : undefined}
+                    />
+                    {formErrors[`detailPenitipanData_${index}_tanggal_akhir`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`detailPenitipanData_${index}_tanggal_akhir`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`batas_ambil_${index}`}>Batas Ambil</Label>
+                    <TextInput
+                      id={`batas_ambil_${index}`}
+                      type="datetime-local"
+                      value={formData.detailPenitipanData[index].batas_ambil}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("detailPenitipanData", index, "batas_ambil", e.target.value)
+                      }
+                      required
+                      color={formErrors[`detailPenitipanData_${index}_batas_ambil`] ? "failure" : undefined}
+                    />
+                    {formErrors[`detailPenitipanData_${index}_batas_ambil`] && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors[`detailPenitipanData_${index}_batas_ambil`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor={`tanggal_laku_${index}`}>Tanggal Laku (Optional)</Label>
+                    <TextInput
+                      id={`tanggal_laku_${index}`}
+                      type="datetime-local"
+                      value={formData.detailPenitipanData[index].tanggal_laku}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("detailPenitipanData", index, "tanggal_laku", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <Checkbox
+                      id={`isDiperpanjang_${index}`}
+                      checked={formData.detailPenitipanData[index].isDiperpanjang}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange("detailPenitipanData", index, "isDiperpanjang", e.target.checked)
+                      }
+                    />
+                    <Label htmlFor={`isDiperpanjang_${index}`} className="ml-2">
+                      Diperpanjang
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button color="blue" onClick={addBarang} className="mt-4">
+              Add Barang
+            </Button>
+            <div className="flex justify-end">
+              <Button type="submit" className="bg-[#1980e6] hover:bg-[#1980e6]/80">
+                Tambah Penitipan
+              </Button>
+            </div>
+          </form>
+        </ModalBody>
+      </Modal>
     </div>
   );
 }

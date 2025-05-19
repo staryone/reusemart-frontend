@@ -52,7 +52,7 @@ export default function SideBar() {
             Pegawai
           </SidebarItem> */}
           <SidebarItem
-            href="/admin/jabatan-master"
+            href="/gudang/penitipan-master"
             icon={HiBriefcase}
             as={Link}
           >
