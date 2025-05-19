@@ -8,6 +8,7 @@ export interface Keranjang {
   nama_barang: string;
   harga_barang: number;
   gambar_barang: string;
+  kategori_barang: string;
   createdAt: string;
   errors?: string;
 }
