@@ -257,7 +257,10 @@ export default function Cart() {
                         className="rounded-xl"
                       />
                     </div>
-                    <div>{item.nama_barang}</div>
+                    <div className="flex flex-col">
+                      <div className="">{item.nama_barang}</div>
+                      <div className="text-sm">{item.kategori_barang}</div>
+                    </div>
                   </Link>
                   <div className="flex flex-col items-end justify-between">
                     <div className="text-xl font-semibold">

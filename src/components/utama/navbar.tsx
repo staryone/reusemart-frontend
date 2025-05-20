@@ -32,9 +32,9 @@ export default function Navbar() {
       if (response.ok) {
         toast.success("Berhasil logout");
         setShowLogoutModal(false);
-        setIsLoggedIn(false);
         router.refresh();
         router.push("/");
+        setIsLoggedIn(false);
       } else {
         const errorData = await response.json();
         toast.error(errorData.error || errorData.errors || "Login failed");
