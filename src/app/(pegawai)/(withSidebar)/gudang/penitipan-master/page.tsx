@@ -323,9 +323,6 @@ export default function PenitipanMaster() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     formData.barangData.forEach((barang, index) => {
-      if (!barang.prefix || barang.prefix.length !== 1) {
-        newErrors[`barangData_${index}_prefix`] = "Prefix must be a single character";
-      }
       if (!barang.nama_barang) newErrors[`barangData_${index}_nama_barang`] = "Nama barang is required";
       if (!barang.deskripsi) newErrors[`barangData_${index}_deskripsi`] = "Deskripsi is required";
       if (!barang.harga || isNaN(Number(barang.harga)) || Number(barang.harga) <= 0) {
@@ -348,6 +345,7 @@ export default function PenitipanMaster() {
       newErrors["penitipanData_0_pegawai_qc"] = "Pegawai QC is required";
     }
     setFormErrors(newErrors);
+    console.log("Validation errors:", newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -366,7 +364,7 @@ export default function PenitipanMaster() {
     const tanggalAkhir = computeTanggalAkhir(tanggalMasuk); 
 
     const batasAmbil = computeBatasAmbil(new Date(tanggalAkhir)); 
-
+    
     const formDataToSend = new FormData();
     formDataToSend.append(
       "barangData",
@@ -378,22 +376,22 @@ export default function PenitipanMaster() {
           harga: Number(item.harga),
           berat: Number(item.berat),
           id_kategori: Number(item.id_kategori),
-          garansi: item.garansi,
+          garansi: item.garansi == "" ? undefined : item.garansi,
         }))
       )
     );
     formDataToSend.append(
       "penitipanData",
       JSON.stringify({
-        id_penitip: Number(formData.penitipanData.penitip?.id_penitip),
-        id_pegawai_qc: Number(formData.penitipanData.pegawai_qc?.id_pegawai),
-        id_hunter: formData.penitipanData.hunter ? Number(formData.penitipanData.hunter.id_pegawai) : null,
+        id_penitip: formData.penitipanData.penitip?.id_penitip,
+        id_pegawai_qc: formData.penitipanData.pegawai_qc?.id_pegawai,
+        id_hunter: formData.penitipanData.hunter ? formData.penitipanData.hunter.id_pegawai : undefined,
       })
     );
     formDataToSend.append(
       "detailPenitipanData",
       JSON.stringify(
-        formData.detailPenitipanData.map(() => ({
+        formData.barangData.map(() => ({
           tanggal_masuk: tanggalMasuk.toISOString(),
           tanggal_akhir: tanggalAkhir,
           batas_ambil: batasAmbil,
@@ -402,8 +400,8 @@ export default function PenitipanMaster() {
         }))
       )
     );
-
-    console.log(formData);
+    
+    console.log(formDataToSend.get("detailPenitipanData"));
 
     formData.barangData.forEach((barang, index) => {
       barang.gambar.forEach((file) => {
