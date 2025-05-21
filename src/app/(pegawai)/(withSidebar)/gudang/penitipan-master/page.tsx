@@ -547,12 +547,12 @@ export default function PenitipanMaster() {
                 <TableCell>{dtlPenitipan.barang.status}</TableCell>
                 <TableCell>
                   <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
-                    Edit
+                    Lihat Detail
                   </button>
                 </TableCell>
                 <TableCell>
-                  <button className="font-medium text-red-600 hover:underline dark:text-red-500">
-                    Delete
+                  <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
+                    Edit
                   </button>
                 </TableCell>
               </TableRow>

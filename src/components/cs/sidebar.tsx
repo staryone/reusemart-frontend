@@ -6,7 +6,7 @@ import {
   SidebarItemGroup,
   SidebarItems,
 } from "flowbite-react";
-import { HiChartPie, HiUser, HiChat, HiOutlineLogout } from "react-icons/hi";
+import { HiChartPie, HiUser, HiChat, HiOutlineLogout, HiGift } from "react-icons/hi";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -46,6 +46,9 @@ export default function SideBar() {
           </SidebarItem>
           <SidebarItem href="/cs/penitip-master" icon={HiUser} as={Link}>
             Penitip
+          </SidebarItem>
+          <SidebarItem href="/cs/klaim-merchandise" icon={HiGift} as={Link}>
+            Klaim Merchandise
           </SidebarItem>
           <hr />
           <SidebarItem
