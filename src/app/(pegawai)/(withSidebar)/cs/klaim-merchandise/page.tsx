@@ -110,6 +110,7 @@ export default function KlaimMerchandise() {
     if (!selectedMerch || !token) return;
     try {
       const formData = new FormData();
+
       formData.append("status", "SUDAH_DIAMBIL");
       await updateRedeemMerch(selectedMerch.id_redeem_merch, formData, token);
       setShowModal(false);
