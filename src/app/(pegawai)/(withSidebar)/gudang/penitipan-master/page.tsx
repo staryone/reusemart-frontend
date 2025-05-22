@@ -102,6 +102,8 @@ export default function PenitipanMaster() {
   const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalItems, setTotalItems] = useState(0);
+  const [openDetailModal, setOpenDetailModal] = useState<boolean>(false);
+  const [selectedPenitipan, setSelectedPenitipan] = useState<DetailPenitipan | null>(null);
   const [formData, setFormData] = useState<FormDataState>({
     barangData: [
       {
@@ -134,7 +136,7 @@ export default function PenitipanMaster() {
     return params;
   }, [page, searchQuery, limit]);
 
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading } = useSWR(
     [queryParams, token],
     fetcher,
     {
@@ -148,7 +150,7 @@ export default function PenitipanMaster() {
       setTotalItems(data[1]);
     }
   }, [data]);
-
+  console.log(data);
   const paramsHunter = useMemo(
       () =>
         new URLSearchParams({
@@ -448,6 +450,12 @@ export default function PenitipanMaster() {
     }
   };
 
+  const handleOpenDetailModal = (penitipan: DetailPenitipan): void => {
+  setSelectedPenitipan(penitipan);
+  console.log(penitipan);
+  setOpenDetailModal(true);
+};
+
   // Filter functions for searchable dropdowns
   const filteredPenitip = semuaPenitip.filter(
     (penitip) =>
@@ -546,7 +554,7 @@ export default function PenitipanMaster() {
                 <TableCell>{formatDate(dtlPenitipan.tanggal_akhir)}</TableCell>
                 <TableCell>{dtlPenitipan.barang.status}</TableCell>
                 <TableCell>
-                  <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
+                  <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500" onClick={() => handleOpenDetailModal(dtlPenitipan)}>
                     Lihat Detail
                   </button>
                 </TableCell>
@@ -854,6 +862,128 @@ export default function PenitipanMaster() {
           </form>
         </ModalBody>
       </Modal>
+      <Modal show={openDetailModal} size="3xl" onClose={() => setOpenDetailModal(false)} popup>
+  <ModalHeader />
+  <ModalBody>
+    <div className="space-y-6">
+      <h3 className="text-xl font-medium text-gray-900 dark:text-white">Detail Penitipan</h3>
+      {selectedPenitipan && (
+        <div className="space-y-4">
+          {/* Penitipan Information */}
+          <div className="border-b pb-4">
+            <h4 className="text-lg font-medium mb-2">Informasi Penitipan</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-semibold">ID Penitipan</p>
+                <p>{selectedPenitipan.penitipan.id_penitipan}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Penitip</p>
+                <p>{selectedPenitipan.penitipan.penitip.nama}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Pegawai QC</p>
+                <p>{selectedPenitipan.penitipan.pegawai_qc.nama} (P{selectedPenitipan.penitipan.pegawai_qc.id_pegawai})</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Hunter</p>
+                <p>{selectedPenitipan.penitipan.hunter?.nama || 'Tidak ada hunter'} (P{selectedPenitipan.penitipan.hunter?.id_pegawai || '-'})</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Barang Information */}
+          <div className="border-b pb-4">
+            <h4 className="text-lg font-medium mb-2">Informasi Barang</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-semibold">Nama Barang</p>
+                <p>{selectedPenitipan.barang.nama_barang}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Kategori</p>
+                <p>{selectedPenitipan.barang.kategori.nama_kategori}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Harga</p>
+                <p>Rp{new Intl.NumberFormat("id-ID").format(selectedPenitipan.barang.harga)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Berat</p>
+                <p>{selectedPenitipan.barang.berat} kg</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Status</p>
+                <p>{selectedPenitipan.barang.status}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Garansi</p>
+                <p>{selectedPenitipan.barang.garansi ? formatDate(selectedPenitipan.barang.garansi) : 'Tidak ada'}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-sm font-semibold">Deskripsi</p>
+                <p>{selectedPenitipan.barang.deskripsi}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Gambar Barang */}
+          <div className="border-b pb-4">
+            <h4 className="text-lg font-medium mb-2">Gambar Barang</h4>
+            <div className="flex flex-wrap gap-4">
+              {selectedPenitipan.barang.gambar.map((gambar, index) => (
+                <div key={gambar.id_gambar} className="relative">
+                  <img
+                    src={gambar.url_gambar}
+                    alt={`Gambar ${index + 1}`}
+                    className="w-32 h-32 object-cover rounded"
+                  />
+                  {gambar.is_primary && (
+                    <span className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                      Primary
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Detail Penitipan */}
+          <div>
+            <h4 className="text-lg font-medium mb-2">Detail Tanggal</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-semibold">Tanggal Masuk</p>
+                <p>{formatDate(selectedPenitipan.tanggal_masuk)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Tanggal Akhir</p>
+                <p>{formatDate(selectedPenitipan.tanggal_akhir)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Batas Ambil</p>
+                <p>{formatDate(selectedPenitipan.batas_ambil)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Tanggal Laku</p>
+                <p>{selectedPenitipan.tanggal_laku ? formatDate(selectedPenitipan.tanggal_laku) : 'Belum laku'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Diperpanjang</p>
+                <p>{selectedPenitipan.is_perpanjang ? 'Ya' : 'Tidak'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="flex justify-end mt-4">
+        <Button color="gray" onClick={() => setOpenDetailModal(false)}>
+          Tutup
+        </Button>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
     </div>
   );
 }
