@@ -9,5 +9,6 @@ export interface DetailPenitipan {
     tanggal_akhir: string,
     tanggal_laku: string,
     batas_ambil: string,
-    isDiperpanjang: boolean
+    is_perpanjang: boolean,
+    // gambar: Gambar[];
 }
