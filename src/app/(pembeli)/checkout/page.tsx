@@ -12,15 +12,13 @@ import { Alamat } from "@/lib/interface/alamat.interface";
 import { getProfilPembeli } from "@/lib/api/pembeli.api";
 import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
+import { createTransaksi } from "@/lib/api/transaksi.api";
 
 interface CheckoutPageProps {
   keranjangItemsInitial?: Keranjang[];
 }
 
 const fetcherPembeli = async (token: string): Promise<Pembeli> => {
-  if (!token) {
-    throw new Error("Access token is required for fetching profile");
-  }
   return getProfilPembeli(token);
 };
 
@@ -45,14 +43,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   useEffect(() => {
     if (!isClient) return;
 
-    if (currentUser && !currentUser && !token) {
-      toast.error(
-        "Sesi tidak valid atau telah berakhir. Silakan login kembali."
-      );
-      router.push("/login");
-      return;
-    }
-
     const itemsFromStorageString = localStorage.getItem("checkoutItems");
     let loadedItems: Keranjang[] = [];
 
@@ -64,7 +54,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
         } else {
           toast.error("Item checkout di penyimpanan tidak valid atau kosong.");
         }
-      } catch (e) {
+      } catch {
         toast.error("Gagal memuat data keranjang dari penyimpanan.");
       }
     }
@@ -125,7 +115,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const pointsDeduction = pointsToUse * 100;
   const finalTotal = totalPrice + shippingCost - pointsDeduction;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (deliveryMethod === "DIKIRIM" && !primaryAddress) {
       toast.error("Harus ada alamat utama untuk melanjutkan pengiriman!");
       return;
@@ -143,18 +133,35 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
     const dataCreate = {
       id_barang: keranjangItems.map((item) => item.id_barang),
-      metode_pengiriman: deliveryMethod,
-      potongan_poin: pointsDeduction,
-    };
-
-    console.log("Data Checkout yang akan dikirim:", {
-      id_barang: keranjangItems.map((item) => item.id_barang),
       id_alamat: idPrimaryAddress ? idPrimaryAddress : null,
       metode_pengiriman: deliveryMethod,
-      potongan_poin: pointsDeduction,
-    });
-    toast.success("Pesanan sedang diproses!");
-    // router.push("/payment-confirmation");
+      potongan_poin: pointsToUse,
+    };
+
+    const formDataToSend = new FormData();
+
+    formDataToSend.append("dataTransaksi", JSON.stringify(dataCreate));
+
+    // console.log("Data Checkout yang akan dikirim:", {
+    //   id_barang: keranjangItems.map((item) => item.id_barang),
+    //   id_alamat: idPrimaryAddress ? idPrimaryAddress : null,
+    //   metode_pengiriman: deliveryMethod,
+    //   potongan_poin: pointsDeduction,
+    // });
+
+    try {
+      const res = await createTransaksi(formDataToSend, token || "");
+      if (!res.errors) {
+        toast.success(
+          "Pesanan sedang diproses! Silahkan lanjutkan ke Pembayaran"
+        );
+        // router.push("/payment-confirmation");
+      } else {
+        toast.error(res.errors || "Gagal membuat transaksi");
+      }
+    } catch {
+      toast.error("Internal server error");
+    }
   };
 
   if (!isClient || !token) {
