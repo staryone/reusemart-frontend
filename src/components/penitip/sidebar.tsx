@@ -54,14 +54,10 @@ export default function SideBar() {
           <SidebarItem href="/penitip/profil" icon={HiUser} as={Link}>
             Profil
           </SidebarItem>
-          <SidebarItem
-            href="/penitip/transaksi"
-            icon={HiClipboardList}
-            as={Link}
-          >
+          <SidebarItem href="/penitip/transaksi" icon={HiCash} as={Link}>
             Transaksi
           </SidebarItem>
-          <SidebarItem href="/penitip/barang" icon={HiCash} as={Link}>
+          <SidebarItem href="/penitip/barang" icon={HiClipboardList} as={Link}>
             Barang
           </SidebarItem>
           <SidebarItem onClick={handleLogout} icon={HiOutlineLogout}>
