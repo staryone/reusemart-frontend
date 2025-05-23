@@ -5,7 +5,6 @@ import {
   createPenitip,
   deletePenitip,
   getListPenitip,
-  //   resetPasswordPenitip,
   updatePenitip,
 } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
@@ -28,6 +27,7 @@ import {
 import { useState, useMemo } from "react";
 import { HiSearch } from "react-icons/hi";
 import useSWR from "swr";
+import toast, { Toaster } from "react-hot-toast";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPenitip(params, token);
@@ -41,6 +41,35 @@ export default function PenitipMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPenitip, setSelectedPenitip] = useState<Penitip | null>(null);
+
+  const [createEmail, setCreateEmail] = useState("");
+  const [createPassword, setCreatePassword] = useState("");
+  const [createConfirmPassword, setCreateConfirmPassword] = useState("");
+  const [createKtp, setCreateKtp] = useState("");
+  const [createNama, setCreateNama] = useState("");
+  const [createAlamat, setCreateAlamat] = useState("");
+  const [createTelepon, setCreateTelepon] = useState("");
+  const [createFotoKtp, setCreateFotoKtp] = useState<File | null>(null);
+  const [createEmailError, setCreateEmailError] = useState("");
+  const [createPasswordError, setCreatePasswordError] = useState("");
+  const [createConfirmPasswordError, setCreateConfirmPasswordError] =
+    useState("");
+  const [createKtpError, setCreateKtpError] = useState("");
+  const [createNamaError, setCreateNamaError] = useState("");
+  const [createAlamatError, setCreateAlamatError] = useState("");
+  const [createTeleponError, setCreateTeleponError] = useState("");
+  const [createFotoKtpError, setCreateFotoKtpError] = useState("");
+  const [isCreateLoading, setIsCreateLoading] = useState(false);
+
+  const [updateEmail, setUpdateEmail] = useState("");
+  const [updateNama, setUpdateNama] = useState("");
+  const [updateAlamat, setUpdateAlamat] = useState("");
+  const [updateTelepon, setUpdateTelepon] = useState("");
+  const [updateEmailError, setUpdateEmailError] = useState("");
+  const [updateNamaError, setUpdateNamaError] = useState("");
+  const [updateAlamatError, setUpdateAlamatError] = useState("");
+  const [updateTeleponError, setUpdateTeleponError] = useState("");
+  const [isUpdateLoading, setIsUpdateLoading] = useState(false);
 
   const currentUser = useUser();
 
@@ -73,9 +102,22 @@ export default function PenitipMaster() {
     }
   }, [data]);
 
+  // function onCloseModal() {
+  //   setOpenModal(false);
+  //   setSelectedPenitip(null);
+  // }
+
   function onCloseModal() {
     setOpenModal(false);
     setSelectedPenitip(null);
+    setUpdateEmail("");
+    setUpdateNama("");
+    setUpdateAlamat("");
+    setUpdateTelepon("");
+    setUpdateEmailError("");
+    setUpdateNamaError("");
+    setUpdateAlamatError("");
+    setUpdateTeleponError("");
   }
 
   function onCloseDeleteModal() {
@@ -83,8 +125,28 @@ export default function PenitipMaster() {
     setSelectedPenitip(null);
   }
 
+  // function onCloseCreateModal() {
+  //   setOpenCreateModal(false);
+  // }
+
   function onCloseCreateModal() {
     setOpenCreateModal(false);
+    setCreateEmail("");
+    setCreatePassword("");
+    setCreateConfirmPassword("");
+    setCreateKtp("");
+    setCreateNama("");
+    setCreateAlamat("");
+    setCreateTelepon("");
+    setCreateFotoKtp(null);
+    setCreateEmailError("");
+    setCreatePasswordError("");
+    setCreateConfirmPasswordError("");
+    setCreateKtpError("");
+    setCreateNamaError("");
+    setCreateAlamatError("");
+    setCreateTeleponError("");
+    setCreateFotoKtpError("");
   }
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -95,8 +157,17 @@ export default function PenitipMaster() {
     setPage(1);
   };
 
+  // const handleEdit = (penitip: Penitip) => {
+  //   setSelectedPenitip(penitip);
+  //   setOpenModal(true);
+  // };
+
   const handleEdit = (penitip: Penitip) => {
     setSelectedPenitip(penitip);
+    setUpdateEmail(penitip.email);
+    setUpdateNama(penitip.nama);
+    setUpdateAlamat(penitip.alamat);
+    setUpdateTelepon(penitip.nomor_telepon);
     setOpenModal(true);
   };
 
@@ -107,18 +178,105 @@ export default function PenitipMaster() {
       const res = await deletePenitip(selectedPenitip.id_penitip, token);
 
       if (res) {
-        mutate(); // Revalidate data after deletion
+        toast.success("Penitip berhasil dihapus!");
+        mutate();
         onCloseDeleteModal();
       } else {
-        console.error("Failed to delete penitip");
+        toast.error("Gagal menghapus penitip.");
       }
-    } catch (error) {
-      console.error("Error deleting penitip:", error);
+    } catch {
+      toast.error("Terjadi kesalahan saat menghapus penitip.");
     }
+  };
+
+  const validateCreateForm = () => {
+    let isValid = true;
+    setCreateEmailError("");
+    setCreatePasswordError("");
+    setCreateConfirmPasswordError("");
+    setCreateKtpError("");
+    setCreateNamaError("");
+    setCreateAlamatError("");
+    setCreateTeleponError("");
+    setCreateFotoKtpError("");
+
+    if (!createEmail.trim()) {
+      setCreateEmailError("Email harus diisi");
+      isValid = false;
+    }
+    if (!createPassword) {
+      setCreatePasswordError("Password harus diisi");
+      isValid = false;
+    } else if (createPassword.length < 8) {
+      setCreatePasswordError("Password harus minimal 8 karakter");
+      isValid = false;
+    }
+    if (!createConfirmPassword) {
+      setCreateConfirmPasswordError("Konfirmasi password harus diisi");
+      isValid = false;
+    } else if (createConfirmPassword !== createPassword) {
+      setCreateConfirmPasswordError("Konfirmasi password tidak cocok");
+      isValid = false;
+    }
+    if (!createKtp.trim()) {
+      setCreateKtpError("Nomor KTP harus diisi");
+      isValid = false;
+    }
+    if (!createNama.trim()) {
+      setCreateNamaError("Nama harus diisi");
+      isValid = false;
+    }
+    if (!createAlamat.trim()) {
+      setCreateAlamatError("Alamat harus diisi");
+      isValid = false;
+    }
+    if (!createTelepon.trim()) {
+      setCreateTeleponError("Nomor telepon harus diisi");
+      isValid = false;
+    }
+    if (!createFotoKtp) {
+      setCreateFotoKtpError("Foto KTP harus diunggah");
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  const validateUpdateForm = () => {
+    let isValid = true;
+    setUpdateEmailError("");
+    setUpdateNamaError("");
+    setUpdateAlamatError("");
+    setUpdateTeleponError("");
+
+    if (!updateEmail.trim()) {
+      setUpdateEmailError("Email harus diisi");
+      isValid = false;
+    }
+    if (!updateNama.trim()) {
+      setUpdateNamaError("Nama harus diisi");
+      isValid = false;
+    }
+    if (!updateAlamat.trim()) {
+      setUpdateAlamatError("Alamat harus diisi");
+      isValid = false;
+    }
+    if (!updateTelepon.trim()) {
+      setUpdateTeleponError("Nomor telepon harus diisi");
+      isValid = false;
+    }
+
+    return isValid;
   };
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!validateCreateForm()) {
+      return;
+    }
+
+    setIsCreateLoading(true);
 
     const formData = new FormData(e.currentTarget);
 
@@ -126,19 +284,29 @@ export default function PenitipMaster() {
       const res = await createPenitip(formData, token);
 
       if (res.data) {
-        mutate(); // Revalidate data after creation
+        toast.success("Penitip berhasil ditambahkan!");
+        mutate();
         onCloseCreateModal();
       } else {
-        console.error("Failed to create penitip ", res.errors);
+        toast.error("Gagal menambahkan penitip: " + res.errors);
       }
     } catch (error: unknown) {
+      toast.error("Terjadi kesalahan saat menambahkan penitip.");
       console.error("Error creating penitip:", error);
+    } finally {
+      setIsCreateLoading(false);
     }
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedPenitip) return;
+
+    if (!validateUpdateForm()) {
+      return;
+    }
+
+    setIsUpdateLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const updateData = new FormData();
@@ -167,13 +335,17 @@ export default function PenitipMaster() {
       );
 
       if (res) {
+        toast.success("Penitip berhasil diperbarui!");
         mutate();
         onCloseModal();
       } else {
-        console.error("Failed to update penitip");
+        toast.error("Gagal memperbarui penitip.");
       }
     } catch (error) {
+      toast.error("Terjadi kesalahan saat memperbarui penitip.");
       console.error("Error updating penitip:", error);
+    } finally {
+      setIsUpdateLoading(false);
     }
   };
 
@@ -185,8 +357,80 @@ export default function PenitipMaster() {
     }
   };
 
+  const handleCreateEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCreateEmail(e.target.value);
+    if (e.target.value.trim()) setCreateEmailError("");
+  };
+
+  const handleCreatePasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setCreatePassword(e.target.value);
+    if (e.target.value.length >= 8) setCreatePasswordError("");
+  };
+
+  const handleCreateConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setCreateConfirmPassword(e.target.value);
+    if (e.target.value === createPassword) setCreateConfirmPasswordError("");
+  };
+
+  const handleCreateKtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCreateKtp(e.target.value);
+    if (e.target.value.trim()) setCreateKtpError("");
+  };
+
+  const handleCreateNamaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCreateNama(e.target.value);
+    if (e.target.value.trim()) setCreateNamaError("");
+  };
+
+  const handleCreateAlamatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCreateAlamat(e.target.value);
+    if (e.target.value.trim()) setCreateAlamatError("");
+  };
+
+  const handleCreateTeleponChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setCreateTelepon(e.target.value);
+    if (e.target.value.trim()) setCreateTeleponError("");
+  };
+
+  const handleCreateFotoKtpChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0] || null;
+    setCreateFotoKtp(file);
+    if (file) setCreateFotoKtpError("");
+  };
+
+  const handleUpdateEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdateEmail(e.target.value);
+    if (e.target.value.trim()) setUpdateEmailError("");
+  };
+
+  const handleUpdateNamaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdateNama(e.target.value);
+    if (e.target.value.trim()) setUpdateNamaError("");
+  };
+
+  const handleUpdateAlamatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdateAlamat(e.target.value);
+    if (e.target.value.trim()) setUpdateAlamatError("");
+  };
+
+  const handleUpdateTeleponChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setUpdateTelepon(e.target.value);
+    if (e.target.value.trim()) setUpdateTeleponError("");
+  };
+
   return (
     <div className="flex">
+      <Toaster position="top-center" reverseOrder={false} />
       <Modal show={openModal} size="md" onClose={onCloseModal} popup>
         <ModalHeader />
         <ModalBody>
@@ -202,7 +446,6 @@ export default function PenitipMaster() {
                 id="email"
                 name="email"
                 defaultValue={selectedPenitip?.email}
-                required
               />
             </div>
             <div>
@@ -213,7 +456,6 @@ export default function PenitipMaster() {
                 id="nama"
                 name="nama"
                 defaultValue={selectedPenitip?.nama}
-                required
               />
             </div>
             <div>
@@ -224,7 +466,6 @@ export default function PenitipMaster() {
                 id="alamat"
                 name="alamat"
                 defaultValue={selectedPenitip?.alamat}
-                required
               />
             </div>
             <div>
@@ -235,7 +476,6 @@ export default function PenitipMaster() {
                 id="telp"
                 name="telp"
                 defaultValue={selectedPenitip?.nomor_telepon}
-                required
               />
             </div>
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
@@ -304,7 +544,9 @@ export default function PenitipMaster() {
                 name="email"
                 placeholder="Masukkan email"
                 type="email"
-                required
+                value={createEmail}
+                onChange={handleCreateEmailChange}
+                className={createEmailError ? "border-red-700" : ""}
               />
             </div>
             <div>
