@@ -17,11 +17,8 @@ import {
   FileInput,
   Select,
 } from "flowbite-react";
-import { HiSearch } from "react-icons/hi";
-import { createPenitipan, getListPenitipan } from "@/lib/api/penitipan.api";
-
-// import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
-// import { Penitipan } from "@/lib/interface/penitipan.interface";
+import { HiSearch, HiX } from "react-icons/hi";
+import { createPenitipan, getListPenitipan, updatePenitipan } from "@/lib/api/penitipan.api";
 import { useUser } from "@/hooks/use-user";
 import { getListPegawai } from "@/lib/api/pegawai.api";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
@@ -39,7 +36,7 @@ interface BarangFormData {
   berat: string;
   id_kategori: string;
   garansi: string;
-  gambar: File[];
+  gambar: Array<File | { id_gambar: number; url_gambar: string; is_primary: boolean }>;
 }
 
 interface PenitipanFormData {
@@ -48,7 +45,13 @@ interface PenitipanFormData {
   hunter: Pegawai | null;
 }
 
-type DetailPenitipanFormData = object
+type DetailPenitipanFormData = {
+  tanggal_masuk: string;
+  tanggal_akhir: string;
+  batas_ambil: string;
+  tanggal_laku: string | null;
+  isDiperpanjang: boolean;
+};
 
 interface FormDataState {
   barangData: BarangFormData[];
@@ -64,7 +67,7 @@ const categories = [
   { id: "5", name: "Hobi, Mainan, & Koleksi" },
   { id: "6", name: "Peralengkapan Bayi & Anak" },
   { id: "7", name: "Otomotif & Aksesori" },
-  { id: "8", name: "Peralengkapan Taman & Outdoor" },
+  { id: "8", name: "Peralatan Taman & Outdoor" },
   { id: "9", name: "Peralatan Kantor & Industri" },
   { id: "10", name: "Kosmetik & Perawatan Diri" },
 ];
@@ -90,8 +93,12 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 
 export default function PenitipanMaster() {
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
+  const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+  const [editPenitipanId, setEditPenitipanId] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSuccess, setEditSuccess] = useState<string | null>(null);
   const [semuaHunter, setSemuaHunter] = useState<Pegawai[]>([]);
   const [semuaQC, setSemuaQC] = useState<Pegawai[]>([]);
   const [semuaPenitip, setSemuaPenitip] = useState<Penitip[]>([]);
@@ -118,7 +125,7 @@ export default function PenitipanMaster() {
       },
     ],
     penitipanData: { penitip: null, pegawai_qc: null, hunter: null },
-    detailPenitipanData: [],
+    detailPenitipanData: [{ tanggal_masuk: "", tanggal_akhir: "", batas_ambil: "", tanggal_laku: null, isDiperpanjang: false }],
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
@@ -129,6 +136,8 @@ export default function PenitipanMaster() {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
+      sortField: "tanggal_masuk",
+      sortOrder: "desc",
     });
     if (searchQuery) {
       params.append("search", searchQuery);
@@ -136,7 +145,7 @@ export default function PenitipanMaster() {
     return params;
   }, [page, searchQuery, limit]);
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
     fetcher,
     {
@@ -145,81 +154,61 @@ export default function PenitipanMaster() {
       revalidateOnReconnect: false,
     }
   );
+
   useMemo(() => {
     if (data && data[1] !== undefined) {
       setTotalItems(data[1]);
     }
   }, [data]);
-  console.log(data);
-  const paramsHunter = useMemo(
-      () =>
-        new URLSearchParams({
-          search: "HUNTER",
-        }),
-      []
-    );
-  const paramsQC = useMemo(
-      () =>
-        new URLSearchParams({
-          search: "GUDANG",
-        }),
-      []
-    );
 
-  const paramsPenitip = useMemo(() => new URLSearchParams({}), []);
+  const paramsHunter = useMemo(() => new URLSearchParams({ search: "HUNTER" }), []);
+  const paramsQC = useMemo(() => new URLSearchParams({ search: "GUDANG" }), []);
+  const paramsPenitip = useMemo(() => new URLSearchParams({ all: "true"}), []);
 
   useEffect(() => {
-    
-      async function fetchHunter() {
-        try {
-          const response = await getListPegawai(paramsHunter, token);
-          if (response[0]) {
-            setSemuaHunter(response[0]);
-          } else {
-            throw new Error("Tidak ada hunter tersedia");
-          }
-        } catch (error: unknown) {
-          console.error("Gagal memuat hunter:", error);
+    async function fetchHunter() {
+      try {
+        const response = await getListPegawai(paramsHunter, token);
+        if (response[0]) {
+          setSemuaHunter(response[0]);
+        } else {
+          throw new Error("Tidak ada hunter tersedia");
         }
+      } catch (error: unknown) {
+        console.error("Gagal memuat hunter:", error);
       }
-      async function fetchQC() {
-        try {
-          const response = await getListPegawai(paramsQC, token);
-          if (response[0]) {
-            setSemuaQC(response[0]);
-          } else {
-            throw new Error("Tidak ada QC tersedia");
-          }
-        } catch (error: unknown) {
-          console.error("Gagal memuat barang:", error);
+    }
+    async function fetchQC() {
+      try {
+        const response = await getListPegawai(paramsQC, token);
+        if (response[0]) {
+          setSemuaQC(response[0]);
+        } else {
+          throw new Error("Tidak ada QC tersedia");
         }
+      } catch (error: unknown) {
+        console.error("Gagal memuat barang:", error);
       }
-      async function fetchPenitip() {
-        try {
-          const response = await getListPenitip(paramsPenitip, token);
-          if (response[0]) {
-            setSemuaPenitip(response[0]);
-          } else {
-            throw new Error("Tidak ada penitip tersedia");
-          }
-        } catch (error: unknown) {
-          console.error("Gagal memuat penitip:", error);
+    }
+    async function fetchPenitip() {
+      try {
+        const response = await getListPenitip(paramsPenitip, token);
+        if (response[0]) {
+          setSemuaPenitip(response[0]);
+        } else {
+          throw new Error("Tidak ada penitip tersedia");
         }
+      } catch (error: unknown) {
+        console.error("Gagal memuat penitip:", error);
       }
-  
-      fetchHunter();
-      fetchQC();
-      fetchPenitip();
-    }, [paramsHunter, paramsQC, paramsPenitip, token]);
+    }
 
-  const onCloseCreateModal = (): void => {
-    setOpenCreateModal(false);
-    setCreateError(null);
-    setCreateSuccess(null);
-    setFormErrors({});
-    setPenitipSearch("");
-    setQCSearch("");
-    setHunterSearch("");
+    fetchHunter();
+    fetchQC();
+    fetchPenitip();
+  }, [paramsHunter, paramsQC, paramsPenitip, token]);
+
+  const resetForm = () => {
     setFormData({
       barangData: [
         {
@@ -234,15 +223,34 @@ export default function PenitipanMaster() {
         },
       ],
       penitipanData: { penitip: null, pegawai_qc: null, hunter: null },
-      detailPenitipanData: [{ tanggal_akhir: "", batas_ambil: "", tanggal_laku: "", isDiperpanjang: false }],
+      detailPenitipanData: [{ tanggal_masuk: "", tanggal_akhir: "", batas_ambil: "", tanggal_laku: null, isDiperpanjang: false }],
     });
+    setFormErrors({});
+    setPenitipSearch("");
+    setQCSearch("");
+    setHunterSearch("");
+    setCreateError(null);
+    setCreateSuccess(null);
+    setEditError(null);
+    setEditSuccess(null);
+  };
+
+  const onCloseCreateModal = () => {
+    setOpenCreateModal(false);
+    resetForm();
+  };
+
+  const onCloseEditModal = () => {
+    setOpenEditModal(false);
+    setEditPenitipanId(null);
+    resetForm();
   };
 
   const handleInputChange = (
     section: "barangData" | "penitipanData" | "detailPenitipanData",
     index: number,
     field: string,
-    value: string | Penitip | Pegawai | null
+    value: string | Penitip | Pegawai | null | boolean
   ): void => {
     setFormData((prev) => {
       const newData = { ...prev };
@@ -258,13 +266,6 @@ export default function PenitipanMaster() {
 
   const handleFileChange = (index: number, files: FileList | null): void => {
     const fileArray: File[] = files ? Array.from(files) : [];
-    if (fileArray.length < 2) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [`barangData_${index}_gambar`]: "At least 2 images are required",
-      }));
-      return;
-    }
     const validTypes = ["image/jpeg", "image/png"];
     const invalidFiles = fileArray.filter((file) => !validTypes.includes(file.type));
     if (invalidFiles.length > 0) {
@@ -276,10 +277,32 @@ export default function PenitipanMaster() {
     }
     setFormData((prev) => {
       const newData = { ...prev };
-      newData.barangData[index].gambar = fileArray;
+      // Append new files to existing images (do not overwrite existing images)
+      newData.barangData[index].gambar = [
+        ...newData.barangData[index].gambar,
+        ...fileArray,
+      ];
       return newData;
     });
     setFormErrors((prev) => ({ ...prev, [`barangData_${index}_gambar`]: "" }));
+  };
+
+  const handleRemoveImage = (barangIndex: number, imageIndex: number): void => {
+    setFormData((prev) => {
+      const newData = { ...prev };
+      newData.barangData[barangIndex].gambar.splice(imageIndex, 1);
+      return newData;
+    });
+    // Re-validate images after removal
+    const remainingImages = formData.barangData[barangIndex].gambar.length - 1;
+    if (remainingImages < 2) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [`barangData_${barangIndex}_gambar`]: "At least 2 images are required",
+      }));
+    } else {
+      setFormErrors((prev) => ({ ...prev, [`barangData_${barangIndex}_gambar`]: "" }));
+    }
   };
 
   const addBarang = (): void => {
@@ -300,6 +323,7 @@ export default function PenitipanMaster() {
       ],
       detailPenitipanData: [
         ...prev.detailPenitipanData,
+        { tanggal_masuk: "", tanggal_akhir: "", batas_ambil: "", tanggal_laku: null, isDiperpanjang: false },
       ],
     }));
   };
@@ -347,13 +371,11 @@ export default function PenitipanMaster() {
       newErrors["penitipanData_0_pegawai_qc"] = "Pegawai QC is required";
     }
     setFormErrors(newErrors);
-    console.log("Validation errors:", newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    console.log("handleCreate triggered");
     setCreateError(null);
     setCreateSuccess(null);
 
@@ -361,12 +383,10 @@ export default function PenitipanMaster() {
       return;
     }
 
-    const tanggalMasuk = new Date(); 
+    const tanggalMasuk = new Date();
+    const tanggalAkhir = computeTanggalAkhir(tanggalMasuk);
+    const batasAmbil = computeBatasAmbil(new Date(tanggalAkhir));
 
-    const tanggalAkhir = computeTanggalAkhir(tanggalMasuk); 
-
-    const batasAmbil = computeBatasAmbil(new Date(tanggalAkhir)); 
-    
     const formDataToSend = new FormData();
     formDataToSend.append(
       "barangData",
@@ -403,11 +423,11 @@ export default function PenitipanMaster() {
       )
     );
     
-    console.log(formDataToSend.get("detailPenitipanData"));
-
     formData.barangData.forEach((barang, index) => {
-      barang.gambar.forEach((file) => {
-        formDataToSend.append(`gambar[${index}]`, file);
+      barang.gambar.forEach((item) => {
+        if (item instanceof File) {
+          formDataToSend.append(`gambar[${index}]`, item);
+        }
       });
     });
 
@@ -415,6 +435,7 @@ export default function PenitipanMaster() {
       const res = await createPenitipan(formDataToSend, token);
       if (!res.errors) {
         setCreateSuccess("Penitipan created successfully");
+        mutate();
         setTimeout(() => {
           onCloseCreateModal();
         }, 2000);
@@ -429,10 +450,108 @@ export default function PenitipanMaster() {
     }
   };
 
-  // const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
-  //   e.preventDefault();
-  //   console.log("Search:", e.currentTarget["search-pegawai"].value);
-  // };
+  const handleOpenEditModal = (penitipan: DetailPenitipan): void => {
+    setEditPenitipanId(penitipan.id_dtl_penitipan.toString());
+    setFormData({
+      barangData: [{
+        prefix: penitipan.barang.nama_barang.charAt(0),
+        nama_barang: penitipan.barang.nama_barang,
+        deskripsi: penitipan.barang.deskripsi,
+        harga: penitipan.barang.harga.toString(),
+        berat: penitipan.barang.berat.toString(),
+        id_kategori: penitipan.barang.kategori.id_kategori.toString(),
+        garansi: penitipan.barang.garansi || "",
+        gambar: penitipan.barang.gambar.map((g) => ({
+          id_gambar: g.id_gambar,
+          url_gambar: g.url_gambar,
+          is_primary: g.is_primary,
+        })),
+      }],
+      penitipanData: {
+        penitip: penitipan.penitipan.penitip,
+        pegawai_qc: penitipan.penitipan.pegawai_qc,
+        hunter: penitipan.penitipan.hunter || null,
+      },
+      detailPenitipanData: [{
+        tanggal_masuk: penitipan.tanggal_masuk,
+        tanggal_akhir: penitipan.tanggal_akhir,
+        batas_ambil: penitipan.batas_ambil,
+        tanggal_laku: penitipan.tanggal_laku || null,
+        isDiperpanjang: penitipan.is_perpanjang,
+      }],
+    });
+    setOpenEditModal(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setEditError(null);
+    setEditSuccess(null);
+
+    if (!validateForm() || !editPenitipanId) {
+      return;
+    }
+
+    const formDataToSend = new FormData();
+    formDataToSend.append(
+      "barangData",
+      JSON.stringify(
+        formData.barangData.map((item) => ({
+          nama_barang: item.nama_barang,
+          deskripsi: item.deskripsi,
+          harga: Number(item.harga),
+          berat: Number(item.berat),
+          id_kategori: Number(item.id_kategori),
+          garansi: item.garansi == "" ? undefined : item.garansi,
+        }))
+      )
+    );
+    formDataToSend.append(
+      "penitipanData",
+      JSON.stringify({
+        id_penitip: formData.penitipanData.penitip?.id_penitip,
+        id_pegawai_qc: formData.penitipanData.pegawai_qc?.id_pegawai,
+        id_hunter: formData.penitipanData.hunter ? formData.penitipanData.hunter.id_pegawai : undefined,
+      })
+    );
+    formDataToSend.append(
+      "detailPenitipanData",
+      JSON.stringify(formData.detailPenitipanData)
+    );
+
+    console.log(formData.barangData);
+
+    formData.barangData.forEach((barang, index) => {
+      const existingImages: { id_gambar: number }[] = [];
+      barang.gambar.forEach((item) => {
+        if (item instanceof File) {
+          formDataToSend.append(`gambar[${index}]`, item);
+        } else {
+          existingImages.push({ id_gambar: item.id_gambar });
+        }
+      });
+      formDataToSend.append(`existingGambar[${index}]`, JSON.stringify(existingImages));
+    });
+
+    // console.log(formData.barangData);
+    try {
+      const res = await updatePenitipan(editPenitipanId, formDataToSend, token);
+      if (!res.errors) {
+        setEditSuccess("Penitipan updated successfully");
+        mutate();
+        setTimeout(() => {
+          onCloseEditModal();
+        }, 2000);
+      } else {
+        throw new Error(res.errors || "Gagal memperbarui penitipan");
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Terjadi kesalahan saat memperbarui penitipan";
+      setEditError(errorMessage);
+      console.error("Error updating penitipan:", error);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -451,12 +570,10 @@ export default function PenitipanMaster() {
   };
 
   const handleOpenDetailModal = (penitipan: DetailPenitipan): void => {
-  setSelectedPenitipan(penitipan);
-  console.log(penitipan);
-  setOpenDetailModal(true);
-};
+    setSelectedPenitipan(penitipan);
+    setOpenDetailModal(true);
+  };
 
-  // Filter functions for searchable dropdowns
   const filteredPenitip = semuaPenitip.filter(
     (penitip) =>
       penitip.nama.toLowerCase().includes(penitipSearch.toLowerCase()) ||
@@ -482,6 +599,299 @@ export default function PenitipanMaster() {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
+
+  const renderModal = (isEditMode: boolean) => (
+    <Modal
+      show={isEditMode ? openEditModal : openCreateModal}
+      size="2xl"
+      onClose={isEditMode ? onCloseEditModal : onCloseCreateModal}
+      popup
+    >
+      <ModalHeader />
+      <ModalBody>
+        <form className="space-y-6" onSubmit={isEditMode ? handleUpdate : handleCreate}>
+          <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+            {isEditMode ? "Edit Penitipan" : "Tambah Penitipan Baru"}
+          </h3>
+          {isEditMode ? (
+            editError && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">{editError}</div>
+            )
+          ) : (
+            createError && (
+              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">{createError}</div>
+            )
+          )}
+          {isEditMode ? (
+            editSuccess && (
+              <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">{editSuccess}</div>
+            )
+          ) : (
+            createSuccess && (
+              <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">{createSuccess}</div>
+            )
+          )}
+          <div className="space-y-4">
+            <h4 className="text-lg font-medium">Penitipan Data</h4>
+            <div className="flex flex-col gap-4">
+              <div>
+                <Label htmlFor="penitip">Penitip</Label>
+                <TextInput
+                  id="penitip_search"
+                  placeholder="Cari penitip (nama atau email)..."
+                  value={penitipSearch}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPenitipSearch(e.target.value)
+                  }
+                  className="mb-2"
+                />
+                <Select
+                  id="penitip"
+                  value={formData.penitipanData.penitip?.id_penitip || ""}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const selectedPenitip = semuaPenitip.find(
+                      (p) => p.id_penitip.toString() === e.target.value
+                    );
+                    handleInputChange("penitipanData", 0, "penitip", selectedPenitip || null);
+                  }}
+                  required
+                  color={formErrors["penitipanData_0_penitip"] ? "failure" : undefined}
+                >
+                  <option value="">Pilih Penitip</option>
+                  {filteredPenitip.map((penitip) => (
+                    <option key={penitip.id_penitip} value={penitip.id_penitip}>
+                      {`${penitip.nama} (${penitip.email})`}
+                    </option>
+                  ))}
+                </Select>
+                {formErrors["penitipanData_0_penitip"] && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_penitip"]}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="pegawai_qc">Pegawai QC</Label>
+                <TextInput
+                  id="qc_search"
+                  placeholder="Cari QC (nama atau email)..."
+                  value={qcSearch}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setQCSearch(e.target.value)
+                  }
+                  className="mb-2"
+                />
+                <Select
+                  id="pegawai_qc"
+                  value={formData.penitipanData.pegawai_qc?.id_pegawai || ""}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const selectedQC = semuaQC.find(
+                      (q) => q.id_pegawai.toString() === e.target.value
+                    );
+                    handleInputChange("penitipanData", 0, "pegawai_qc", selectedQC || null);
+                  }}
+                  required
+                  color={formErrors["penitipanData_0_pegawai_qc"] ? "failure" : undefined}
+                >
+                  <option value="">Pilih Pegawai QC</option>
+                  {filteredQC.map((qc) => (
+                    <option key={qc.id_pegawai} value={qc.id_pegawai}>
+                      {`${qc.nama} (${qc.email}) - ${qc.jabatan.nama_jabatan}`}
+                    </option>
+                  ))}
+                </Select>
+                {formErrors["penitipanData_0_pegawai_qc"] && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_pegawai_qc"]}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="hunter">Hunter (Optional)</Label>
+                <TextInput
+                  id="hunter_search"
+                  placeholder="Cari Hunter (nama atau email)..."
+                  value={hunterSearch}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setHunterSearch(e.target.value)
+                  }
+                  className="mb-2"
+                />
+                <Select
+                  id="hunter"
+                  value={formData.penitipanData.hunter?.id_pegawai || ""}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const selectedHunter = semuaHunter.find(
+                      (h) => h.id_pegawai.toString() === e.target.value
+                    );
+                    handleInputChange("penitipanData", 0, "hunter", selectedHunter || null);
+                  }}
+                >
+                  <option value="">Pilih Hunter (Opsional)</option>
+                  {filteredHunter.map((hunter) => (
+                    <option key={hunter.id_pegawai} value={hunter.id_pegawai}>
+                      {`${hunter.nama} (${hunter.email}) - ${hunter.jabatan.nama_jabatan}`}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+          </div>
+          {formData.barangData.map((barang, index) => (
+            <div key={index} className="space-y-4 border-t pt-4">
+              <div className="flex justify-between items-center">
+                <h4 className="text-lg font-medium">Barang {index + 1}</h4>
+                {index > 0 && (
+                  <Button color="failure" onClick={() => removeBarang(index)}>
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor={`nama_barang_${index}`}>Nama Barang</Label>
+                  <TextInput
+                    id={`nama_barang_${index}`}
+                    value={barang.nama_barang}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("barangData", index, "nama_barang", e.target.value)
+                    }
+                    required
+                    color={formErrors[`barangData_${index}_nama_barang`] ? "failure" : undefined}
+                  />
+                  {formErrors[`barangData_${index}_nama_barang`] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_nama_barang`]}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor={`deskripsi_${index}`}>Deskripsi</Label>
+                  <TextInput
+                    id={`deskripsi_${index}`}
+                    value={barang.deskripsi}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("barangData", index, "deskripsi", e.target.value)
+                    }
+                    required
+                    color={formErrors[`barangData_${index}_deskripsi`] ? "failure" : undefined}
+                  />
+                  {formErrors[`barangData_${index}_deskripsi`] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_deskripsi`]}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor={`harga_${index}`}>Harga</Label>
+                  <TextInput
+                    id={`harga_${index}`}
+                    type="number"
+                    value={barang.harga}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("barangData", index, "harga", e.target.value)
+                    }
+                    required
+                    color={formErrors[`barangData_${index}_harga`] ? "failure" : undefined}
+                  />
+                  {formErrors[`barangData_${index}_harga`] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_harga`]}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor={`berat_${index}`}>Berat (kg)</Label>
+                  <TextInput
+                    id={`berat_${index}`}
+                    type="number"
+                    value={barang.berat}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("barangData", index, "berat", e.target.value)
+                    }
+                    required
+                    color={formErrors[`barangData_${index}_berat`] ? "failure" : undefined}
+                  />
+                  {formErrors[`barangData_${index}_berat`] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_berat`]}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor={`id_kategori_${index}`}>Kategori</Label>
+                  <Select
+                    id={`id_kategori_${index}`}
+                    value={barang.id_kategori}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      handleInputChange("barangData", index, "id_kategori", e.target.value)
+                    }
+                    required
+                    color={formErrors[`barangData_${index}_id_kategori`] ? "failure" : undefined}
+                  >
+                    <option value="">Pilih Kategori</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </Select>
+                  {formErrors[`barangData_${index}_id_kategori`] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_id_kategori`]}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor={`garansi_${index}`}>Garansi (Optional)</Label>
+                  <TextInput
+                    id={`garansi_${index}`}
+                    type="datetime-local"
+                    value={barang.garansi}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("barangData", index, "garansi", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`gambar_${index}`}>Images (Min 2, JPEG/PNG)</Label>
+                  <FileInput
+                    id={`gambar_${index}`}
+                    multiple
+                    accept="image/jpeg,image/png"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleFileChange(index, e.target.files)
+                    }
+                    color={formErrors[`barangData_${index}_gambar`] ? "failure" : undefined}
+                  />
+                  {formErrors[`barangData_${index}_gambar`] && (
+                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_gambar`]}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {barang.gambar.map((item, i) => (
+                      <div key={i} className="relative">
+                        <img
+                          src={item instanceof File ? URL.createObjectURL(item) : item.url_gambar}
+                          alt={`Preview ${i}`}
+                          className="w-20 h-20 object-cover rounded"
+                        />
+                        {(item instanceof File || item.is_primary) && (
+                          <span className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                            {item instanceof File ? "New" : "Primary"}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                          onClick={() => handleRemoveImage(index, i)}
+                        >
+                          <HiX size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          <Button color="blue" onClick={addBarang} className="mt-4">
+            Add Barang
+          </Button>
+          <div className="flex justify-end">
+            <Button type="submit" className="bg-[#1980e6] hover:bg-[#1980e6]/80">
+              {isEditMode ? "Update Penitipan" : "Tambah Penitipan"}
+            </Button>
+          </div>
+        </form>
+      </ModalBody>
+    </Modal>
+  );
 
   return (
     <div className="flex">
@@ -519,71 +929,73 @@ export default function PenitipanMaster() {
                 <TableHeadCell>Tanggal Akhir</TableHeadCell>
                 <TableHeadCell>Status</TableHeadCell>
                 <TableHeadCell>
-                  <span className="sr-only">Edit</span>
+                  <span className="sr-only">Detail</span>
                 </TableHeadCell>
                 <TableHeadCell>
-                  <span className="sr-only">Delete</span>
+                  <span className="sr-only">Edit</span>
                 </TableHeadCell>
               </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     Error memuat data
                   </TableCell>
                 </TableRow>
               ) : data && data[0]?.length > 0 ? (
                 data[0].map((dtlPenitipan: DetailPenitipan, index: number) => (
                   <TableRow key={dtlPenitipan.id_dtl_penitipan} className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
-                <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                  {dtlPenitipan.barang.nama_barang}
-                </TableCell>
-                <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                  {dtlPenitipan.penitipan.penitip.nama}
-                </TableCell>
-                <TableCell>Rp{new Intl.NumberFormat("id-ID").format(dtlPenitipan.barang.harga)}</TableCell>
-                <TableCell>{formatDate(dtlPenitipan.tanggal_masuk)}</TableCell>
-                <TableCell>{formatDate(dtlPenitipan.tanggal_akhir)}</TableCell>
-                <TableCell>{dtlPenitipan.barang.status}</TableCell>
-                <TableCell>
-                  <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500" onClick={() => handleOpenDetailModal(dtlPenitipan)}>
-                    Lihat Detail
-                  </button>
-                </TableCell>
-                <TableCell>
-                  <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
-                    Edit
-                  </button>
-                </TableCell>
-              </TableRow>
-              ))
+                    <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
+                    <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      {dtlPenitipan.barang.nama_barang}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      {dtlPenitipan.penitipan.penitip.nama}
+                    </TableCell>
+                    <TableCell>Rp{new Intl.NumberFormat("id-ID").format(dtlPenitipan.barang.harga)}</TableCell>
+                    <TableCell>{formatDate(dtlPenitipan.tanggal_masuk)}</TableCell>
+                    <TableCell>{formatDate(dtlPenitipan.tanggal_akhir)}</TableCell>
+                    <TableCell>{dtlPenitipan.barang.status}</TableCell>
+                    <TableCell>
+                      <button
+                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                        onClick={() => handleOpenDetailModal(dtlPenitipan)}
+                      >
+                        Lihat Detail
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                        onClick={() => handleOpenEditModal(dtlPenitipan)}
+                      >
+                        Edit
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     Tidak ada data
                   </TableCell>
                 </TableRow>
               )}
-              
             </TableBody>
           </Table>
         </div>
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-gray-700">
-            Showing{" "}
-            <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-            <span className="font-medium">
-              {Math.min(page * limit, totalItems)}
-            </span>{" "}
-            of <span className="font-medium">{totalItems}</span> entries
+            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+            <span className="font-medium">{Math.min(page * limit, totalItems)}</span> of{" "}
+            <span className="font-medium">{totalItems}</span> entries
           </p>
           <div className="flex gap-2">
             <button
@@ -604,386 +1016,124 @@ export default function PenitipanMaster() {
         </div>
       </div>
 
-      <Modal show={openCreateModal} size="2xl" onClose={onCloseCreateModal} popup>
+      {renderModal(false)}
+      {renderModal(true)}
+
+      <Modal show={openDetailModal} size="3xl" onClose={() => setOpenDetailModal(false)} popup>
         <ModalHeader />
         <ModalBody>
-          <form className="space-y-6" onSubmit={handleCreate}>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">Tambah Penitipan Baru</h3>
-            {createError && (
-              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">{createError}</div>
-            )}
-            {createSuccess && (
-              <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">{createSuccess}</div>
-            )}
-            <div className="space-y-4">
-              <h4 className="text-lg font-medium">Penitipan Data</h4>
-              <div className="flex flex-col gap-4">
-                <div>
-                  <Label htmlFor="penitip">Penitip</Label>
-                  <TextInput
-                    id="penitip_search"
-                    placeholder="Cari penitip (nama atau email)..."
-                    value={penitipSearch}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setPenitipSearch(e.target.value)
-                    }
-                    className="mb-2"
-                  />
-                  <Select
-                    id="penitip"
-                    value={formData.penitipanData.penitip?.id_penitip || ""}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                      const selectedPenitip = semuaPenitip.find(
-                        (p) => p.id_penitip.toString() === e.target.value
-                      );
-                      handleInputChange("penitipanData", 0, "penitip", selectedPenitip || null);
-                    }}
-                    required
-                    color={formErrors["penitipanData_0_penitip"] ? "failure" : undefined}
-                  >
-                    <option value="">Pilih Penitip</option>
-                    {filteredPenitip.map((penitip) => (
-                      <option key={penitip.id_penitip} value={penitip.id_penitip}>
-                        {`${penitip.nama} (${penitip.email})`}
-                      </option>
-                    ))}
-                  </Select>
-                  {formErrors["penitipanData_0_penitip"] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_penitip"]}</p>
-                  )}
+          <div className="space-y-6">
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white">Detail Penitipan</h3>
+            {selectedPenitipan && (
+              <div className="space-y-4">
+                <div className="border-b pb-4">
+                  <h4 className="text-lg font-medium mb-2">Informasi Penitipan</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-semibold">ID Penitipan</p>
+                      <p>{selectedPenitipan.penitipan.id_penitipan}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Penitip</p>
+                      <p>{selectedPenitipan.penitipan.penitip.nama}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Pegawai QC</p>
+                      <p>{selectedPenitipan.penitipan.pegawai_qc.nama} (P{selectedPenitipan.penitipan.pegawai_qc.id_pegawai})</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Hunter</p>
+                      <p>{selectedPenitipan.penitipan.hunter?.nama || 'Tidak ada hunter'} (P{selectedPenitipan.penitipan.hunter?.id_pegawai || '-'})</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="pegawai_qc">Pegawai QC</Label>
-                  <TextInput
-                    id="qc_search"
-                    placeholder="Cari QC (nama atau email)..."
-                    value={qcSearch}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setQCSearch(e.target.value)
-                    }
-                    className="mb-2"
-                  />
-                  <Select
-                    id="pegawai_qc"
-                    value={formData.penitipanData.pegawai_qc?.id_pegawai || ""}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                      const selectedQC = semuaQC.find(
-                        (q) => q.id_pegawai.toString() === e.target.value
-                      );
-                      handleInputChange("penitipanData", 0, "pegawai_qc", selectedQC || null);
-                    }}
-                    required
-                    color={formErrors["penitipanData_0_pegawai_qc"] ? "failure" : undefined}
-                  >
-                    <option value="">Pilih Pegawai QC</option>
-                    {filteredQC.map((qc) => (
-                      <option key={qc.id_pegawai} value={qc.id_pegawai}>
-                        {`${qc.nama} (${qc.email}) - ${qc.jabatan.nama_jabatan}`}
-                      </option>
-                    ))}
-                  </Select>
-                  {formErrors["penitipanData_0_pegawai_qc"] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_pegawai_qc"]}</p>
-                  )}
+                <div className="border-b pb-4">
+                  <h4 className="text-lg font-medium mb-2">Informasi Barang</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-semibold">Nama Barang</p>
+                      <p>{selectedPenitipan.barang.nama_barang}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Kategori</p>
+                      <p>{selectedPenitipan.barang.kategori.nama_kategori}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Harga</p>
+                      <p>Rp{new Intl.NumberFormat("id-ID").format(selectedPenitipan.barang.harga)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Berat</p>
+                      <p>{selectedPenitipan.barang.berat} kg</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Status</p>
+                      <p>{selectedPenitipan.barang.status}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Garansi</p>
+                      <p>{selectedPenitipan.barang.garansi ? formatDate(selectedPenitipan.barang.garansi) : 'Tidak ada'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm font-semibold">Deskripsi</p>
+                      <p>{selectedPenitipan.barang.deskripsi}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="hunter">Hunter (Optional)</Label>
-                  <TextInput
-                    id="hunter_search"
-                    placeholder="Cari Hunter (nama atau email)..."
-                    value={hunterSearch}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setHunterSearch(e.target.value)
-                    }
-                    className="mb-2"
-                  />
-                  <Select
-                    id="hunter"
-                    value={formData.penitipanData.hunter?.id_pegawai || ""}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                      const selectedHunter = semuaHunter.find(
-                        (h) => h.id_pegawai.toString() === e.target.value
-                      );
-                      handleInputChange("penitipanData", 0, "hunter", selectedHunter || null);
-                    }}
-                  >
-                    <option value="">Pilih Hunter (Opsional)</option>
-                    {filteredHunter.map((hunter) => (
-                      <option key={hunter.id_pegawai} value={hunter.id_pegawai}>
-                        {`${hunter.nama} (${hunter.email}) - ${hunter.jabatan.nama_jabatan}`}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-            </div>
-            {formData.barangData.map((barang, index) => (
-              <div key={index} className="space-y-4 border-t pt-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-lg font-medium">Barang {index + 1}</h4>
-                  {index > 0 && (
-                    <Button color="failure" onClick={() => removeBarang(index)}>
-                      Remove
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`nama_barang_${index}`}>Nama Barang</Label>
-                    <TextInput
-                      id={`nama_barang_${index}`}
-                      value={barang.nama_barang}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("barangData", index, "nama_barang", e.target.value)
-                      }
-                      required
-                      color={formErrors[`barangData_${index}_nama_barang`] ? "failure" : undefined}
-                    />
-                    {formErrors[`barangData_${index}_nama_barang`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_nama_barang`]}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`deskripsi_${index}`}>Deskripsi</Label>
-                    <TextInput
-                      id={`deskripsi_${index}`}
-                      value={barang.deskripsi}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("barangData", index, "deskripsi", e.target.value)
-                      }
-                      required
-                      color={formErrors[`barangData_${index}_deskripsi`] ? "failure" : undefined}
-                    />
-                    {formErrors[`barangData_${index}_deskripsi`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_deskripsi`]}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`harga_${index}`}>Harga</Label>
-                    <TextInput
-                      id={`harga_${index}`}
-                      type="number"
-                      value={barang.harga}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("barangData", index, "harga", e.target.value)
-                      }
-                      required
-                      color={formErrors[`barangData_${index}_harga`] ? "failure" : undefined}
-                    />
-                    {formErrors[`barangData_${index}_harga`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_harga`]}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`berat_${index}`}>Berat (kg)</Label>
-                    <TextInput
-                      id={`berat_${index}`}
-                      type="number"
-                      value={barang.berat}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("barangData", index, "berat", e.target.value)
-                      }
-                      required
-                      color={formErrors[`barangData_${index}_berat`] ? "failure" : undefined}
-                    />
-                    {formErrors[`barangData_${index}_berat`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_berat`]}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`id_kategori_${index}`}>Kategori</Label>
-                    <Select
-                      id={`id_kategori_${index}`}
-                      value={barang.id_kategori}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                        handleInputChange("barangData", index, "id_kategori", e.target.value)
-                      }
-                      required
-                      color={formErrors[`barangData_${index}_id_kategori`] ? "failure" : undefined}
-                    >
-                      <option value="">Pilih Kategori</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </Select>
-                    {formErrors[`barangData_${index}_id_kategori`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_id_kategori`]}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`garansi_${index}`}>Garansi (Optional)</Label>
-                    <TextInput
-                      id={`garansi_${index}`}
-                      type="datetime-local"
-                      value={barang.garansi}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("barangData", index, "garansi", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`gambar_${index}`}>Images (Min 2, JPEG/PNG)</Label>
-                    <FileInput
-                      id={`gambar_${index}`}
-                      multiple
-                      accept="image/jpeg,image/png"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleFileChange(index, e.target.files)
-                      }
-                      color={formErrors[`barangData_${index}_gambar`] ? "failure" : undefined}
-                    />
-                    {formErrors[`barangData_${index}_gambar`] && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_gambar`]}</p>
-                    )}
-                    <div className="flex gap-2 mt-2">
-                      {barang.gambar.map((file: File, i: number) => (
+                <div className="border-b pb-4">
+                  <h4 className="text-lg font-medium mb-2">Gambar Barang</h4>
+                  <div className="flex flex-wrap gap-4">
+                    {selectedPenitipan.barang.gambar.map((gambar, index) => (
+                      <div key={gambar.id_gambar} className="relative">
                         <img
-                          key={i}
-                          src={URL.createObjectURL(file)}
-                          alt={`Preview ${i}`}
-                          className="w-20 h-20 object-cover"
+                          src={gambar.url_gambar}
+                          alt={`Gambar ${index + 1}`}
+                          className="w-32 h-32 object-cover rounded"
                         />
-                      ))}
+                        {gambar.is_primary && (
+                          <span className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium mb-2">Detail Tanggal</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-semibold">Tanggal Masuk</p>
+                      <p>{formatDate(selectedPenitipan.tanggal_masuk)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Tanggal Akhir</p>
+                      <p>{formatDate(selectedPenitipan.tanggal_akhir)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Batas Ambil</p>
+                      <p>{formatDate(selectedPenitipan.batas_ambil)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Tanggal Laku</p>
+                      <p>{selectedPenitipan.tanggal_laku ? formatDate(selectedPenitipan.tanggal_laku) : 'Belum laku'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Diperpanjang</p>
+                      <p>{selectedPenitipan.is_perpanjang ? 'Ya' : 'Tidak'}</p>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-            <Button color="blue" onClick={addBarang} className="mt-4">
-              Add Barang
-            </Button>
-            <div className="flex justify-end">
-              <Button type="submit" className="bg-[#1980e6] hover:bg-[#1980e6]/80">
-                Tambah Penitipan
+            )}
+            <div className="flex justify-end mt-4">
+              <Button color="gray" onClick={() => setOpenDetailModal(false)}>
+                Tutup
               </Button>
             </div>
-          </form>
+          </div>
         </ModalBody>
       </Modal>
-      <Modal show={openDetailModal} size="3xl" onClose={() => setOpenDetailModal(false)} popup>
-  <ModalHeader />
-  <ModalBody>
-    <div className="space-y-6">
-      <h3 className="text-xl font-medium text-gray-900 dark:text-white">Detail Penitipan</h3>
-      {selectedPenitipan && (
-        <div className="space-y-4">
-          {/* Penitipan Information */}
-          <div className="border-b pb-4">
-            <h4 className="text-lg font-medium mb-2">Informasi Penitipan</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-semibold">ID Penitipan</p>
-                <p>{selectedPenitipan.penitipan.id_penitipan}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Penitip</p>
-                <p>{selectedPenitipan.penitipan.penitip.nama}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Pegawai QC</p>
-                <p>{selectedPenitipan.penitipan.pegawai_qc.nama} (P{selectedPenitipan.penitipan.pegawai_qc.id_pegawai})</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Hunter</p>
-                <p>{selectedPenitipan.penitipan.hunter?.nama || 'Tidak ada hunter'} (P{selectedPenitipan.penitipan.hunter?.id_pegawai || '-'})</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Barang Information */}
-          <div className="border-b pb-4">
-            <h4 className="text-lg font-medium mb-2">Informasi Barang</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-semibold">Nama Barang</p>
-                <p>{selectedPenitipan.barang.nama_barang}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Kategori</p>
-                <p>{selectedPenitipan.barang.kategori.nama_kategori}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Harga</p>
-                <p>Rp{new Intl.NumberFormat("id-ID").format(selectedPenitipan.barang.harga)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Berat</p>
-                <p>{selectedPenitipan.barang.berat} kg</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Status</p>
-                <p>{selectedPenitipan.barang.status}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Garansi</p>
-                <p>{selectedPenitipan.barang.garansi ? formatDate(selectedPenitipan.barang.garansi) : 'Tidak ada'}</p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-sm font-semibold">Deskripsi</p>
-                <p>{selectedPenitipan.barang.deskripsi}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Gambar Barang */}
-          <div className="border-b pb-4">
-            <h4 className="text-lg font-medium mb-2">Gambar Barang</h4>
-            <div className="flex flex-wrap gap-4">
-              {selectedPenitipan.barang.gambar.map((gambar, index) => (
-                <div key={gambar.id_gambar} className="relative">
-                  <img
-                    src={gambar.url_gambar}
-                    alt={`Gambar ${index + 1}`}
-                    className="w-32 h-32 object-cover rounded"
-                  />
-                  {gambar.is_primary && (
-                    <span className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                      Primary
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Detail Penitipan */}
-          <div>
-            <h4 className="text-lg font-medium mb-2">Detail Tanggal</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-semibold">Tanggal Masuk</p>
-                <p>{formatDate(selectedPenitipan.tanggal_masuk)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Tanggal Akhir</p>
-                <p>{formatDate(selectedPenitipan.tanggal_akhir)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Batas Ambil</p>
-                <p>{formatDate(selectedPenitipan.batas_ambil)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Tanggal Laku</p>
-                <p>{selectedPenitipan.tanggal_laku ? formatDate(selectedPenitipan.tanggal_laku) : 'Belum laku'}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Diperpanjang</p>
-                <p>{selectedPenitipan.is_perpanjang ? 'Ya' : 'Tidak'}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="flex justify-end mt-4">
-        <Button color="gray" onClick={() => setOpenDetailModal(false)}>
-          Tutup
-        </Button>
-      </div>
-    </div>
-  </ModalBody>
-</Modal>
     </div>
   );
 }
