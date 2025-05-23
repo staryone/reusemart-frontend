@@ -141,6 +141,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
     localStorage.removeItem("checkoutItems");
 
+    const dataCreate = {
+      id_barang: keranjangItems.map((item) => item.id_barang),
+      metode_pengiriman: deliveryMethod,
+      potongan_poin: pointsDeduction,
+    };
+
     console.log("Data Checkout yang akan dikirim:", {
       id_barang: keranjangItems.map((item) => item.id_barang),
       id_alamat: idPrimaryAddress ? idPrimaryAddress : null,
