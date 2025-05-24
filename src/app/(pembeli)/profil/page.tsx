@@ -22,12 +22,7 @@ export default function ProfilePage() {
 
   const { data: pembeliData } = useSWR(
     currentUser !== null ? currentUser.token : null,
-    pembeliFetcher,
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
+    pembeliFetcher
   );
 
   if (pembeliData && pembeli !== pembeliData) {

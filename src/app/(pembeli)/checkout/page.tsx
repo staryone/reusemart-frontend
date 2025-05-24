@@ -129,8 +129,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
       return;
     }
 
-    localStorage.removeItem("checkoutItems");
-
     const dataCreate = {
       id_barang: keranjangItems.map((item) => item.id_barang),
       id_alamat: idPrimaryAddress ? idPrimaryAddress : null,
@@ -142,20 +140,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
     formDataToSend.append("dataTransaksi", JSON.stringify(dataCreate));
 
-    // console.log("Data Checkout yang akan dikirim:", {
-    //   id_barang: keranjangItems.map((item) => item.id_barang),
-    //   id_alamat: idPrimaryAddress ? idPrimaryAddress : null,
-    //   metode_pengiriman: deliveryMethod,
-    //   potongan_poin: pointsDeduction,
-    // });
-
     try {
       const res = await createTransaksi(formDataToSend, token || "");
       if (!res.errors) {
+        localStorage.removeItem("checkoutItems");
+        localStorage.setItem("idTransaksi", res.data);
         toast.success(
           "Pesanan sedang diproses! Silahkan lanjutkan ke Pembayaran"
         );
-        // router.push("/payment-confirmation");
+        router.push("/pembayaran");
       } else {
         toast.error(res.errors || "Gagal membuat transaksi");
       }
