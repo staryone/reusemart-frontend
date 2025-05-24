@@ -480,6 +480,8 @@ export default function PenitipanMaster() {
         isDiperpanjang: penitipan.is_perpanjang,
       }],
     });
+    console.log("Penitipan data", penitipan);
+    console.log("Form data", formData);
     setOpenEditModal(true);
   };
 
@@ -601,6 +603,7 @@ export default function PenitipanMaster() {
   };
 
   const renderModal = (isEditMode: boolean) => (
+    
     <Modal
       show={isEditMode ? openEditModal : openCreateModal}
       size="2xl"
@@ -880,9 +883,10 @@ export default function PenitipanMaster() {
               </div>
             </div>
           ))}
-          <Button color="blue" onClick={addBarang} className="mt-4">
+          {isEditMode ? <></> : <Button color="blue" onClick={addBarang} className="mt-4">
             Add Barang
-          </Button>
+          </Button>}
+          
           <div className="flex justify-end">
             <Button type="submit" className="bg-[#1980e6] hover:bg-[#1980e6]/80">
               {isEditMode ? "Update Penitipan" : "Tambah Penitipan"}
