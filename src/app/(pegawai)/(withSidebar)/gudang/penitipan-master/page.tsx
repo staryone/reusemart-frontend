@@ -26,6 +26,7 @@ import { getListPenitip } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
 import useSWR from "swr";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
+import jsPDF from "jspdf";
 
 // Form-specific interfaces
 interface BarangFormData {
@@ -91,6 +92,97 @@ const computeBatasAmbil = (tanggalAkhir: Date): string => {
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPenitipan(params, token);
 
+// Component to render the receipt for PDF generation
+const PenitipanReceipt = ({ penitipan, onGeneratePDF }: { penitipan: DetailPenitipan; onGeneratePDF: () => void }) => {
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Tanggal tidak valid";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleGeneratePDF = () => {
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // Set font and styles
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(16);
+
+    // Title
+    pdf.text("NOTA PENITIPAN BARANG", 105, 20, { align: "center" });
+
+    // Store Info
+    pdf.setFontSize(12);
+    pdf.text("REUse Mart", 20, 40);
+    pdf.text("Jl. Green Eco Park No. 456 Yogyakarta", 20, 45);
+    pdf.line(20, 50, 190, 50); // Horizontal line
+
+    // Receipt Details
+    pdf.text(`No Nota: 24.02.101`, 20, 60);
+    pdf.text(`Tanggal penitipan: ${formatDate(penitipan.tanggal_masuk)} 12:16:56`, 20, 65);
+    pdf.text(`Masa penitipan sampai: ${formatDate(penitipan.tanggal_akhir)}`, 20, 70);
+    pdf.line(20, 75, 190, 75); // Horizontal line
+
+    // Penitip Info
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(`PENITIP: ${penitipan.penitipan.id_penitipan} / ${penitipan.penitipan.penitip.nama}`, 20, 85);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Perumahan Margonda 2/50", 20, 90);
+    pdf.text("Caturunggl, Depok, Sleman", 20, 95);
+    pdf.text(`Delivery: Kurir REUseMart (${penitipan.penitipan.hunter?.nama || "N/A"})`, 20, 100);
+
+    // Item Details
+    const hargaFormatted = new Intl.NumberFormat("id-ID").format(penitipan.barang.harga);
+    const itemLine = `${penitipan.barang.nama_barang}`;
+    const hargaLine = `${hargaFormatted}`;
+    pdf.text(itemLine, 20, 110);
+    pdf.text(hargaLine, 190 - pdf.getTextWidth(hargaLine), 110); // Right-align harga
+
+    let yPosition = 115;
+    if (penitipan.barang.garansi) {
+      pdf.text(
+        `Garansi ON ${new Date(penitipan.barang.garansi).toLocaleString("id-ID", { month: "long", year: "numeric" })}`,
+        20,
+        yPosition
+      );
+      yPosition += 5;
+    }
+    pdf.text(`Berat barang: ${penitipan.barang.berat} kg`, 20, yPosition);
+    yPosition += 5;
+
+    // QC Info
+    pdf.setFont("helvetica", "italic");
+    pdf.text("Diterima dan QC oleh:", 20, yPosition);
+    pdf.setFont("helvetica", "normal");
+    pdf.line(20, yPosition + 2, 190, yPosition + 2); // Horizontal line
+    pdf.text(
+      `P${penitipan.penitipan.pegawai_qc.id_pegawai} - ${penitipan.penitipan.pegawai_qc.nama}`,
+      20,
+      yPosition + 7
+    );
+
+    // Save the PDF
+    pdf.save(`nota_penitipan_${penitipan.id_dtl_penitipan}.pdf`);
+    if (onGeneratePDF) onGeneratePDF();
+  };
+
+  useEffect(() => {
+    if (penitipan) {
+      handleGeneratePDF();
+    }
+  }, [penitipan]);
+
+  // Since we're not rendering to the DOM, return null
+  return null;
+};
 export default function PenitipanMaster() {
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
@@ -111,6 +203,7 @@ export default function PenitipanMaster() {
   const [totalItems, setTotalItems] = useState(0);
   const [openDetailModal, setOpenDetailModal] = useState<boolean>(false);
   const [selectedPenitipan, setSelectedPenitipan] = useState<DetailPenitipan | null>(null);
+  const [pdfPenitipan, setPdfPenitipan] = useState<DetailPenitipan | null>(null);
   const [formData, setFormData] = useState<FormDataState>({
     barangData: [
       {
@@ -163,7 +256,7 @@ export default function PenitipanMaster() {
 
   const paramsHunter = useMemo(() => new URLSearchParams({ search: "HUNTER" }), []);
   const paramsQC = useMemo(() => new URLSearchParams({ search: "GUDANG" }), []);
-  const paramsPenitip = useMemo(() => new URLSearchParams({ all: "true"}), []);
+  const paramsPenitip = useMemo(() => new URLSearchParams({ all: "true" }), []);
 
   useEffect(() => {
     async function fetchHunter() {
@@ -277,7 +370,6 @@ export default function PenitipanMaster() {
     }
     setFormData((prev) => {
       const newData = { ...prev };
-      // Append new files to existing images (do not overwrite existing images)
       newData.barangData[index].gambar = [
         ...newData.barangData[index].gambar,
         ...fileArray,
@@ -293,7 +385,6 @@ export default function PenitipanMaster() {
       newData.barangData[barangIndex].gambar.splice(imageIndex, 1);
       return newData;
     });
-    // Re-validate images after removal
     const remainingImages = formData.barangData[barangIndex].gambar.length - 1;
     if (remainingImages < 2) {
       setFormErrors((prev) => ({
@@ -422,7 +513,7 @@ export default function PenitipanMaster() {
         }))
       )
     );
-    
+
     formData.barangData.forEach((barang, index) => {
       barang.gambar.forEach((item) => {
         if (item instanceof File) {
@@ -480,6 +571,8 @@ export default function PenitipanMaster() {
         isDiperpanjang: penitipan.is_perpanjang,
       }],
     });
+    console.log("Penitipan data", penitipan);
+    console.log("Form data", formData);
     setOpenEditModal(true);
   };
 
@@ -533,7 +626,6 @@ export default function PenitipanMaster() {
       formDataToSend.append(`existingGambar[${index}]`, JSON.stringify(existingImages));
     });
 
-    // console.log(formData.barangData);
     try {
       const res = await updatePenitipan(editPenitipanId, formDataToSend, token);
       if (!res.errors) {
@@ -572,6 +664,10 @@ export default function PenitipanMaster() {
   const handleOpenDetailModal = (penitipan: DetailPenitipan): void => {
     setSelectedPenitipan(penitipan);
     setOpenDetailModal(true);
+  };
+
+  const handleGeneratePDF = (penitipan: DetailPenitipan) => {
+    setPdfPenitipan(penitipan);
   };
 
   const filteredPenitip = semuaPenitip.filter(
@@ -880,9 +976,10 @@ export default function PenitipanMaster() {
               </div>
             </div>
           ))}
-          <Button color="blue" onClick={addBarang} className="mt-4">
+          {isEditMode ? <></> : <Button color="blue" onClick={addBarang} className="mt-4">
             Add Barang
-          </Button>
+          </Button>}
+          
           <div className="flex justify-end">
             <Button type="submit" className="bg-[#1980e6] hover:bg-[#1980e6]/80">
               {isEditMode ? "Update Penitipan" : "Tambah Penitipan"}
@@ -1019,6 +1116,13 @@ export default function PenitipanMaster() {
       {renderModal(false)}
       {renderModal(true)}
 
+      {pdfPenitipan && (
+        <PenitipanReceipt
+          penitipan={pdfPenitipan}
+          onGeneratePDF={() => setPdfPenitipan(null)}
+        />
+      )}
+
       <Modal show={openDetailModal} size="3xl" onClose={() => setOpenDetailModal(false)} popup>
         <ModalHeader />
         <ModalBody>
@@ -1124,9 +1228,15 @@ export default function PenitipanMaster() {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-            <div className="flex justify-end mt-4">
+              </div>)
+            }
+            <div className="flex justify-end mt-4 space-x-2">
+              <Button
+                color="blue"
+                onClick={() => selectedPenitipan && handleGeneratePDF(selectedPenitipan)}
+              >
+                Download PDF
+              </Button>
               <Button color="gray" onClick={() => setOpenDetailModal(false)}>
                 Tutup
               </Button>
