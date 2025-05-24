@@ -29,7 +29,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8 pt-24 pb-10">
       <Sidebar />
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8 ml-64">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {/* Left: Profile Summary */}
           <div className="flex flex-col gap-6 sm:gap-8">

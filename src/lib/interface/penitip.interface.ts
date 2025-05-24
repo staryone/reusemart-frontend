@@ -1,3 +1,5 @@
+import { Penitipan } from "./penitipan.interface";
+
 export interface Penitip {
   id_penitip: string;
   email: string;
@@ -14,6 +16,6 @@ export interface Penitip {
   total_per_bulan: number;
   poin: number;
   transaksi: [];
-  barang: [];
+  penitipan: Penitipan[];
   errors?: string;
 }
