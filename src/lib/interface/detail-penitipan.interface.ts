@@ -3,7 +3,8 @@ import { Penitipan } from "./penitipan.interface";
 
 export interface DetailPenitipan {
   id_dtl_penitipan: number;
-    penitipan: Penitipan;
+  nomorNota: string;
+  penitipan: Penitipan;
   barang: Barang;
   tanggal_masuk: string;
   tanggal_akhir: string;

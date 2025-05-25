@@ -18,7 +18,11 @@ import {
   Select,
 } from "flowbite-react";
 import { HiSearch, HiX } from "react-icons/hi";
-import { createPenitipan, getListPenitipan, updatePenitipan } from "@/lib/api/penitipan.api";
+import {
+  createPenitipan,
+  getListPenitipan,
+  updatePenitipan,
+} from "@/lib/api/penitipan.api";
 import { useUser } from "@/hooks/use-user";
 import { getListPegawai } from "@/lib/api/pegawai.api";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
@@ -37,7 +41,9 @@ interface BarangFormData {
   berat: string;
   id_kategori: string;
   garansi: string;
-  gambar: Array<File | { id_gambar: number; url_gambar: string; is_primary: boolean }>;
+  gambar: Array<
+    File | { id_gambar: number; url_gambar: string; is_primary: boolean }
+  >;
 }
 
 interface PenitipanFormData {
@@ -93,7 +99,13 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPenitipan(params, token);
 
 // Component to render the receipt for PDF generation
-const PenitipanReceipt = ({ penitipan, onGeneratePDF }: { penitipan: DetailPenitipan; onGeneratePDF: () => void }) => {
+const PenitipanReceipt = ({
+  penitipan,
+  onGeneratePDF,
+}: {
+  penitipan: DetailPenitipan;
+  onGeneratePDF: () => void;
+}) => {
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -102,6 +114,19 @@ const PenitipanReceipt = ({ penitipan, onGeneratePDF }: { penitipan: DetailPenit
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const formatDateWithTime = (dateString: string | undefined): string => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Tanggal tidak valid";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   };
 
   const handleGeneratePDF = () => {
@@ -125,22 +150,35 @@ const PenitipanReceipt = ({ penitipan, onGeneratePDF }: { penitipan: DetailPenit
     pdf.line(20, 50, 190, 50); // Horizontal line
 
     // Receipt Details
-    pdf.text(`No Nota: 24.02.101`, 20, 60);
-    pdf.text(`Tanggal penitipan: ${formatDate(penitipan.tanggal_masuk)} 12:16:56`, 20, 65);
-    pdf.text(`Masa penitipan sampai: ${formatDate(penitipan.tanggal_akhir)}`, 20, 70);
+    pdf.text(`No Nota: ${penitipan.nomorNota}`, 20, 60);
+    pdf.text(
+      `Tanggal penitipan: ${formatDateWithTime(penitipan.tanggal_masuk)}`,
+      20,
+      65
+    );
+    pdf.text(
+      `Masa penitipan sampai: ${formatDate(penitipan.tanggal_akhir)}`,
+      20,
+      70
+    );
     pdf.line(20, 75, 190, 75); // Horizontal line
 
     // Penitip Info
     pdf.setFontSize(12);
     pdf.setFont("helvetica", "bold");
-    pdf.text(`PENITIP: ${penitipan.penitipan.id_penitipan} / ${penitipan.penitipan.penitip.nama}`, 20, 85);
+    pdf.text(
+      `PENITIP: ${penitipan.penitipan.penitip.id_penitip} / ${penitipan.penitipan.penitip.nama}`,
+      20,
+      85
+    );
     pdf.setFont("helvetica", "normal");
-    pdf.text("Perumahan Margonda 2/50", 20, 90);
-    pdf.text("Caturunggl, Depok, Sleman", 20, 95);
-    pdf.text(`Delivery: Kurir REUseMart (${penitipan.penitipan.hunter?.nama || "N/A"})`, 20, 100);
+    pdf.text(`${penitipan.penitipan.penitip.alamat}`, 20, 90);
+    // pdf.text("Caturunggl, Depok, Sleman", 20, 95);
 
     // Item Details
-    const hargaFormatted = new Intl.NumberFormat("id-ID").format(penitipan.barang.harga);
+    const hargaFormatted = new Intl.NumberFormat("id-ID").format(
+      penitipan.barang.harga
+    );
     const itemLine = `${penitipan.barang.nama_barang}`;
     const hargaLine = `${hargaFormatted}`;
     pdf.text(itemLine, 20, 110);
@@ -149,7 +187,10 @@ const PenitipanReceipt = ({ penitipan, onGeneratePDF }: { penitipan: DetailPenit
     let yPosition = 115;
     if (penitipan.barang.garansi) {
       pdf.text(
-        `Garansi ON ${new Date(penitipan.barang.garansi).toLocaleString("id-ID", { month: "long", year: "numeric" })}`,
+        `Garansi ON ${new Date(penitipan.barang.garansi).toLocaleString(
+          "id-ID",
+          { month: "long", year: "numeric" }
+        )}`,
         20,
         yPosition
       );
@@ -202,8 +243,12 @@ export default function PenitipanMaster() {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [openDetailModal, setOpenDetailModal] = useState<boolean>(false);
-  const [selectedPenitipan, setSelectedPenitipan] = useState<DetailPenitipan | null>(null);
-  const [pdfPenitipan, setPdfPenitipan] = useState<DetailPenitipan | null>(null);
+  const [selectedPenitipan, setSelectedPenitipan] =
+    useState<DetailPenitipan | null>(null);
+  const [pdfPenitipan, setPdfPenitipan] = useState<DetailPenitipan | null>(
+    null
+  );
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [formData, setFormData] = useState<FormDataState>({
     barangData: [
       {
@@ -218,12 +263,28 @@ export default function PenitipanMaster() {
       },
     ],
     penitipanData: { penitip: null, pegawai_qc: null, hunter: null },
-    detailPenitipanData: [{ tanggal_masuk: "", tanggal_akhir: "", batas_ambil: "", tanggal_laku: null, isDiperpanjang: false }],
+    detailPenitipanData: [
+      {
+        tanggal_masuk: "",
+        tanggal_akhir: "",
+        batas_ambil: "",
+        tanggal_laku: null,
+        isDiperpanjang: false,
+      },
+    ],
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const currentUser = useUser();
   const token = currentUser !== null ? currentUser.token : "";
+
+  const statusOptions = [
+    { value: "", label: "All Status" },
+    { value: "TERSEDIA", label: "Tersedia" },
+    { value: "TERJUAL", label: "Terjual" },
+    { value: "DIDONASIKAN", label: "Didonasikan" },
+    // Add other possible statuses based on your data model
+  ];
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -235,8 +296,11 @@ export default function PenitipanMaster() {
     if (searchQuery) {
       params.append("search", searchQuery);
     }
+    if (statusFilter) {
+      params.append("status", statusFilter); // Add status to query params
+    }
     return params;
-  }, [page, searchQuery, limit]);
+  }, [page, searchQuery, limit, statusFilter]);
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -254,7 +318,10 @@ export default function PenitipanMaster() {
     }
   }, [data]);
 
-  const paramsHunter = useMemo(() => new URLSearchParams({ search: "HUNTER" }), []);
+  const paramsHunter = useMemo(
+    () => new URLSearchParams({ search: "HUNTER" }),
+    []
+  );
   const paramsQC = useMemo(() => new URLSearchParams({ search: "GUDANG" }), []);
   const paramsPenitip = useMemo(() => new URLSearchParams({ all: "true" }), []);
 
@@ -302,6 +369,15 @@ export default function PenitipanMaster() {
   }, [paramsHunter, paramsQC, paramsPenitip, token]);
 
   const resetForm = () => {
+    // Revoke existing object URLs
+    formData.barangData.forEach((barang) => {
+      barang.gambar.forEach((item) => {
+        if (item instanceof File) {
+          URL.revokeObjectURL(URL.createObjectURL(item));
+        }
+      });
+    });
+
     setFormData({
       barangData: [
         {
@@ -316,7 +392,15 @@ export default function PenitipanMaster() {
         },
       ],
       penitipanData: { penitip: null, pegawai_qc: null, hunter: null },
-      detailPenitipanData: [{ tanggal_masuk: "", tanggal_akhir: "", batas_ambil: "", tanggal_laku: null, isDiperpanjang: false }],
+      detailPenitipanData: [
+        {
+          tanggal_masuk: "",
+          tanggal_akhir: "",
+          batas_ambil: "",
+          tanggal_laku: null,
+          isDiperpanjang: false,
+        },
+      ],
     });
     setFormErrors({});
     setPenitipSearch("");
@@ -350,17 +434,26 @@ export default function PenitipanMaster() {
       if (section === "penitipanData") {
         newData.penitipanData = { ...newData.penitipanData, [field]: value };
       } else {
-        newData[section][index] = { ...newData[section][index], [field]: value };
+        newData[section][index] = {
+          ...newData[section][index],
+          [field]: value,
+        };
       }
       return newData;
     });
-    setFormErrors((prev) => ({ ...prev, [`${section}_${index}_${field}`]: "" }));
+    setFormErrors((prev) => ({
+      ...prev,
+      [`${section}_${index}_${field}`]: "",
+    }));
   };
 
   const handleFileChange = (index: number, files: FileList | null): void => {
     const fileArray: File[] = files ? Array.from(files) : [];
     const validTypes = ["image/jpeg", "image/png"];
-    const invalidFiles = fileArray.filter((file) => !validTypes.includes(file.type));
+    const invalidFiles = fileArray.filter(
+      (file) => !validTypes.includes(file.type)
+    );
+
     if (invalidFiles.length > 0) {
       setFormErrors((prev) => ({
         ...prev,
@@ -368,32 +461,78 @@ export default function PenitipanMaster() {
       }));
       return;
     }
+
+    // Compute existingFiles outside the setFormData callback
+    const existingFiles = formData.barangData[index].gambar.filter(
+      (item) => !(item instanceof File) // Keep existing server images
+    );
+
+    // Filter out duplicates by file name and size
+    const newFiles = fileArray.filter(
+      (newFile) =>
+        !existingFiles.some(
+          (existing) =>
+            existing instanceof File &&
+            existing.name === newFile.name &&
+            existing.size === newFile.size
+        )
+    );
+
+    // Update formData with new and existing files
     setFormData((prev) => {
       const newData = { ...prev };
-      newData.barangData[index].gambar = [
-        ...newData.barangData[index].gambar,
-        ...fileArray,
-      ];
+      newData.barangData[index].gambar = [...existingFiles, ...newFiles];
       return newData;
     });
-    setFormErrors((prev) => ({ ...prev, [`barangData_${index}_gambar`]: "" }));
+
+    // Update form errors based on total images
+    setFormErrors((prev) => ({
+      ...prev,
+      [`barangData_${index}_gambar`]:
+        existingFiles.length + newFiles.length < 2
+          ? "At least 2 images are required"
+          : "",
+    }));
+
+    // Reset file input
+    const fileInput = document.getElementById(
+      `gambar_${index}`
+    ) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = "";
+    }
   };
+
+  useEffect(() => {
+    return () => {
+      // Clean up all object URLs when component unmounts or modal closes
+      formData.barangData.forEach((barang) => {
+        barang.gambar.forEach((item) => {
+          if (item instanceof File) {
+            URL.revokeObjectURL(URL.createObjectURL(item));
+          }
+        });
+      });
+    };
+  }, [formData.barangData, openCreateModal, openEditModal]);
 
   const handleRemoveImage = (barangIndex: number, imageIndex: number): void => {
     setFormData((prev) => {
       const newData = { ...prev };
+      const removedItem = newData.barangData[barangIndex].gambar[imageIndex];
+      if (removedItem instanceof File) {
+        URL.revokeObjectURL(URL.createObjectURL(removedItem));
+      }
       newData.barangData[barangIndex].gambar.splice(imageIndex, 1);
       return newData;
     });
+
     const remainingImages = formData.barangData[barangIndex].gambar.length - 1;
-    if (remainingImages < 2) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [`barangData_${barangIndex}_gambar`]: "At least 2 images are required",
-      }));
-    } else {
-      setFormErrors((prev) => ({ ...prev, [`barangData_${barangIndex}_gambar`]: "" }));
-    }
+    setFormErrors((prev) => ({
+      ...prev,
+      [`barangData_${barangIndex}_gambar`]:
+        remainingImages < 2 ? "At least 2 images are required" : "",
+    }));
   };
 
   const addBarang = (): void => {
@@ -414,7 +553,13 @@ export default function PenitipanMaster() {
       ],
       detailPenitipanData: [
         ...prev.detailPenitipanData,
-        { tanggal_masuk: "", tanggal_akhir: "", batas_ambil: "", tanggal_laku: null, isDiperpanjang: false },
+        {
+          tanggal_masuk: "",
+          tanggal_akhir: "",
+          batas_ambil: "",
+          tanggal_laku: null,
+          isDiperpanjang: false,
+        },
       ],
     }));
   };
@@ -429,7 +574,10 @@ export default function PenitipanMaster() {
     setFormErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`barangData_${index}_`) || key.startsWith(`detailPenitipanData_${index}_`)) {
+        if (
+          key.startsWith(`barangData_${index}_`) ||
+          key.startsWith(`detailPenitipanData_${index}_`)
+        ) {
           delete newErrors[key];
         }
       });
@@ -440,19 +588,38 @@ export default function PenitipanMaster() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     formData.barangData.forEach((barang, index) => {
-      if (!barang.nama_barang) newErrors[`barangData_${index}_nama_barang`] = "Nama barang is required";
-      if (!barang.deskripsi) newErrors[`barangData_${index}_deskripsi`] = "Deskripsi is required";
-      if (!barang.harga || isNaN(Number(barang.harga)) || Number(barang.harga) <= 0) {
-        newErrors[`barangData_${index}_harga`] = "Harga must be a positive number";
+      if (!barang.nama_barang)
+        newErrors[`barangData_${index}_nama_barang`] =
+          "Nama barang is required";
+      if (!barang.deskripsi)
+        newErrors[`barangData_${index}_deskripsi`] = "Deskripsi is required";
+      if (
+        !barang.harga ||
+        isNaN(Number(barang.harga)) ||
+        Number(barang.harga) <= 0
+      ) {
+        newErrors[`barangData_${index}_harga`] =
+          "Harga must be a positive number";
       }
-      if (!barang.berat || isNaN(Number(barang.berat)) || Number(barang.berat) <= 0) {
-        newErrors[`barangData_${index}_berat`] = "Berat must be a positive number";
+      if (
+        !barang.berat ||
+        isNaN(Number(barang.berat)) ||
+        Number(barang.berat) <= 0
+      ) {
+        newErrors[`barangData_${index}_berat`] =
+          "Berat must be a positive number";
       }
-      if (!barang.id_kategori || isNaN(Number(barang.id_kategori)) || Number(barang.id_kategori) <= 0) {
-        newErrors[`barangData_${index}_id_kategori`] = "ID Kategori must be a positive number";
+      if (
+        !barang.id_kategori ||
+        isNaN(Number(barang.id_kategori)) ||
+        Number(barang.id_kategori) <= 0
+      ) {
+        newErrors[`barangData_${index}_id_kategori`] =
+          "ID Kategori must be a positive number";
       }
       if (barang.gambar.length < 2) {
-        newErrors[`barangData_${index}_gambar`] = "At least 2 images are required";
+        newErrors[`barangData_${index}_gambar`] =
+          "At least 2 images are required";
       }
     });
     if (!formData.penitipanData.penitip) {
@@ -465,7 +632,9 @@ export default function PenitipanMaster() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleCreate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleCreate = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
     setCreateError(null);
     setCreateSuccess(null);
@@ -498,7 +667,9 @@ export default function PenitipanMaster() {
       JSON.stringify({
         id_penitip: formData.penitipanData.penitip?.id_penitip,
         id_pegawai_qc: formData.penitipanData.pegawai_qc?.id_pegawai,
-        id_hunter: formData.penitipanData.hunter ? formData.penitipanData.hunter.id_pegawai : undefined,
+        id_hunter: formData.penitipanData.hunter
+          ? formData.penitipanData.hunter.id_pegawai
+          : undefined,
       })
     );
     formDataToSend.append(
@@ -535,7 +706,9 @@ export default function PenitipanMaster() {
       }
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Terjadi kesalahan saat membuat penitipan";
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat membuat penitipan";
       setCreateError(errorMessage);
       console.error("Error creating penitipan:", error);
     }
@@ -544,39 +717,45 @@ export default function PenitipanMaster() {
   const handleOpenEditModal = (penitipan: DetailPenitipan): void => {
     setEditPenitipanId(penitipan.id_dtl_penitipan.toString());
     setFormData({
-      barangData: [{
-        prefix: penitipan.barang.nama_barang.charAt(0),
-        nama_barang: penitipan.barang.nama_barang,
-        deskripsi: penitipan.barang.deskripsi,
-        harga: penitipan.barang.harga.toString(),
-        berat: penitipan.barang.berat.toString(),
-        id_kategori: penitipan.barang.kategori.id_kategori.toString(),
-        garansi: penitipan.barang.garansi || "",
-        gambar: penitipan.barang.gambar.map((g) => ({
-          id_gambar: g.id_gambar,
-          url_gambar: g.url_gambar,
-          is_primary: g.is_primary,
-        })),
-      }],
+      barangData: [
+        {
+          prefix: penitipan.barang.nama_barang.charAt(0),
+          nama_barang: penitipan.barang.nama_barang,
+          deskripsi: penitipan.barang.deskripsi,
+          harga: penitipan.barang.harga.toString(),
+          berat: penitipan.barang.berat.toString(),
+          id_kategori: penitipan.barang.kategori.id_kategori.toString(),
+          garansi: penitipan.barang.garansi || "",
+          gambar: penitipan.barang.gambar.map((g) => ({
+            id_gambar: g.id_gambar,
+            url_gambar: g.url_gambar,
+            is_primary: g.is_primary,
+          })),
+        },
+      ],
       penitipanData: {
         penitip: penitipan.penitipan.penitip,
         pegawai_qc: penitipan.penitipan.pegawai_qc,
         hunter: penitipan.penitipan.hunter || null,
       },
-      detailPenitipanData: [{
-        tanggal_masuk: penitipan.tanggal_masuk,
-        tanggal_akhir: penitipan.tanggal_akhir,
-        batas_ambil: penitipan.batas_ambil,
-        tanggal_laku: penitipan.tanggal_laku || null,
-        isDiperpanjang: penitipan.is_perpanjang,
-      }],
+      detailPenitipanData: [
+        {
+          tanggal_masuk: penitipan.tanggal_masuk,
+          tanggal_akhir: penitipan.tanggal_akhir,
+          batas_ambil: penitipan.batas_ambil,
+          tanggal_laku: penitipan.tanggal_laku || null,
+          isDiperpanjang: penitipan.is_perpanjang,
+        },
+      ],
     });
     console.log("Penitipan data", penitipan);
     console.log("Form data", formData);
     setOpenEditModal(true);
   };
 
-  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleUpdate = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
     setEditError(null);
     setEditSuccess(null);
@@ -604,7 +783,9 @@ export default function PenitipanMaster() {
       JSON.stringify({
         id_penitip: formData.penitipanData.penitip?.id_penitip,
         id_pegawai_qc: formData.penitipanData.pegawai_qc?.id_pegawai,
-        id_hunter: formData.penitipanData.hunter ? formData.penitipanData.hunter.id_pegawai : undefined,
+        id_hunter: formData.penitipanData.hunter
+          ? formData.penitipanData.hunter.id_pegawai
+          : undefined,
       })
     );
     formDataToSend.append(
@@ -623,7 +804,10 @@ export default function PenitipanMaster() {
           existingImages.push({ id_gambar: item.id_gambar });
         }
       });
-      formDataToSend.append(`existingGambar[${index}]`, JSON.stringify(existingImages));
+      formDataToSend.append(
+        `existingGambar[${index}]`,
+        JSON.stringify(existingImages)
+      );
     });
 
     try {
@@ -639,7 +823,9 @@ export default function PenitipanMaster() {
       }
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Terjadi kesalahan saat memperbarui penitipan";
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat memperbarui penitipan";
       setEditError(errorMessage);
       console.error("Error updating penitipan:", error);
     }
@@ -649,7 +835,9 @@ export default function PenitipanMaster() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const search = formData.get("search-penitipan") as string;
+    const status = formData.get("status-filter") as string;
     setSearchQuery(search);
+    setStatusFilter(status);
     setPage(1);
   };
 
@@ -705,28 +893,35 @@ export default function PenitipanMaster() {
     >
       <ModalHeader />
       <ModalBody>
-        <form className="space-y-6" onSubmit={isEditMode ? handleUpdate : handleCreate}>
+        <form
+          className="space-y-6"
+          onSubmit={isEditMode ? handleUpdate : handleCreate}
+        >
           <h3 className="text-xl font-medium text-gray-900 dark:text-white">
             {isEditMode ? "Edit Penitipan" : "Tambah Penitipan Baru"}
           </h3>
-          {isEditMode ? (
-            editError && (
-              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">{editError}</div>
-            )
-          ) : (
-            createError && (
-              <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">{createError}</div>
-            )
-          )}
-          {isEditMode ? (
-            editSuccess && (
-              <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">{editSuccess}</div>
-            )
-          ) : (
-            createSuccess && (
-              <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">{createSuccess}</div>
-            )
-          )}
+          {isEditMode
+            ? editError && (
+                <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+                  {editError}
+                </div>
+              )
+            : createError && (
+                <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+                  {createError}
+                </div>
+              )}
+          {isEditMode
+            ? editSuccess && (
+                <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">
+                  {editSuccess}
+                </div>
+              )
+            : createSuccess && (
+                <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">
+                  {createSuccess}
+                </div>
+              )}
           <div className="space-y-4">
             <h4 className="text-lg font-medium">Penitipan Data</h4>
             <div className="flex flex-col gap-4">
@@ -748,10 +943,19 @@ export default function PenitipanMaster() {
                     const selectedPenitip = semuaPenitip.find(
                       (p) => p.id_penitip.toString() === e.target.value
                     );
-                    handleInputChange("penitipanData", 0, "penitip", selectedPenitip || null);
+                    handleInputChange(
+                      "penitipanData",
+                      0,
+                      "penitip",
+                      selectedPenitip || null
+                    );
                   }}
                   required
-                  color={formErrors["penitipanData_0_penitip"] ? "failure" : undefined}
+                  color={
+                    formErrors["penitipanData_0_penitip"]
+                      ? "failure"
+                      : undefined
+                  }
                 >
                   <option value="">Pilih Penitip</option>
                   {filteredPenitip.map((penitip) => (
@@ -761,7 +965,9 @@ export default function PenitipanMaster() {
                   ))}
                 </Select>
                 {formErrors["penitipanData_0_penitip"] && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_penitip"]}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {formErrors["penitipanData_0_penitip"]}
+                  </p>
                 )}
               </div>
               <div>
@@ -782,10 +988,19 @@ export default function PenitipanMaster() {
                     const selectedQC = semuaQC.find(
                       (q) => q.id_pegawai.toString() === e.target.value
                     );
-                    handleInputChange("penitipanData", 0, "pegawai_qc", selectedQC || null);
+                    handleInputChange(
+                      "penitipanData",
+                      0,
+                      "pegawai_qc",
+                      selectedQC || null
+                    );
                   }}
                   required
-                  color={formErrors["penitipanData_0_pegawai_qc"] ? "failure" : undefined}
+                  color={
+                    formErrors["penitipanData_0_pegawai_qc"]
+                      ? "failure"
+                      : undefined
+                  }
                 >
                   <option value="">Pilih Pegawai QC</option>
                   {filteredQC.map((qc) => (
@@ -795,7 +1010,9 @@ export default function PenitipanMaster() {
                   ))}
                 </Select>
                 {formErrors["penitipanData_0_pegawai_qc"] && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors["penitipanData_0_pegawai_qc"]}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {formErrors["penitipanData_0_pegawai_qc"]}
+                  </p>
                 )}
               </div>
               <div>
@@ -816,7 +1033,12 @@ export default function PenitipanMaster() {
                     const selectedHunter = semuaHunter.find(
                       (h) => h.id_pegawai.toString() === e.target.value
                     );
-                    handleInputChange("penitipanData", 0, "hunter", selectedHunter || null);
+                    handleInputChange(
+                      "penitipanData",
+                      0,
+                      "hunter",
+                      selectedHunter || null
+                    );
                   }}
                 >
                   <option value="">Pilih Hunter (Opsional)</option>
@@ -846,13 +1068,24 @@ export default function PenitipanMaster() {
                     id={`nama_barang_${index}`}
                     value={barang.nama_barang}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("barangData", index, "nama_barang", e.target.value)
+                      handleInputChange(
+                        "barangData",
+                        index,
+                        "nama_barang",
+                        e.target.value
+                      )
                     }
                     required
-                    color={formErrors[`barangData_${index}_nama_barang`] ? "failure" : undefined}
+                    color={
+                      formErrors[`barangData_${index}_nama_barang`]
+                        ? "failure"
+                        : undefined
+                    }
                   />
                   {formErrors[`barangData_${index}_nama_barang`] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_nama_barang`]}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors[`barangData_${index}_nama_barang`]}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -861,13 +1094,24 @@ export default function PenitipanMaster() {
                     id={`deskripsi_${index}`}
                     value={barang.deskripsi}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("barangData", index, "deskripsi", e.target.value)
+                      handleInputChange(
+                        "barangData",
+                        index,
+                        "deskripsi",
+                        e.target.value
+                      )
                     }
                     required
-                    color={formErrors[`barangData_${index}_deskripsi`] ? "failure" : undefined}
+                    color={
+                      formErrors[`barangData_${index}_deskripsi`]
+                        ? "failure"
+                        : undefined
+                    }
                   />
                   {formErrors[`barangData_${index}_deskripsi`] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_deskripsi`]}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors[`barangData_${index}_deskripsi`]}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -877,13 +1121,24 @@ export default function PenitipanMaster() {
                     type="number"
                     value={barang.harga}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("barangData", index, "harga", e.target.value)
+                      handleInputChange(
+                        "barangData",
+                        index,
+                        "harga",
+                        e.target.value
+                      )
                     }
                     required
-                    color={formErrors[`barangData_${index}_harga`] ? "failure" : undefined}
+                    color={
+                      formErrors[`barangData_${index}_harga`]
+                        ? "failure"
+                        : undefined
+                    }
                   />
                   {formErrors[`barangData_${index}_harga`] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_harga`]}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors[`barangData_${index}_harga`]}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -893,13 +1148,24 @@ export default function PenitipanMaster() {
                     type="number"
                     value={barang.berat}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("barangData", index, "berat", e.target.value)
+                      handleInputChange(
+                        "barangData",
+                        index,
+                        "berat",
+                        e.target.value
+                      )
                     }
                     required
-                    color={formErrors[`barangData_${index}_berat`] ? "failure" : undefined}
+                    color={
+                      formErrors[`barangData_${index}_berat`]
+                        ? "failure"
+                        : undefined
+                    }
                   />
                   {formErrors[`barangData_${index}_berat`] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_berat`]}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors[`barangData_${index}_berat`]}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -908,10 +1174,19 @@ export default function PenitipanMaster() {
                     id={`id_kategori_${index}`}
                     value={barang.id_kategori}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                      handleInputChange("barangData", index, "id_kategori", e.target.value)
+                      handleInputChange(
+                        "barangData",
+                        index,
+                        "id_kategori",
+                        e.target.value
+                      )
                     }
                     required
-                    color={formErrors[`barangData_${index}_id_kategori`] ? "failure" : undefined}
+                    color={
+                      formErrors[`barangData_${index}_id_kategori`]
+                        ? "failure"
+                        : undefined
+                    }
                   >
                     <option value="">Pilih Kategori</option>
                     {categories.map((category) => (
@@ -921,7 +1196,9 @@ export default function PenitipanMaster() {
                     ))}
                   </Select>
                   {formErrors[`barangData_${index}_id_kategori`] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_id_kategori`]}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors[`barangData_${index}_id_kategori`]}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -931,12 +1208,19 @@ export default function PenitipanMaster() {
                     type="datetime-local"
                     value={barang.garansi}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleInputChange("barangData", index, "garansi", e.target.value)
+                      handleInputChange(
+                        "barangData",
+                        index,
+                        "garansi",
+                        e.target.value
+                      )
                     }
                   />
                 </div>
                 <div>
-                  <Label htmlFor={`gambar_${index}`}>Images (Min 2, JPEG/PNG)</Label>
+                  <Label htmlFor={`gambar_${index}`}>
+                    Images (Min 2, JPEG/PNG)
+                  </Label>
                   <FileInput
                     id={`gambar_${index}`}
                     multiple
@@ -944,16 +1228,33 @@ export default function PenitipanMaster() {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleFileChange(index, e.target.files)
                     }
-                    color={formErrors[`barangData_${index}_gambar`] ? "failure" : undefined}
+                    color={
+                      formErrors[`barangData_${index}_gambar`]
+                        ? "failure"
+                        : undefined
+                    }
                   />
                   {formErrors[`barangData_${index}_gambar`] && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors[`barangData_${index}_gambar`]}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors[`barangData_${index}_gambar`]}
+                    </p>
                   )}
                   <div className="flex flex-wrap gap-2 mt-2">
                     {barang.gambar.map((item, i) => (
-                      <div key={i} className="relative">
+                      <div
+                        key={
+                          item instanceof File
+                            ? `${item.name}-${item.size}`
+                            : item.id_gambar
+                        }
+                        className="relative"
+                      >
                         <img
-                          src={item instanceof File ? URL.createObjectURL(item) : item.url_gambar}
+                          src={
+                            item instanceof File
+                              ? URL.createObjectURL(item)
+                              : item.url_gambar
+                          }
                           alt={`Preview ${i}`}
                           className="w-20 h-20 object-cover rounded"
                         />
@@ -976,12 +1277,19 @@ export default function PenitipanMaster() {
               </div>
             </div>
           ))}
-          {isEditMode ? <></> : <Button color="blue" onClick={addBarang} className="mt-4">
-            Add Barang
-          </Button>}
-          
+          {isEditMode ? (
+            <></>
+          ) : (
+            <Button color="blue" onClick={addBarang} className="mt-4">
+              Add Barang
+            </Button>
+          )}
+
           <div className="flex justify-end">
-            <Button type="submit" className="bg-[#1980e6] hover:bg-[#1980e6]/80">
+            <Button
+              type="submit"
+              className="bg-[#1980e6] hover:bg-[#1980e6]/80"
+            >
               {isEditMode ? "Update Penitipan" : "Tambah Penitipan"}
             </Button>
           </div>
@@ -1003,7 +1311,25 @@ export default function PenitipanMaster() {
               className="border rounded-md p-2 w-72"
               placeholder="Cari penitipan"
             />
-            <button type="submit" className="p-3 bg-blue-500 text-white rounded-md">
+            <Select
+              name="status-filter"
+              id="status-filter"
+              value={statusFilter}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setStatusFilter(e.target.value)
+              }
+              className="w-48"
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+            <button
+              type="submit"
+              className="p-3 bg-blue-500 text-white rounded-md"
+            >
               <HiSearch />
             </button>
           </form>
@@ -1048,7 +1374,10 @@ export default function PenitipanMaster() {
                 </TableRow>
               ) : data && data[0]?.length > 0 ? (
                 data[0].map((dtlPenitipan: DetailPenitipan, index: number) => (
-                  <TableRow key={dtlPenitipan.id_dtl_penitipan} className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                  <TableRow
+                    key={dtlPenitipan.id_dtl_penitipan}
+                    className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  >
                     <TableCell>{(page - 1) * limit + index + 1}.</TableCell>
                     <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                       {dtlPenitipan.barang.nama_barang}
@@ -1056,9 +1385,18 @@ export default function PenitipanMaster() {
                     <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                       {dtlPenitipan.penitipan.penitip.nama}
                     </TableCell>
-                    <TableCell>Rp{new Intl.NumberFormat("id-ID").format(dtlPenitipan.barang.harga)}</TableCell>
-                    <TableCell>{formatDate(dtlPenitipan.tanggal_masuk)}</TableCell>
-                    <TableCell>{formatDate(dtlPenitipan.tanggal_akhir)}</TableCell>
+                    <TableCell>
+                      Rp
+                      {new Intl.NumberFormat("id-ID").format(
+                        dtlPenitipan.barang.harga
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatDate(dtlPenitipan.tanggal_masuk)}
+                    </TableCell>
+                    <TableCell>
+                      {formatDate(dtlPenitipan.tanggal_akhir)}
+                    </TableCell>
                     <TableCell>{dtlPenitipan.barang.status}</TableCell>
                     <TableCell>
                       <button
@@ -1090,9 +1428,12 @@ export default function PenitipanMaster() {
         </div>
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-gray-700">
-            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-            <span className="font-medium">{Math.min(page * limit, totalItems)}</span> of{" "}
-            <span className="font-medium">{totalItems}</span> entries
+            Showing{" "}
+            <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+            <span className="font-medium">
+              {Math.min(page * limit, totalItems)}
+            </span>{" "}
+            of <span className="font-medium">{totalItems}</span> entries
           </p>
           <div className="flex gap-2">
             <button
@@ -1123,15 +1464,24 @@ export default function PenitipanMaster() {
         />
       )}
 
-      <Modal show={openDetailModal} size="3xl" onClose={() => setOpenDetailModal(false)} popup>
+      <Modal
+        show={openDetailModal}
+        size="3xl"
+        onClose={() => setOpenDetailModal(false)}
+        popup
+      >
         <ModalHeader />
         <ModalBody>
           <div className="space-y-6">
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">Detail Penitipan</h3>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+              Detail Penitipan
+            </h3>
             {selectedPenitipan && (
               <div className="space-y-4">
                 <div className="border-b pb-4">
-                  <h4 className="text-lg font-medium mb-2">Informasi Penitipan</h4>
+                  <h4 className="text-lg font-medium mb-2">
+                    Informasi Penitipan
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-semibold">ID Penitipan</p>
@@ -1143,11 +1493,19 @@ export default function PenitipanMaster() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Pegawai QC</p>
-                      <p>{selectedPenitipan.penitipan.pegawai_qc.nama} (P{selectedPenitipan.penitipan.pegawai_qc.id_pegawai})</p>
+                      <p>
+                        {selectedPenitipan.penitipan.pegawai_qc.nama} (P
+                        {selectedPenitipan.penitipan.pegawai_qc.id_pegawai})
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Hunter</p>
-                      <p>{selectedPenitipan.penitipan.hunter?.nama || 'Tidak ada hunter'} (P{selectedPenitipan.penitipan.hunter?.id_pegawai || '-'})</p>
+                      <p>
+                        {selectedPenitipan.penitipan.hunter?.nama ||
+                          "Tidak ada hunter"}{" "}
+                        (P
+                        {selectedPenitipan.penitipan.hunter?.id_pegawai || "-"})
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1164,7 +1522,12 @@ export default function PenitipanMaster() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Harga</p>
-                      <p>Rp{new Intl.NumberFormat("id-ID").format(selectedPenitipan.barang.harga)}</p>
+                      <p>
+                        Rp
+                        {new Intl.NumberFormat("id-ID").format(
+                          selectedPenitipan.barang.harga
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Berat</p>
@@ -1176,7 +1539,11 @@ export default function PenitipanMaster() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Garansi</p>
-                      <p>{selectedPenitipan.barang.garansi ? formatDate(selectedPenitipan.barang.garansi) : 'Tidak ada'}</p>
+                      <p>
+                        {selectedPenitipan.barang.garansi
+                          ? formatDate(selectedPenitipan.barang.garansi)
+                          : "Tidak ada"}
+                      </p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-sm font-semibold">Deskripsi</p>
@@ -1220,20 +1587,26 @@ export default function PenitipanMaster() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Tanggal Laku</p>
-                      <p>{selectedPenitipan.tanggal_laku ? formatDate(selectedPenitipan.tanggal_laku) : 'Belum laku'}</p>
+                      <p>
+                        {selectedPenitipan.tanggal_laku
+                          ? formatDate(selectedPenitipan.tanggal_laku)
+                          : "Belum laku"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Diperpanjang</p>
-                      <p>{selectedPenitipan.is_perpanjang ? 'Ya' : 'Tidak'}</p>
+                      <p>{selectedPenitipan.is_perpanjang ? "Ya" : "Tidak"}</p>
                     </div>
                   </div>
                 </div>
-              </div>)
-            }
+              </div>
+            )}
             <div className="flex justify-end mt-4 space-x-2">
               <Button
                 color="blue"
-                onClick={() => selectedPenitipan && handleGeneratePDF(selectedPenitipan)}
+                onClick={() =>
+                  selectedPenitipan && handleGeneratePDF(selectedPenitipan)
+                }
               >
                 Download PDF
               </Button>
