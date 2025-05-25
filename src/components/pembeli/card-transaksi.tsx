@@ -159,6 +159,17 @@ interface ModalProps {
 }
 
 function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
+  const [ratings, setRatings] = useState<{ [key: number]: number }>({});
+  const [isSubmitting, setIsSubmitting] = useState<{ [key: number]: boolean }>({});
+  const [errors, setErrors] = useState<{ [key: number]: string | null }>({});
+  const [ratedItems, setRatedItems] = useState<{ [key: number]: boolean }>(
+    transaksi.detail_transaksi.reduce((acc, detail) => ({
+      ...acc,
+      [detail.barang.id_barang]: detail.is_rating || false,
+    }), {})
+  );
+
+  // Date formatting with error handling
   let formattedDateTransaksi = "-";
   if (transaksi.tanggal_transaksi) {
     try {
@@ -168,11 +179,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         { locale: id }
       )} WIB`;
     } catch (error) {
-      console.warn(
-        "Invalid tanggal_transaksi:",
-        transaksi.tanggal_transaksi,
-        error
-      );
+      console.warn("Invalid tanggal_transaksi:", transaksi.tanggal_transaksi, error);
       formattedDateTransaksi = "Tanggal tidak valid";
     }
   }
@@ -186,11 +193,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         { locale: id }
       )} WIB`;
     } catch (error) {
-      console.warn(
-        "Invalid tanggal_pembayaran:",
-        transaksi.tanggal_pembayaran,
-        error
-      );
+      console.warn("Invalid tanggal_pembayaran:", transaksi.tanggal_pembayaran, error);
       formattedDatePembayaran = "Tanggal tidak valid";
     }
   }
@@ -204,11 +207,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         { locale: id }
       )} WIB`;
     } catch (error) {
-      console.warn(
-        "Invalid batas_pembayaran:",
-        transaksi.batas_pembayaran,
-        error
-      );
+      console.warn("Invalid batas_pembayaran:", transaksi.batas_pembayaran, error);
       formattedDateBatas = "Tanggal tidak valid";
     }
   }
@@ -243,6 +242,40 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
   const formatYear = format(new Date(transaksi.tanggal_transaksi), "yyyy");
   const formatMonth = format(new Date(transaksi.tanggal_transaksi), "MM");
 
+  // Handle rating selection
+  const handleRatingChange = (id_barang: number, rating: number) => {
+    setRatings((prev) => ({ ...prev, [id_barang]: rating }));
+    setErrors((prev) => ({ ...prev, [id_barang]: null })); // Clear error on change
+  };
+
+  // Handle rating submission
+  const handleSubmitRating = async (id_barang: number) => {
+    if (!ratings[id_barang] || ratings[id_barang] < 1 || ratings[id_barang] > 5) {
+      setErrors((prev) => ({ ...prev, [id_barang]: "Pilih rating antara 1 hingga 5 bintang" }));
+      return;
+    }
+
+    setIsSubmitting((prev) => ({ ...prev, [id_barang]: true }));
+    try {
+      const response = await fetch(`/api/rating/${id_barang}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: ratings[id_barang] }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Gagal mengirim rating");
+      }
+
+      setRatedItems((prev) => ({ ...prev, [id_barang]: true }));
+      setErrors((prev) => ({ ...prev, [id_barang]: "Rating berhasil dikirim!" }));
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, [id_barang]: "Gagal mengirim rating. Silakan coba lagi." }));
+    } finally {
+      setIsSubmitting((prev) => ({ ...prev, [id_barang]: false }));
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="absolute inset-0 bg-black opacity-40"></div>
@@ -273,20 +306,17 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
 
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <span className="font-semibold">Nomor Transaksi:</span> {formatYear}
-            .{formatMonth}.{transaksi.id_transaksi}
+            <span className="font-semibold">Nomor Transaksi:</span> {formatYear}.{formatMonth}.
+            {transaksi.id_transaksi}
           </p>
           <p className="text-sm text-gray-600">
-            <span className="font-semibold">Tanggal Transaksi:</span>{" "}
-            {formattedDateTransaksi}
+            <span className="font-semibold">Tanggal Transaksi:</span> {formattedDateTransaksi}
           </p>
         </div>
 
         {/* Items List */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            Daftar Barang
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Daftar Barang</h3>
           {transaksi.detail_transaksi.length > 0 ? (
             <div className="space-y-4">
               {transaksi.detail_transaksi.map((detail, index) => (
@@ -301,21 +331,64 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
                     <p className="text-sm text-gray-600">
                       Rp {detail.barang.harga.toLocaleString()}
                     </p>
+                    {/* Rating Input */}
+                    <div className="mt-2">
+                      {ratedItems[detail.barang.id_barang] ? (
+                        <p className="text-sm text-green-600">Sudah dirating</p>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                onClick={() => handleRatingChange(detail.barang.id_barang, star)}
+                                className={`text-2xl ${
+                                  ratings[detail.barang.id_barang] >= star
+                                    ? "text-yellow-400"
+                                    : "text-gray-300"
+                                } hover:text-yellow-400 focus:outline-none`}
+                                disabled={isSubmitting[detail.barang.id_barang]}
+                              >
+                                ★
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            onClick={() => handleSubmitRating(detail.barang.id_barang)}
+                            className={`px-3 py-1.5 rounded-md text-xs font-semibold text-white ${
+                              isSubmitting[detail.barang.id_barang]
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-[#72C678] hover:bg-[#008E6D]"
+                            }`}
+                            disabled={isSubmitting[detail.barang.id_barang]}
+                          >
+                            Kirim Rating
+                          </button>
+                        </div>
+                      )}
+                      {errors[detail.barang.id_barang] && (
+                        <p
+                          className={`text-sm mt-1 ${
+                            errors[detail.barang.id_barang].includes("berhasil")
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {errors[detail.barang.id_barang]}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">
-              Tidak ada barang dalam transaksi ini.
-            </p>
+            <p className="text-sm text-gray-500">Tidak ada barang dalam transaksi ini.</p>
           )}
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            Pengiriman
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Pengiriman</h3>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Metode Pengiriman</span>
@@ -337,15 +410,13 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         </div>
 
         <div className="border-t mt-3 pt-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            Ringkasan Pembayaran
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Ringkasan Pembayaran</h3>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Subtotal Barang</span>
               <span>Rp {transaksi.total_akhir.toLocaleString()}</span>
             </div>
-            <div className="relax justify-between text-sm text-gray-600">
+            <div className="flex justify-between text-sm text-gray-600">
               <span>Potongan Poin</span>
               <span>Rp {transaksi.potongan_poin.toLocaleString()}</span>
             </div>
