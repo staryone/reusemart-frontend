@@ -52,7 +52,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/daftar-alamat") ||
     request.nextUrl.pathname.startsWith("/history-pembelian") ||
     request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/checkout")
+    request.nextUrl.pathname.startsWith("/checkout") ||
+    request.nextUrl.pathname.startsWith("/pembayaran")
   ) {
     if (role !== Role.PEMBELI) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
@@ -89,5 +90,6 @@ export const config = {
     "/profil",
     "/dashboard",
     "/checkout",
+    "/pembayaran",
   ],
 };
