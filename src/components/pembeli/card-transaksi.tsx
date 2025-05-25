@@ -159,12 +159,12 @@ interface ModalProps {
 }
 
 function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
-  const [ratings, setRatings] = useState<{ [key: number]: number }>({});
-  const [isSubmitting, setIsSubmitting] = useState<{ [key: number]: boolean }>(
+  const [ratings, setRatings] = useState<{ [key: string]: number }>({});
+  const [isSubmitting, setIsSubmitting] = useState<{ [key: string]: boolean }>(
     {}
   );
-  const [errors, setErrors] = useState<{ [key: number]: string | null }>({});
-  const [ratedItems, setRatedItems] = useState<{ [key: number]: boolean }>(
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+  const [ratedItems, setRatedItems] = useState<{ [key: string]: boolean }>(
     transaksi.detail_transaksi.reduce(
       (acc, detail) => ({
         ...acc,
@@ -260,13 +260,13 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
   const formatMonth = format(new Date(transaksi.tanggal_transaksi), "MM");
 
   // Handle rating selection
-  const handleRatingChange = (id_barang: number, rating: number) => {
+  const handleRatingChange = (id_barang: string, rating: number) => {
     setRatings((prev) => ({ ...prev, [id_barang]: rating }));
     setErrors((prev) => ({ ...prev, [id_barang]: null })); // Clear error on change
   };
 
   // Handle rating submission
-  const handleSubmitRating = async (id_barang: number) => {
+  const handleSubmitRating = async (id_barang: string) => {
     if (
       !ratings[id_barang] ||
       ratings[id_barang] < 1 ||
@@ -299,7 +299,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        [id_barang]: "Gagal mengirim rating. Silakan coba lagi.",
+        [id_barang]: "Gagal mengirim rating: "  + error,
       }));
     } finally {
       setIsSubmitting((prev) => ({ ...prev, [id_barang]: false }));
@@ -409,7 +409,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
                       {errors[detail.barang.id_barang] && (
                         <p
                           className={`text-sm mt-1 ${
-                            errors[detail.barang.id_barang].includes("berhasil")
+                            errors[detail.barang.id_barang]?.includes("berhasil")
                               ? "text-green-600"
                               : "text-red-600"
                           }`}
