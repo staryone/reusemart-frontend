@@ -12,7 +12,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const user = useUser();
 
   return (
-    <>
+    <div className="flex min-h-screen">
       {user?.jabatan === Jabatan.ADMIN ? (
         <AdminSideBar />
       ) : user?.jabatan === Jabatan.CS ? (
@@ -23,7 +23,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <GudangSideBar />
       )}
 
-      <main>{children}</main>
-    </>
+      <main className="flex-1 ml-0 sm:ml-10 transition-all duration-300">
+        {children}
+      </main>
+    </div>
   );
 }

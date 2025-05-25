@@ -430,7 +430,6 @@ export default function PenitipMaster() {
 
   return (
     <div className="flex">
-      <Toaster position="top-center" reverseOrder={false} />
       <Modal show={openModal} size="md" onClose={onCloseModal} popup>
         <ModalHeader />
         <ModalBody>
@@ -667,7 +666,7 @@ export default function PenitipMaster() {
           </Button>
         </div>
         {/* Updated Table Container */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full">
           <Table hoverable className="min-w-full border">
             <TableHead>
               <TableRow>

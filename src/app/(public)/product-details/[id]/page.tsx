@@ -5,7 +5,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { getBarang } from "@/lib/api/barang.api";
 import { Barang, Gambar } from "@/lib/interface/barang.interface";
 import { getListByBarangId, createDiskusi } from "@/lib/api/diskusi.api";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { HiStar } from "react-icons/hi";
 import { createKeranjang } from "@/lib/api/keranjang.api";
@@ -30,6 +30,7 @@ export default function ProductDetails() {
   const [newMessage, setNewMessage] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { id } = useParams();
+  const router = useRouter();
 
   const currentUser = useUser();
 
@@ -107,6 +108,32 @@ export default function ProductDetails() {
     }
   };
 
+  const handleBeliLangsung = () => {
+    const dataForCheckout = [
+      {
+        id_keranjang: 99999,
+        id_barang: barang?.id_barang,
+        id_pembeli: 99999,
+        id_penitip: barang?.penitip.id_penitip,
+        is_selected: true,
+        nama_penitip: barang?.penitip.nama,
+        nama_barang: barang?.nama_barang,
+        harga_barang: barang?.harga,
+        gambar_barang: barang?.gambar[0].url_gambar,
+        kategori_barang: barang?.kategori.nama_kategori,
+        createdAt: Date.now().toString(),
+      },
+    ];
+
+    try {
+      localStorage.setItem("checkoutItems", JSON.stringify(dataForCheckout));
+      router.push("/checkout");
+    } catch (e) {
+      console.error("Gagal menyimpan item ke localStorage:", e);
+      toast.error("Terjadi kesalahan saat memproses checkout.");
+    }
+  };
+
   return (
     <div className="overflow-x-hidden">
       <div className="overflow-x-hidden w-screen pt-30 pb-10 px-24">
@@ -154,7 +181,10 @@ export default function ProductDetails() {
             >
               Tambahkan ke Keranjang
             </button>
-            <button className="text-[#72C678] border-2 border-[#72C678] p-3 rounded-xl w-64 hover:cursor-pointer">
+            <button
+              onClick={handleBeliLangsung}
+              className="text-[#72C678] border-2 border-[#72C678] p-3 rounded-xl w-64 hover:cursor-pointer"
+            >
               Beli Langsung
             </button>
           </div>

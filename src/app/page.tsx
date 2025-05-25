@@ -7,20 +7,20 @@ import { useState, useMemo } from "react";
 import useSWR from "swr";
 import Footer from "../components/utama/footer";
 import Link from "next/link";
+import { ShoppingCart } from "lucide-react";
+import toast from "react-hot-toast";
+import { createKeranjang } from "@/lib/api/keranjang.api";
+import { useUser } from "@/hooks/use-user";
 
 const fetcher = async ([params]: [URLSearchParams, string]) =>
   await getListBarang(params);
 
 export default function Home() {
-  // const [searchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-  // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const formData = new FormData(e.currentTarget);
-  //   const search = formData.get("search-barang") as string;
-  //   setSearchQuery(search);
-  // };
+  const currentUser = useUser();
+
+  const token = currentUser !== null ? currentUser.token : "";
 
   const tersediaOnly = "TERSEDIA";
   const queryParams = useMemo(() => {
@@ -46,7 +46,6 @@ export default function Home() {
     const primaryGambar = gambars.find((gambar: Gambar) => gambar.is_primary);
     return primaryGambar ? primaryGambar.url_gambar : "/product.png";
   };
-  // const barangList = Array.isArray(data) && data[0] ? data[0] : []
 
   const categories = [
     { id: "", name: "Semua" },
@@ -61,25 +60,52 @@ export default function Home() {
     { id: "9", name: "Peralatan Kantor & Industri" },
     { id: "10", name: "Kosmetik & Perawatan Diri" },
   ];
+
+  const handleAddToCart = async (barang: Barang) => {
+    try {
+      if (token === "") {
+        return toast.error("Anda belum login, silahkan login terlebih dahulu!");
+      }
+
+      const formData = new FormData();
+      formData.append("id_barang", barang.id_barang || "");
+
+      const result = await createKeranjang(formData, token);
+      if (result.data) {
+        return toast.success("Barang berhasil masuk ke keranjang");
+      }
+      return toast.error("Barang gagal masuk ke keranjang. " + result.errors);
+    } catch {
+      return toast.error(
+        "Terjadi kesalahan tidak terduga, silahkan coba lagi! "
+      );
+    }
+  };
+
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden ">
       <Navbar />
-      <div className="mt-[5vw] w-[90vw] h-auto mx-auto">
+      <div className="mt-20 md:mt-6 w-full max-w-[90vw] mx-auto">
         <Image
           src="/banner.png"
           width={1200}
           height={300}
-          alt="image"
-          className="w-screen"
+          alt="Banner"
+          className="w-full h-auto object-cover"
+          priority
         />
       </div>
-      <div className="flex flex-col items-start justify-items-center px-18 py-18">
-        <h2 className="text-4xl mb-4 mt-10">Barang Terbaru</h2>
-        <div className="flex gap-3 overflow-x-auto max-w-full">
+      <div className="px-4 sm:px-6 md:px-8 py-6 md:py-10">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 mt-6">
+          Barang Terbaru
+        </h2>
+        <div className="flex gap-3 overflow-x-auto pb-4">
           {isLoading ? (
-            <div>Loading...</div>
+            <div className="text-center w-full">Loading...</div>
           ) : error ? (
-            <div>Error memuat data</div>
+            <div className="text-center w-full text-red-500">
+              Error memuat data
+            </div>
           ) : data && data[0].length > 0 ? (
             data[0]
               .sort((a: Barang, b: Barang) => {
@@ -91,7 +117,7 @@ export default function Home() {
               .slice(0, 10)
               .map((barang: Barang) => (
                 <div
-                  className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-64"
+                  className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-48 sm:w-60 md:w-64"
                   key={barang.id_barang}
                 >
                   <Link
@@ -100,88 +126,111 @@ export default function Home() {
                   >
                     <Image
                       src={getPrimaryGambar(barang.gambar) as string}
-                      alt="product image"
+                      alt={barang.nama_barang}
                       width={480}
                       height={480}
-                      className="p-8 rounded-t-lg"
+                      className="p-4 sm:p-6 md:p-8 rounded-t-lg w-full h-40 sm:h-48 md:h-56 object-cover"
                     />
-                    <div className="px-5 pb-5 flex flex-col justify-between flex-grow">
-                      <h5 className="text-lg tracking-tight text-gray-900">
+                    <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex flex-col justify-between flex-grow">
+                      <h5 className="text-sm sm:text-base md:text-lg tracking-tight text-gray-900 line-clamp-2">
                         {barang.nama_barang}
                       </h5>
-                      <div className="text-xl font-bold text-gray-900">
-                        Rp{new Intl.NumberFormat("id-ID").format(barang.harga)}
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-base sm:text-lg md:text-xl font-bold text-gray-900">
+                          Rp
+                          {new Intl.NumberFormat("id-ID").format(barang.harga)}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAddToCart(barang);
+                          }}
+                          className="text-gray-600 hover:text-blue-600"
+                          aria-label={`Tambah ${barang.nama_barang} ke keranjang`}
+                        >
+                          <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+                        </button>
                       </div>
                     </div>
                   </Link>
                 </div>
               ))
           ) : (
-            <div>Tidak ada data</div>
+            <div className="text-center w-full">Tidak ada data</div>
           )}
         </div>
-        <h2 className="text-4xl mb-4 mt-10">Semua Produk</h2>
-        {/* Category Filter UI */}
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 mt-6">
+          Semua Produk
+        </h2>
         <div className="mb-6">
-          <label htmlFor="category" className="mr-2 text-lg">
+          <label htmlFor="category" className="mr-2 text-base sm:text-lg">
             Filter berdasarkan kategori:
           </label>
           <select
             id="category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="p-2 border rounded-md"
+            className="p-2 border rounded-md text-sm sm:text-base w-full sm:w-auto"
           >
             {categories.map((category) => (
               <option
                 key={category.id}
-                value={category.name == "Semua" ? "" : category.name}
+                value={category.name === "Semua" ? "" : category.name}
               >
                 {category.name}
               </option>
             ))}
           </select>
         </div>
-        <div className="grid grid-cols-5 gap-3 max-w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 md:gap-6">
           {isLoading ? (
-            <div>Loading...</div>
+            <div className="col-span-full text-center">Loading...</div>
           ) : error ? (
-            <div>Error memuat data</div>
+            <div className="col-span-full text-center text-red-500">
+              Error memuat data
+            </div>
           ) : data && data[0].length > 0 ? (
             data[0].map((barang: Barang) => (
               <div
-                className="bg-white border border-gray-200 rounded-lg shadow-sm flex-shrink-0 w-64"
+                className="bg-white border border-gray-200 rounded-lg shadow-sm w-full"
                 key={barang.id_barang}
               >
                 <Link
                   href={`/product-details/${barang.id_barang}`}
                   className="flex flex-col h-full"
                 >
-                  {/* <img
-                    className="p-8 rounded-t-lg"
-                    src={getPrimaryGambar(barang.gambar)}
-                    alt="product image"
-                  /> */}
                   <Image
                     src={getPrimaryGambar(barang.gambar) as string}
-                    alt="product image"
-                    width={480}
-                    height={480}
-                    className="p-8 rounded-t-lg"
+                    alt={barang.nama_barang}
+                    width={1080}
+                    height={1080}
+                    className="p-4 sm:p-6 md:p-8 rounded-t-lg w-full h-40 sm:h-48 md:h-56 object-cover xl:object-contain"
                   />
-                  <div className="px-5 pb-5 flex flex-col justify-between flex-grow">
-                    <h5 className="text-lg tracking-tight text-gray-900">
+                  <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex flex-col justify-between flex-grow">
+                    <h5 className="text-sm sm:text-base md:text-lg tracking-tight text-gray-900 line-clamp-2">
                       {barang.nama_barang}
                     </h5>
-                    <div className="text-xl font-bold text-gray-900">
-                      Rp{new Intl.NumberFormat("id-ID").format(barang.harga)}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-base sm:text-lg md:text-xl font-bold text-gray-900">
+                        Rp{new Intl.NumberFormat("id-ID").format(barang.harga)}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleAddToCart(barang);
+                        }}
+                        className="text-gray-600 hover:text-blue-600"
+                        aria-label={`Tambah ${barang.nama_barang} ke keranjang`}
+                      >
+                        <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+                      </button>
                     </div>
                   </div>
                 </Link>
               </div>
             ))
           ) : (
-            <div>Tidak ada data</div>
+            <div className="col-span-full text-center">Tidak ada data</div>
           )}
         </div>
       </div>
