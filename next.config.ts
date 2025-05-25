@@ -14,6 +14,10 @@ module.exports = {
         hostname:
           "reusemart.e21593ef288257abc98dc47fe307980c.r2.cloudflarestorage.com",
       },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
   },
 };

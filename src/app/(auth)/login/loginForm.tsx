@@ -3,8 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+
+interface ResponseAPILogin {
+  message?: string;
+  user?: {
+    role: string;
+    jabatan?: string;
+  };
+  error?: string;
+  status?: number;
+}
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -12,7 +21,6 @@ export default function LoginForm() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const validateForm = () => {
     let isValid = true;
@@ -52,7 +60,31 @@ export default function LoginForm() {
       });
 
       if (response.ok) {
-        router.refresh();
+        const data: ResponseAPILogin = await response.json();
+
+        toast.success("Berhasil login, mengarahkan...");
+
+        if (data.user) {
+          if (data.user.role === "PEMBELI") {
+            window.location.href = "/profil";
+          } else if (data.user.role === "PEGAWAI") {
+            if (data.user.jabatan === "ADMIN") {
+              window.location.href = "/admin/pegawai-master";
+            } else if (data.user.jabatan === "OWNER") {
+              window.location.href = "/owner/request-donasi";
+            } else if (data.user.jabatan === "CS") {
+              window.location.href = "/cs/penitip-master";
+            } else if (data.user.jabatan === "GUDANG") {
+              window.location.href = "/gudang/dashboard";
+            }
+          } else if (data.user.role === "PENITIP") {
+            window.location.href = "/penitip/profil";
+          } else if (data.user.role === "ORGANISASI") {
+            window.location.href = "/organisasi/request-donasi";
+          } else {
+            window.location.href = "/";
+          }
+        }
       } else {
         const errorData = await response.json();
         toast.error(errorData.error || "Login failed");

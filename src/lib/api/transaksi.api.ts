@@ -1,5 +1,8 @@
-import { ResponseAPI } from "../interface/response.interface";
-import { TransaksiPayment } from "../interface/transaksi.interface";
+import { ResponseAPI } from "@/lib/interface/response.interface";
+import {
+  TransaksiPayment,
+  TransaksiVerif,
+} from "@/lib/interface/transaksi.interface";
 import { DELETE, GET, PATCH, POST } from "./fetch";
 
 export async function createTransaksi(
@@ -37,4 +40,11 @@ export async function verifPembayaran(
   accessToken?: string
 ): Promise<ResponseAPI> {
   return await PATCH(`/transaksi/${idTransaksi}/verif`, data, accessToken);
+}
+
+export async function getListTransaksiVerif(
+  params?: URLSearchParams,
+  accessToken?: string
+): Promise<[TransaksiVerif[], number]> {
+  return await GET(`/transaksi/verifLists?${params}`, accessToken);
 }
