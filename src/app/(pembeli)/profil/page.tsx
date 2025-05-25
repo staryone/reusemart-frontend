@@ -17,6 +17,7 @@ export default function ProfilePage() {
 
   const pembeliFetcher = async (token: string) => {
     if (!token) return null;
+    localStorage.setItem("accessToken", token);
     return await getProfilPembeli(token);
   };
 

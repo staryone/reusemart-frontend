@@ -3,6 +3,7 @@ import { Transaksi } from "@/lib/interface/transaksi.interface";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useState } from "react";
+import { updateRating } from "@/lib/api/rating.api";
 
 interface Props {
   transaksi: Transaksi;
@@ -281,13 +282,13 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
 
     setIsSubmitting((prev) => ({ ...prev, [id_barang]: true }));
     try {
-      const response = await fetch(`/api/rating/${id_barang}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating: ratings[id_barang] }),
-      });
+      const formData = new FormData();
+      formData.append("rating", ratings[id_barang].toString());
 
-      if (!response.ok) {
+      const accessToken = localStorage.getItem("accessToken") || undefined; 
+      const response = await updateRating(id_barang, formData, accessToken)
+
+      if (response.errors) {
         throw new Error("Gagal mengirim rating");
       }
 
