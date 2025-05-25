@@ -160,13 +160,18 @@ interface ModalProps {
 
 function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
   const [ratings, setRatings] = useState<{ [key: number]: number }>({});
-  const [isSubmitting, setIsSubmitting] = useState<{ [key: number]: boolean }>({});
+  const [isSubmitting, setIsSubmitting] = useState<{ [key: number]: boolean }>(
+    {}
+  );
   const [errors, setErrors] = useState<{ [key: number]: string | null }>({});
   const [ratedItems, setRatedItems] = useState<{ [key: number]: boolean }>(
-    transaksi.detail_transaksi.reduce((acc, detail) => ({
-      ...acc,
-      [detail.barang.id_barang]: detail.is_rating || false,
-    }), {})
+    transaksi.detail_transaksi.reduce(
+      (acc, detail) => ({
+        ...acc,
+        [detail.barang.id_barang]: detail.is_rating || false,
+      }),
+      {}
+    )
   );
 
   // Date formatting with error handling
@@ -179,7 +184,11 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         { locale: id }
       )} WIB`;
     } catch (error) {
-      console.warn("Invalid tanggal_transaksi:", transaksi.tanggal_transaksi, error);
+      console.warn(
+        "Invalid tanggal_transaksi:",
+        transaksi.tanggal_transaksi,
+        error
+      );
       formattedDateTransaksi = "Tanggal tidak valid";
     }
   }
@@ -193,7 +202,11 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         { locale: id }
       )} WIB`;
     } catch (error) {
-      console.warn("Invalid tanggal_pembayaran:", transaksi.tanggal_pembayaran, error);
+      console.warn(
+        "Invalid tanggal_pembayaran:",
+        transaksi.tanggal_pembayaran,
+        error
+      );
       formattedDatePembayaran = "Tanggal tidak valid";
     }
   }
@@ -207,7 +220,11 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         { locale: id }
       )} WIB`;
     } catch (error) {
-      console.warn("Invalid batas_pembayaran:", transaksi.batas_pembayaran, error);
+      console.warn(
+        "Invalid batas_pembayaran:",
+        transaksi.batas_pembayaran,
+        error
+      );
       formattedDateBatas = "Tanggal tidak valid";
     }
   }
@@ -250,8 +267,15 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
 
   // Handle rating submission
   const handleSubmitRating = async (id_barang: number) => {
-    if (!ratings[id_barang] || ratings[id_barang] < 1 || ratings[id_barang] > 5) {
-      setErrors((prev) => ({ ...prev, [id_barang]: "Pilih rating antara 1 hingga 5 bintang" }));
+    if (
+      !ratings[id_barang] ||
+      ratings[id_barang] < 1 ||
+      ratings[id_barang] > 5
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        [id_barang]: "Pilih rating antara 1 hingga 5 bintang",
+      }));
       return;
     }
 
@@ -268,9 +292,15 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
       }
 
       setRatedItems((prev) => ({ ...prev, [id_barang]: true }));
-      setErrors((prev) => ({ ...prev, [id_barang]: "Rating berhasil dikirim!" }));
+      setErrors((prev) => ({
+        ...prev,
+        [id_barang]: "Rating berhasil dikirim!",
+      }));
     } catch (error) {
-      setErrors((prev) => ({ ...prev, [id_barang]: "Gagal mengirim rating. Silakan coba lagi." }));
+      setErrors((prev) => ({
+        ...prev,
+        [id_barang]: "Gagal mengirim rating. Silakan coba lagi.",
+      }));
     } finally {
       setIsSubmitting((prev) => ({ ...prev, [id_barang]: false }));
     }
@@ -306,17 +336,20 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
 
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <span className="font-semibold">Nomor Transaksi:</span> {formatYear}.{formatMonth}.
-            {transaksi.id_transaksi}
+            <span className="font-semibold">Nomor Transaksi:</span> {formatYear}
+            .{formatMonth}.{transaksi.id_transaksi}
           </p>
           <p className="text-sm text-gray-600">
-            <span className="font-semibold">Tanggal Transaksi:</span> {formattedDateTransaksi}
+            <span className="font-semibold">Tanggal Transaksi:</span>{" "}
+            {formattedDateTransaksi}
           </p>
         </div>
 
         {/* Items List */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Daftar Barang</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            Daftar Barang
+          </h3>
           {transaksi.detail_transaksi.length > 0 ? (
             <div className="space-y-4">
               {transaksi.detail_transaksi.map((detail, index) => (
@@ -341,7 +374,12 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
                             {[1, 2, 3, 4, 5].map((star) => (
                               <button
                                 key={star}
-                                onClick={() => handleRatingChange(detail.barang.id_barang, star)}
+                                onClick={() =>
+                                  handleRatingChange(
+                                    detail.barang.id_barang,
+                                    star
+                                  )
+                                }
                                 className={`text-2xl ${
                                   ratings[detail.barang.id_barang] >= star
                                     ? "text-yellow-400"
@@ -354,7 +392,9 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
                             ))}
                           </div>
                           <button
-                            onClick={() => handleSubmitRating(detail.barang.id_barang)}
+                            onClick={() =>
+                              handleSubmitRating(detail.barang.id_barang)
+                            }
                             className={`px-3 py-1.5 rounded-md text-xs font-semibold text-white ${
                               isSubmitting[detail.barang.id_barang]
                                 ? "bg-gray-400 cursor-not-allowed"
@@ -383,12 +423,16 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">Tidak ada barang dalam transaksi ini.</p>
+            <p className="text-sm text-gray-500">
+              Tidak ada barang dalam transaksi ini.
+            </p>
           )}
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Pengiriman</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            Pengiriman
+          </h3>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Metode Pengiriman</span>
@@ -410,7 +454,9 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
         </div>
 
         <div className="border-t mt-3 pt-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Ringkasan Pembayaran</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            Ringkasan Pembayaran
+          </h3>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Subtotal Barang</span>
