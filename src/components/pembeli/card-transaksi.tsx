@@ -5,6 +5,14 @@ import { id } from "date-fns/locale";
 import { useState } from "react";
 import { updateRating } from "@/lib/api/rating.api";
 
+// Define the StatusPengiriman enum
+enum StatusPengiriman {
+  DIPROSES = "DIPROSES",
+  SIAP_DIAMBIL = "SIAP_DIAMBIL",
+  SEDANG_DIKIRIM = "SEDANG_DIKIRIM",
+  SUDAH_DITERIMA = "SUDAH_DITERIMA",
+}
+
 interface Props {
   transaksi: Transaksi;
 }
@@ -40,7 +48,7 @@ export default function CardTransaksi({ transaksi }: Props) {
     router.push("/pembayaran");
   };
 
-  // Map status to display text and background colors
+  // Map status to display text and background colors, including StatusPengiriman
   const statusStyles: Record<
     string,
     { text: string; bgColor: string; textColor: string }
@@ -61,17 +69,50 @@ export default function CardTransaksi({ transaksi }: Props) {
       textColor: "text-green-800",
     },
     DIBATALKAN: {
-      text: "Dibatalkan",
+      text: "Dibatalkan Sistem",
       bgColor: "bg-red-100",
       textColor: "text-red-800",
     },
+    DITOLAK: {
+      text: "Ditolak oleh CS",
+      bgColor: "bg-red-100",
+      textColor: "text-red-800",
+    },
+    [StatusPengiriman.DIPROSES]: {
+      text: "Proses Packing",
+      bgColor: "bg-orange-100",
+      textColor: "text-orange-800",
+    },
+    [StatusPengiriman.SIAP_DIAMBIL]: {
+      text: "Siap Diambil",
+      bgColor: "bg-yellow-100",
+      textColor: "text-yellow-800",
+    },
+    [StatusPengiriman.SEDANG_DIKIRIM]: {
+      text: "Sedang Dikirim",
+      bgColor: "bg-blue-100",
+      textColor: "text-blue-800",
+    },
+    [StatusPengiriman.SUDAH_DITERIMA]: {
+      text: "Selesai",
+      bgColor: "bg-green-100",
+      textColor: "text-green-800",
+    },
   };
 
-  const currentStatus = statusStyles[transaksi.status_Pembayaran] || {
-    text: transaksi.status_Pembayaran,
-    bgColor: "bg-gray-100",
-    textColor: "text-gray-800",
-  };
+  // Prioritize status_pengiriman if transaksi.pengiriman exists
+  const currentStatus =
+    transaksi.pengiriman && transaksi.pengiriman.status_pengiriman
+      ? statusStyles[transaksi.pengiriman.status_pengiriman] || {
+          text: transaksi.pengiriman.status_pengiriman,
+          bgColor: "bg-gray-100",
+          textColor: "text-gray-800",
+        }
+      : statusStyles[transaksi.status_Pembayaran] || {
+          text: transaksi.status_Pembayaran,
+          bgColor: "bg-gray-100",
+          textColor: "text-gray-800",
+        };
 
   return (
     <>
@@ -230,7 +271,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
     }
   }
 
-  let formattedDatePengiriman = "";
+  let formattedDatePengiriman = "-";
   if (transaksi.pengiriman?.tanggal_pengiriman) {
     try {
       formattedDatePengiriman = `${format(
@@ -248,7 +289,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
     }
   }
 
-  let status_pengiriman = "";
+  let status_pengiriman = "-";
   if (transaksi.pengiriman?.status_pengiriman) {
     try {
       status_pengiriman = `${transaksi.pengiriman.status_pengiriman}`;
@@ -285,8 +326,8 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
       const formData = new FormData();
       formData.append("rating", ratings[id_barang].toString());
 
-      const accessToken = localStorage.getItem("accessToken") || undefined; 
-      const response = await updateRating(id_barang, formData, accessToken)
+      const accessToken = localStorage.getItem("accessToken") || undefined;
+      const response = await updateRating(id_barang, formData, accessToken);
 
       if (response.errors) {
         throw new Error("Gagal mengirim rating");
@@ -300,7 +341,7 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        [id_barang]: "Gagal mengirim rating: "  + error,
+        [id_barang]: "Gagal mengirim rating: " + error,
       }));
     } finally {
       setIsSubmitting((prev) => ({ ...prev, [id_barang]: false }));
@@ -365,60 +406,70 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
                     <p className="text-sm text-gray-600">
                       Rp {detail.barang.harga.toLocaleString()}
                     </p>
-                    {/* Rating Input */}
-                    <div className="mt-2">
-                      {ratedItems[detail.barang.id_barang] ? (
-                        <p className="text-sm text-green-600">Sudah dirating</p>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
+                    {/* Rating Input - Only show when transaksi.pengiriman exists and status_pengiriman is SUDAH_DITERIMA */}
+                    {transaksi.pengiriman &&
+                      transaksi.pengiriman.status_pengiriman ===
+                        StatusPengiriman.SUDAH_DITERIMA && (
+                        <div className="mt-2">
+                          {ratedItems[detail.barang.id_barang] ? (
+                            <p className="text-sm text-green-600">
+                              Sudah dirating
+                            </p>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="flex">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    onClick={() =>
+                                      handleRatingChange(
+                                        detail.barang.id_barang,
+                                        star
+                                      )
+                                    }
+                                    className={`text-2xl ${
+                                      ratings[detail.barang.id_barang] >= star
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                    } hover:text-yellow-400 focus:outline-none`}
+                                    disabled={
+                                      isSubmitting[detail.barang.id_barang]
+                                    }
+                                  >
+                                    ★
+                                  </button>
+                                ))}
+                              </div>
                               <button
-                                key={star}
                                 onClick={() =>
-                                  handleRatingChange(
-                                    detail.barang.id_barang,
-                                    star
-                                  )
+                                  handleSubmitRating(detail.barang.id_barang)
                                 }
-                                className={`text-2xl ${
-                                  ratings[detail.barang.id_barang] >= star
-                                    ? "text-yellow-400"
-                                    : "text-gray-300"
-                                } hover:text-yellow-400 focus:outline-none`}
+                                className={`px-3 py-1.5 rounded-md text-xs font-semibold text-white ${
+                                  isSubmitting[detail.barang.id_barang]
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-[#72C678] hover:bg-[#008E6D]"
+                                }`}
                                 disabled={isSubmitting[detail.barang.id_barang]}
                               >
-                                ★
+                                Kirim Rating
                               </button>
-                            ))}
-                          </div>
-                          <button
-                            onClick={() =>
-                              handleSubmitRating(detail.barang.id_barang)
-                            }
-                            className={`px-3 py-1.5 rounded-md text-xs font-semibold text-white ${
-                              isSubmitting[detail.barang.id_barang]
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-[#72C678] hover:bg-[#008E6D]"
-                            }`}
-                            disabled={isSubmitting[detail.barang.id_barang]}
-                          >
-                            Kirim Rating
-                          </button>
+                            </div>
+                          )}
+                          {errors[detail.barang.id_barang] && (
+                            <p
+                              className={`text-sm mt-1 ${
+                                errors[detail.barang.id_barang]?.includes(
+                                  "berhasil"
+                                )
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              {errors[detail.barang.id_barang]}
+                            </p>
+                          )}
                         </div>
                       )}
-                      {errors[detail.barang.id_barang] && (
-                        <p
-                          className={`text-sm mt-1 ${
-                            errors[detail.barang.id_barang]?.includes("berhasil")
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {errors[detail.barang.id_barang]}
-                        </p>
-                      )}
-                    </div>
                   </div>
                 </div>
               ))}
@@ -437,11 +488,11 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Metode Pengiriman</span>
-              <span>{transaksi.metode_pengiriman}</span>
+              <span>{transaksi.metode_pengiriman || "-"}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-600">
               <span>Biaya Pengiriman</span>
-              <span>Rp {transaksi.ongkos_kirim}</span>
+              <span>Rp {transaksi.ongkos_kirim?.toLocaleString() || "-"}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-600">
               <span>Status Pengiriman</span>
