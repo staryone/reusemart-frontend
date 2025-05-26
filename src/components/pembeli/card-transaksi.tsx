@@ -235,6 +235,8 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
     }
   }
 
+  console.log(transaksi);
+
   let formattedDatePembayaran = "-";
   if (transaksi.tanggal_pembayaran) {
     try {
