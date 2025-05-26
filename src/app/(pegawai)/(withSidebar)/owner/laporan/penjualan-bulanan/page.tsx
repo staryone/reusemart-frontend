@@ -115,7 +115,9 @@ export default function PenjualanBulanan() {
           callback: function (
             this: Scale<CoreScaleOptions>,
             tickValue: string | number,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             index: number,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             ticks: Tick[]
           ): string {
             const value =
