@@ -5,11 +5,11 @@ export interface Barang {
   nama_barang: string;
   deskripsi: string;
   harga: number;
-  status: "TERSEDIA" | "TIDAK_TERSEDIA";
-  garansi: string; // ISO date string
+  status: string;
+  garansi: string;
   berat: number;
   kategori: Kategori;
-  gambar: Gambar[]; // Assuming URLs or base64 strings
+  gambar: Gambar[];
   createdAt: string;
   updatedAt: string;
   penitip: Penitip;
