@@ -1,11 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
-import { Barang, Gambar } from "@/lib/interface/barang.interface";
+import { Gambar } from "@/lib/interface/barang.interface";
 import { format, differenceInDays } from "date-fns";
 import { id } from "date-fns/locale";
-import { useState } from "react";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
-import { get } from "http";
 
 interface Props {
   dtlPenitipan: DetailPenitipan;
@@ -21,6 +18,10 @@ export default function CardBarang({ dtlPenitipan }: Props) {
   };
 
   const formatTanggal = (date: string) => {
+    console.log(
+      "date",
+      format(new Date(date), "dd MMMM yyyy, HH:mm", { locale: id })
+    );
     return format(new Date(date), "dd MMMM yyyy, HH:mm", { locale: id });
   };
 
@@ -30,11 +31,9 @@ export default function CardBarang({ dtlPenitipan }: Props) {
   );
 
   const getPrimaryGambar = (gambars: Gambar[]): string => {
-    console.log("gambars:", gambars);
     const primaryGambar = gambars.find(
       (gambar: Gambar) => gambar.is_primary == true
     );
-    console.log("primaryGambar:", primaryGambar);
     return primaryGambar ? primaryGambar.url_gambar : "/product.png";
   };
 
