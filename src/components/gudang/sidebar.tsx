@@ -58,6 +58,9 @@ export default function SideBar() {
           >
             Penitipan
           </SidebarItem>
+          <SidebarItem href="/gudang/pengiriman" icon={HiBriefcase} as={Link}>
+            Pengiriman
+          </SidebarItem>
           {/* <SidebarItem href="/admin/organisasi-master" icon={HiOfficeBuilding} as={Link}>
             Organisasi
           </SidebarItem>
