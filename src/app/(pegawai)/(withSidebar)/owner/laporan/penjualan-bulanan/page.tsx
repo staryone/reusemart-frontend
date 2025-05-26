@@ -45,7 +45,7 @@ export default function PenjualanBulanan() {
     return params;
   }, []);
 
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading } = useSWR(
     [queryParams, token],
     fetcher,
     {
@@ -154,7 +154,7 @@ export default function PenjualanBulanan() {
                 <td className="border p-2">{row.month}</td>
                 <td className="border p-2 text-right">{row.itemsSold}</td>
                 <td className="border p-2 text-right">
-                  Rp{row.totalSales.toLocaleString()}
+                  Rp{new Intl.NumberFormat("id-ID").format(row.totalSales)}
                 </td>
               </tr>
             ))}
@@ -165,9 +165,9 @@ export default function PenjualanBulanan() {
               </td>
               <td className="border p-2 text-right">
                 Rp
-                {tableData
+                {new Intl.NumberFormat("id-ID").format(tableData
                   .reduce((sum, row) => sum + row.totalSales, 0)
-                  .toLocaleString()}
+                  )}
               </td>
             </tr>
           </tbody>

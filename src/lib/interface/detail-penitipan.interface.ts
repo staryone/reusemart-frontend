@@ -11,5 +11,4 @@ export interface DetailPenitipan {
   tanggal_laku: string;
   batas_ambil: string;
   is_perpanjang: boolean;
-  // gambar: Gambar[];
 }
