@@ -5,6 +5,7 @@ import { format, differenceInDays } from "date-fns";
 import { id } from "date-fns/locale";
 import { useState } from "react";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
+import { get } from "http";
 
 interface Props {
   dtlPenitipan: DetailPenitipan;
@@ -28,9 +29,12 @@ export default function CardBarang({ dtlPenitipan }: Props) {
     new Date()
   );
 
-  const getPrimaryGambar = (gambars: Gambar[]): string | null => {
+  const getPrimaryGambar = (gambars: Gambar[]): string => {
     console.log("gambars:", gambars);
-    const primaryGambar = gambars.find((gambar: Gambar) => gambar.is_primary);
+    const primaryGambar = gambars.find(
+      (gambar: Gambar) => gambar.is_primary == true
+    );
+    console.log("primaryGambar:", primaryGambar);
     return primaryGambar ? primaryGambar.url_gambar : "/product.png";
   };
 
@@ -39,14 +43,13 @@ export default function CardBarang({ dtlPenitipan }: Props) {
       <div className="flex gap-5 items-start border rounded-xl p-4 mb-4 bg-white shadow-sm">
         <div className="w-2/12">
           <Image
-            src="/product.png"
+            src={getPrimaryGambar(dtlPenitipan.barang.gambar)}
             alt="product image"
             width={480}
             height={480}
             className="p-8 rounded-t-lg"
           />
         </div>
-
         <div className="w-full">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
