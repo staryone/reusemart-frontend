@@ -1,5 +1,6 @@
 import { Penitip } from "../interface/penitip.interface";
 import { ResponseAPI } from "../interface/response.interface";
+import { DetailPenitipan } from "../interface/detail-penitipan.interface";
 import { GET, POST, PATCH, DELETE } from "./fetch";
 
 export async function getPegawai(
@@ -46,6 +47,17 @@ export async function deletePenitip(
   accessToken?: string
 ): Promise<ResponseAPI> {
   return await DELETE(`/penitip/${id}`, accessToken);
+}
+
+export async function extendPenitipan(
+  id_dtl_penitipan: number,
+  id_user: string,
+  accessToken: string
+): Promise<DetailPenitipan> {
+  const formData = new FormData();
+  formData.append("id_dtl_penitipan", id_dtl_penitipan.toString());
+  formData.append("id_user", id_user);
+  return await POST(`/penitip/extend`, formData, accessToken);
 }
 
 // export async function resetPasswordPenitip(

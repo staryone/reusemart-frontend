@@ -3,12 +3,25 @@ import { Gambar } from "@/lib/interface/barang.interface";
 import { format, differenceInDays } from "date-fns";
 import { id } from "date-fns/locale";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
+import { useState } from "react";
+import { extendPenitipan } from "@/lib/api/penitip.api";
+import { useUser } from "@/hooks/use-user";
 
 interface Props {
   dtlPenitipan: DetailPenitipan;
+  id_user: number; // Add id_user to Props
+  accessToken: string; // Ensure accessToken is properly typed
 }
 
-export default function CardBarang({ dtlPenitipan }: Props) {
+export default function CardBarang({
+  dtlPenitipan,
+  id_user,
+  accessToken,
+}: Props) {
+  const [penitipan, setPenitipan] = useState<DetailPenitipan>(dtlPenitipan);
+  const currentUser = useUser();
+  const token = accessToken || (currentUser !== null ? currentUser.token : "");
+
   const formatRupiah = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -35,6 +48,21 @@ export default function CardBarang({ dtlPenitipan }: Props) {
       (gambar: Gambar) => gambar.is_primary == true
     );
     return primaryGambar ? primaryGambar.url_gambar : "/product.png";
+  };
+
+  const handleExtendPenitipan = async () => {
+    try {
+      const updatedPenitipan = await extendPenitipan(
+        penitipan.id_dtl_penitipan,
+        id_user.toString(), // Pass id_user as string
+        token
+      );
+      setPenitipan(updatedPenitipan);
+      alert("Penitipan berhasil diperpanjang!");
+    } catch (error) {
+      console.error("Error extending penitipan:", error);
+      alert("Gagal memperpanjang penitipan: " + (error || "Unknown error"));
+    }
   };
 
   return (
@@ -110,13 +138,23 @@ export default function CardBarang({ dtlPenitipan }: Props) {
                 <button className="bg-[#72C678] text-white px-4 py-2 rounded-lg hover:bg-[#008E6D] transition-colors">
                   Ambil Barang
                 </button>
-                <button
+                {/* FINAL VERSION */}
+                {/* <button
                   className={`px-4 py-2 rounded-lg text-white transition-colors ${
-                    remainingDays > 0
+                    dtlPenitipan.is_perpanjang && remainingDays > 0
                       ? "bg-[#72C678] hover:bg-[#008E6D]"
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
-                  disabled={remainingDays <= 0}
+                  disabled={!dtlPenitipan.is_perpanjang || remainingDays <= 0}
+                  onClick={handleExtendPenitipan}
+                >
+                  Perpanjang Penitipan
+                </button> */}
+                {/* TESTING VERSION */}
+                <button
+                  className={`px-4 py-2 rounded-lg text-white bg-[#72C678] hover:bg-[#008E6D]
+                  `}
+                  onClick={handleExtendPenitipan}
                 >
                   Perpanjang Penitipan
                 </button>

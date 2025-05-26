@@ -83,7 +83,13 @@ export default function TransaksiPenitip() {
           </p>
         ) : (
           filteredPenitipanList.map((trx) => (
-            <CardBarang key={trx.id_dtl_penitipan} dtlPenitipan={trx} />
+            // <CardBarang key={trx.id_dtl_penitipan} dtlPenitipan={trx} />
+            <CardBarang
+              key={trx.id_dtl_penitipan}
+              dtlPenitipan={trx}
+              id_user={Number(currentUser?.id) || 0} // Pass the user ID as a number
+              accessToken={currentUser?.token || ""} // Pass the access token
+            />
           ))
         )}
       </div>
