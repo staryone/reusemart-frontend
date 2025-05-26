@@ -1,4 +1,5 @@
 import { DetailPenitipan } from "../interface/detail-penitipan.interface";
+import { LaporanPenjualanBulanan } from "../interface/laporan.interface";
 import { ResponseAPI } from "../interface/response.interface";
 import { GET, POST, PATCH} from "./fetch";
 
@@ -14,6 +15,13 @@ export async function getListPenitipan(
   accessToken?: string
 ): Promise<[DetailPenitipan[], number]> {
   return await GET(`/penitipan/lists?${params}`, accessToken);
+}
+
+export async function getLaporan(
+  params?: URLSearchParams,
+  accessToken?: string
+): Promise<[LaporanPenjualanBulanan[], number]> {
+  return await GET(`/penitipan/laporan?${params}`, accessToken);
 }
 
 export async function updatePenitipan(

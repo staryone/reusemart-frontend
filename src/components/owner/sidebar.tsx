@@ -5,6 +5,7 @@ import {
   SidebarItem,
   SidebarItemGroup,
   SidebarItems,
+  SidebarCollapse,
 } from "flowbite-react";
 import {
   HiChartPie,
@@ -37,6 +38,7 @@ export default function SideBar() {
       toast.error("Internal server error");
     }
   };
+
   return (
     <Sidebar
       aria-label="Default sidebar example"
@@ -53,9 +55,17 @@ export default function SideBar() {
           <SidebarItem href="/owner/riwayat-donasi" icon={HiCalendar} as={Link}>
             Riwayat Donasi
           </SidebarItem>
-          <SidebarItem href="/owner/laporan" icon={HiNewspaper} as={Link}>
-            Laporan
-          </SidebarItem>
+          <SidebarCollapse icon={HiNewspaper} label="Laporan">
+            <SidebarItem href="/owner/laporan/penjualan-bulanan" as={Link}>
+              Laporan Penjualan
+            </SidebarItem>
+            <SidebarItem href="/owner/laporan/komisi-bulanan" as={Link}>
+              Laporan Komisi
+            </SidebarItem>
+            <SidebarItem href="/owner/laporan/stok-gudang" as={Link}>
+              Laporan Stok Gudang
+            </SidebarItem>
+          </SidebarCollapse>
           <hr />
           <SidebarItem
             onClick={handleLogout}
