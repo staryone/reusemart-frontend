@@ -65,7 +65,7 @@ export async function extendPenitipan(
   accessToken?: string
 ): Promise<DetailPenitipan> {
   return await PATCH(
-    `penitipan/extend/${id_dtl_penitipan}`,
+    `/penitipan/extend/${id_dtl_penitipan}`,
     undefined,
     accessToken
   );
