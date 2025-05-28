@@ -1,24 +1,20 @@
 import Image from "next/image";
 import { Gambar } from "@/lib/interface/barang.interface";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInSeconds } from "date-fns";
 import { id } from "date-fns/locale";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { extendPenitipan } from "@/lib/api/penitip.api";
 import { useUser } from "@/hooks/use-user";
 
 interface Props {
   dtlPenitipan: DetailPenitipan;
-  id_user: number; // Add id_user to Props
-  accessToken: string; // Ensure accessToken is properly typed
+  accessToken: string;
 }
 
-export default function CardBarang({
-  dtlPenitipan,
-  id_user,
-  accessToken,
-}: Props) {
+export default function CardBarang({ dtlPenitipan, accessToken }: Props) {
   const [penitipan, setPenitipan] = useState<DetailPenitipan>(dtlPenitipan);
+  const [countdown, setCountdown] = useState<string>("");
   const currentUser = useUser();
   const token = accessToken || (currentUser !== null ? currentUser.token : "");
 
@@ -31,15 +27,38 @@ export default function CardBarang({
   };
 
   const formatTanggal = (date: string) => {
-    console.log(
-      "date",
-      format(new Date(date), "dd MMMM yyyy, HH:mm", { locale: id })
-    );
     return format(new Date(date), "dd MMMM yyyy, HH:mm", { locale: id });
   };
 
-  const remainingDays = differenceInDays(
-    new Date(dtlPenitipan.tanggal_akhir),
+  const formatCountdown = (seconds: number): string => {
+    if (seconds <= 0) return "00:00:00:00";
+    const days = Math.floor(seconds / (24 * 60 * 60));
+    const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+    const minutes = Math.floor((seconds % (60 * 60)) / 60);
+    const secs = seconds % 60;
+    return `${days.toString().padStart(2, "0")}:${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const endDate = new Date(penitipan.tanggal_akhir);
+      const secondsLeft = differenceInSeconds(endDate, now);
+      setCountdown(formatCountdown(secondsLeft));
+    };
+
+    updateCountdown(); // Initial call
+    const interval = setInterval(updateCountdown, 1000); // Update every second
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [penitipan.tanggal_akhir]);
+
+  const remainingSeconds = differenceInSeconds(
+    new Date(penitipan.tanggal_akhir),
     new Date()
   );
 
@@ -54,21 +73,22 @@ export default function CardBarang({
     try {
       const updatedPenitipan = await extendPenitipan(
         penitipan.id_dtl_penitipan,
-        id_user.toString(), // Pass id_user as string
         token
       );
       setPenitipan(updatedPenitipan);
       alert("Penitipan berhasil diperpanjang!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error extending penitipan:", error);
-      alert("Gagal memperpanjang penitipan: " + (error || "Unknown error"));
+      alert(
+        "Gagal memperpanjang penitipan: " + (error.message || "Unknown error")
+      );
     }
   };
 
   return (
     <>
       <div className="flex gap-5 items-start border rounded-xl p-4 mb-4 bg-white shadow-sm">
-        <div className="w-2/12">
+        <div className="w-3/12">
           <Image
             src={getPrimaryGambar(dtlPenitipan.barang.gambar)}
             alt="product image"
@@ -118,42 +138,30 @@ export default function CardBarang({
                 {formatTanggal(dtlPenitipan.tanggal_akhir)}
               </span>
             </p>
+            <p className="text-sm">
+              Batas ambil:{" "}
+              <span className="text-[#72C678] font-semibold">
+                {formatTanggal(dtlPenitipan.batas_ambil)}
+              </span>
+            </p>
             <div className="flex justify-between">
               <p className="text-md">
                 Sisa waktu:{" "}
                 <span className="text-[#e80505] font-semibold">
-                  {differenceInDays(
-                    new Date(dtlPenitipan.tanggal_akhir),
-                    new Date()
-                  ) > 0
-                    ? differenceInDays(
-                        new Date(dtlPenitipan.tanggal_akhir),
-                        new Date()
-                      )
-                    : 0}{" "}
-                  hari
+                  {countdown}
                 </span>{" "}
               </p>
               <div className="flex gap-2">
                 <button className="bg-[#72C678] text-white px-4 py-2 rounded-lg hover:bg-[#008E6D] transition-colors">
                   Ambil Barang
                 </button>
-                {/* FINAL VERSION */}
-                {/* <button
+                <button
                   className={`px-4 py-2 rounded-lg text-white transition-colors ${
-                    dtlPenitipan.is_perpanjang && remainingDays > 0
+                    !penitipan.is_perpanjang && remainingSeconds > 0
                       ? "bg-[#72C678] hover:bg-[#008E6D]"
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
-                  disabled={!dtlPenitipan.is_perpanjang || remainingDays <= 0}
-                  onClick={handleExtendPenitipan}
-                >
-                  Perpanjang Penitipan
-                </button> */}
-                {/* TESTING VERSION */}
-                <button
-                  className={`px-4 py-2 rounded-lg text-white bg-[#72C678] hover:bg-[#008E6D]
-                  `}
+                  disabled={penitipan.is_perpanjang || remainingSeconds <= 0}
                   onClick={handleExtendPenitipan}
                 >
                   Perpanjang Penitipan

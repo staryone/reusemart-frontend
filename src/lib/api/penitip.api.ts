@@ -49,15 +49,26 @@ export async function deletePenitip(
   return await DELETE(`/penitip/${id}`, accessToken);
 }
 
+// export async function extendPenitipan(
+//   id_dtl_penitipan: number,
+//   accessToken: string
+// ): Promise<DetailPenitipan> {
+//   const response = await PATCH(
+//     `/api/penitipan/extend/${id_dtl_penitipan}`,
+//     undefined,
+//     accessToken
+//   );
+//   return response.data.detailPenitipan;
+// }
 export async function extendPenitipan(
   id_dtl_penitipan: number,
-  id_user: string,
-  accessToken: string
+  accessToken?: string
 ): Promise<DetailPenitipan> {
-  const formData = new FormData();
-  formData.append("id_dtl_penitipan", id_dtl_penitipan.toString());
-  formData.append("id_user", id_user);
-  return await POST(`/penitip/extend`, formData, accessToken);
+  return await PATCH(
+    `penitipan/extend/${id_dtl_penitipan}`,
+    undefined,
+    accessToken
+  );
 }
 
 // export async function resetPasswordPenitip(
