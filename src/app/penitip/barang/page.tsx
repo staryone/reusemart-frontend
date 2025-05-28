@@ -25,6 +25,7 @@ export default function TransaksiPenitip() {
     data: penitipData,
     error,
     isLoading,
+    mutate,
   } = useSWR(currentUser !== null ? currentUser.token : null, penitipFetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
@@ -83,11 +84,11 @@ export default function TransaksiPenitip() {
           </p>
         ) : (
           filteredPenitipanList.map((trx) => (
-            // <CardBarang key={trx.id_dtl_penitipan} dtlPenitipan={trx} />
             <CardBarang
               key={trx.id_dtl_penitipan}
               dtlPenitipan={trx}
               accessToken={currentUser?.token || ""}
+              onExtendSuccess={() => mutate()}
             />
           ))
         )}

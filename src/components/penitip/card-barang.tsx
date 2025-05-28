@@ -6,13 +6,19 @@ import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
 import { useState, useEffect } from "react";
 import { extendPenitipan } from "@/lib/api/penitip.api";
 import { useUser } from "@/hooks/use-user";
+import toast from "react-hot-toast";
 
 interface Props {
   dtlPenitipan: DetailPenitipan;
   accessToken: string;
+  onExtendSuccess: () => void;
 }
 
-export default function CardBarang({ dtlPenitipan, accessToken }: Props) {
+export default function CardBarang({
+  dtlPenitipan,
+  accessToken,
+  onExtendSuccess,
+}: Props) {
   const [penitipan, setPenitipan] = useState<DetailPenitipan>(dtlPenitipan);
   const [countdown, setCountdown] = useState<string>("");
   const currentUser = useUser();
@@ -76,10 +82,11 @@ export default function CardBarang({ dtlPenitipan, accessToken }: Props) {
         token
       );
       setPenitipan(updatedPenitipan);
-      alert("Penitipan berhasil diperpanjang!");
+      onExtendSuccess();
+      toast.success("Penitipan berhasil diperpanjang!");
     } catch (error: any) {
       console.error("Error extending penitipan:", error);
-      alert(
+      toast.error(
         "Gagal memperpanjang penitipan: " + (error.message || "Unknown error")
       );
     }
