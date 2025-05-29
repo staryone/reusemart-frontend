@@ -24,15 +24,11 @@ export default function LaporanStokGudang() {
     return params;
   }, []);
 
-  const { data, error, isLoading } = useSWR(
-    [queryParams, token],
-    fetcher,
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
+  const { data, error, isLoading } = useSWR([queryParams, token], fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 
   const stockData: DetailPenitipan[] = useMemo(() => {
     if (!data || !Array.isArray(data[0])) return [];
@@ -92,7 +88,8 @@ export default function LaporanStokGudang() {
     doc.rect(margin, yPosition, maxLineWidth, rowHeight, "F");
 
     headers.forEach((header, index) => {
-      const x = margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
+      const x =
+        margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
       doc.text(header, x + 2, yPosition + 6);
     });
     yPosition += rowHeight;
@@ -111,7 +108,8 @@ export default function LaporanStokGudang() {
           doc.setFillColor(200, 200, 200);
           doc.rect(margin, yPosition, maxLineWidth, rowHeight, "F");
           headers.forEach((header, index) => {
-            const x = margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
+            const x =
+              margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
             doc.text(header, x + 2, yPosition + 6);
           });
           yPosition += rowHeight;
@@ -134,7 +132,8 @@ export default function LaporanStokGudang() {
         ];
 
         rowData.forEach((cell, index) => {
-          const x = margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
+          const x =
+            margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
           // Truncate text if too long
           const text = doc.splitTextToSize(cell, columnWidths[index] - 4);
           doc.text(text[0], x + 2, yPosition + 6);
@@ -148,7 +147,8 @@ export default function LaporanStokGudang() {
 
     // Draw table borders
     headers.forEach((_, index) => {
-      const x = margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
+      const x =
+        margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
       doc.line(x, 18, x, yPosition);
     });
     doc.line(margin, 18, margin, yPosition);
@@ -163,16 +163,18 @@ export default function LaporanStokGudang() {
   return (
     <div className="p-4 ml-64">
       <h1 className="text-2xl font-bold mb-4">Laporan Stok Gudang</h1>
-      <button
+      <div className="mb-6 flex justify-between">
+        <div>
+          <p>ReUse Mart</p>
+          <p>Jl. Green Eco Park No. 456 Yogyakarta</p>
+          <p>Tanggal cetak: {todaysDate()}</p>
+        </div>
+        <button
           onClick={generatePDF}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
           Download PDF
         </button>
-      <div className="mb-6">
-        <p>ReUse Mart</p>
-        <p>Jl. Green Eco Park No. 456 Yogyakarta</p>
-        <p>Tanggal cetak: {todaysDate()}</p>
       </div>
       <div className="overflow-x-auto mb-6 w-full">
         <table className="w-full bg-white border border-gray-200">
@@ -201,7 +203,9 @@ export default function LaporanStokGudang() {
                 <tr key={item.id_dtl_penitipan} className="hover:bg-gray-50">
                   <td className="border p-2">{item.barang.id_barang}</td>
                   <td className="border p-2">{item.barang.nama_barang}</td>
-                  <td className="border p-2">T{item.penitipan.penitip.id_penitip}</td>
+                  <td className="border p-2">
+                    T{item.penitipan.penitip.id_penitip}
+                  </td>
                   <td className="border p-2">{item.penitipan.penitip.nama}</td>
                   <td className="border p-2">
                     {new Date(item.tanggal_masuk).toLocaleDateString("id-ID", {
@@ -210,9 +214,13 @@ export default function LaporanStokGudang() {
                       year: "numeric",
                     })}
                   </td>
-                  <td className="border p-2">{item.is_perpanjang ? "Ya" : "Tidak"}</td>
                   <td className="border p-2">
-                    {item.penitipan.hunter ? "P"+item.penitipan.hunter.id_pegawai : "-"}
+                    {item.is_perpanjang ? "Ya" : "Tidak"}
+                  </td>
+                  <td className="border p-2">
+                    {item.penitipan.hunter
+                      ? "P" + item.penitipan.hunter.id_pegawai
+                      : "-"}
                   </td>
                   <td className="border p-2">
                     {item.penitipan.hunter ? item.penitipan.hunter.nama : "-"}

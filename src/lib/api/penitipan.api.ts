@@ -17,7 +17,7 @@ export async function getListPenitipan(
   return await GET(`/penitipan/lists?${params}`, accessToken);
 }
 
-export async function getLaporan(
+export async function getLaporanPenjualanBulanan(
   params?: URLSearchParams,
   accessToken?: string
 ): Promise<[LaporanPenjualanBulanan[], number]> {

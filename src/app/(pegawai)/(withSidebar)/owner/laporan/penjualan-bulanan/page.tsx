@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,9 +15,12 @@ import {
   Scale,
   CoreScaleOptions,
 } from "chart.js";
-import { getLaporan } from "@/lib/api/penitipan.api";
+import { getLaporanPenjualanBulanan } from "@/lib/api/penitipan.api";
 import useSWR from "swr";
 import { useUser } from "@/hooks/use-user";
+import { Page, Text, View, Document, StyleSheet, pdf, Image } from "@react-pdf/renderer";
+import { saveAs } from "file-saver";
+import domtoimage from "dom-to-image";
 
 ChartJS.register(
   CategoryScale,
@@ -29,11 +32,75 @@ ChartJS.register(
 );
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getLaporan(params, token);
+  await getLaporanPenjualanBulanan(params, token);
+
+// Styles for react-pdf
+const styles = StyleSheet.create({
+  page: { padding: 30 },
+  title: { fontSize: 16, fontWeight: "bold", marginBottom: 10 },
+  text: { fontSize: 12, marginBottom: 5 },
+  table: { display: "flex", flexDirection: "column", marginTop: 20 },
+  tableRow: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#000" },
+  tableHeader: { backgroundColor: "#f0f0f0", fontWeight: "bold" },
+  tableCell: { flex: 1, padding: 5, fontSize: 10, textAlign: "right" },
+  tableCellLeft: { flex: 1, padding: 5, fontSize: 10, textAlign: "left" },
+  chartImage: { width: 500, height: 300, marginTop: 20 },
+});
+
+const PDFDocument = ({
+  tableData,
+  laporanYear,
+  printDate,
+  chartImage,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tableData: any[];
+  laporanYear: number;
+  printDate: string;
+  chartImage?: string;
+}) => (
+  <Document>
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.title}>Laporan Penjualan Bulanan</Text>
+      <Text style={styles.text}>ReUse Mart</Text>
+      <Text style={styles.text}>Jl. Green Eco Park No. 456 Yogyakarta</Text>
+      <Text style={styles.text}>Tahun: {laporanYear}</Text>
+      <Text style={styles.text}>Tanggal cetak: {printDate}</Text>
+      <View style={styles.table}>
+        <View style={[styles.tableRow, styles.tableHeader]}>
+          <Text style={styles.tableCellLeft}>Bulan</Text>
+          <Text style={styles.tableCell}>Jumlah Barang Terjual</Text>
+          <Text style={styles.tableCell}>Jumlah Penjualan Kotor</Text>
+        </View>
+        {tableData.map((row) => (
+          <View key={row.month} style={styles.tableRow}>
+            <Text style={styles.tableCellLeft}>{row.month}</Text>
+            <Text style={styles.tableCell}>{row.itemsSold}</Text>
+            <Text style={styles.tableCell}>Rp{new Intl.NumberFormat("id-ID").format(row.totalSales)}</Text>
+          </View>
+        ))}
+        <View style={[styles.tableRow, { fontWeight: "bold" }]}>
+          <Text style={styles.tableCellLeft}>Total</Text>
+          <Text style={styles.tableCell}>
+            {tableData.reduce((sum, row) => sum + row.itemsSold, 0)}
+          </Text>
+          <Text style={styles.tableCell}>
+            Rp{new Intl.NumberFormat("id-ID").format(tableData.reduce((sum, row) => sum + row.totalSales, 0))}
+          </Text>
+        </View>
+      </View>
+      {chartImage && (
+        <Image style={styles.chartImage} src={chartImage} />
+      )}
+    </Page>
+  </Document>
+);
 
 export default function PenjualanBulanan() {
   const currentUser = useUser();
   const token = currentUser !== null ? currentUser.token : "";
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
@@ -64,7 +131,7 @@ export default function PenjualanBulanan() {
     if (!tableData || tableData.length === 0) {
       return {
         labels: [],
-        datasets: [{ label: "Total Sales (IDR)", data: [], backgroundColor: "rgba(59, 130, 246, 0.6)" }],
+        datasets: [{ label: "Total Penjualan (IDR)", data: [], backgroundColor: "rgba(59, 130, 246, 0.6)" }],
       };
     }
 
@@ -75,7 +142,7 @@ export default function PenjualanBulanan() {
       labels,
       datasets: [
         {
-          label: "Total Sales (IDR)",
+          label: "Total Penjualan (IDR)",
           data: salesData,
           backgroundColor: "rgba(59, 130, 246, 0.6)",
         },
@@ -105,7 +172,7 @@ export default function PenjualanBulanan() {
       },
       title: {
         display: true,
-        text: "Monthly Sales " + laporanDate(),
+        text: "Penjualan Bulanan " + laporanDate(),
       },
     },
     scales: {
@@ -129,6 +196,36 @@ export default function PenjualanBulanan() {
     },
   };
 
+  const generatePDF = async () => {
+    if (isGeneratingPDF) return;
+    setIsGeneratingPDF(true);
+
+    let chartImage = "";
+    if (chartRef.current) {
+      try {
+        chartImage = await domtoimage.toPng(chartRef.current, {
+          quality: 1,
+          width: chartRef.current.offsetWidth,
+          height: chartRef.current.offsetHeight,
+        });
+      } catch (error) {
+        console.error("Error capturing chart:", error);
+      }
+    }
+
+    const doc = (
+      <PDFDocument
+        tableData={tableData}
+        laporanYear={laporanDate()}
+        printDate={todaysDate()}
+        chartImage={chartImage}
+      />
+    );
+    const blob = await pdf(doc).toBlob();
+    saveAs(blob, `Laporan_Penjualan_${laporanDate()}.pdf`);
+    setIsGeneratingPDF(false);
+  };
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading data</div>;
 
@@ -141,6 +238,15 @@ export default function PenjualanBulanan() {
         <p>Tahun: {laporanDate()}</p>
         <p>Tanggal cetak: {todaysDate()}</p>
       </div>
+      <button
+        onClick={generatePDF}
+        disabled={isGeneratingPDF}
+        className={`mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${
+          isGeneratingPDF ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+      >
+        {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+      </button>
       <div className="overflow-x-auto mb-6 w-full">
         <table className="w-full bg-white border border-gray-200">
           <thead>
@@ -167,15 +273,15 @@ export default function PenjualanBulanan() {
               </td>
               <td className="border p-2 text-right">
                 Rp
-                {new Intl.NumberFormat("id-ID").format(tableData
-                  .reduce((sum, row) => sum + row.totalSales, 0)
-                  )}
+                {new Intl.NumberFormat("id-ID").format(
+                  tableData.reduce((sum, row) => sum + row.totalSales, 0)
+                )}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-4xl mx-auto" ref={chartRef}>
         <Bar data={chartData} options={chartOptions} />
       </div>
     </div>
