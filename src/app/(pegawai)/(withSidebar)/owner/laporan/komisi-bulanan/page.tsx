@@ -98,7 +98,7 @@ console.log(data);
             <th className="border border-gray-300 p-2">Tanggal Laku</th>
             <th className="border border-gray-300 p-2">Komisi Hunter</th>
             <th className="border border-gray-300 p-2">Komisi ReUseMart</th>
-            <th className="border border-gray-300 p-2">Bonus Penjual</th>
+            <th className="border border-gray-300 p-2">Bonus Penitip</th>
           </tr>
         </thead>
         <tbody>
@@ -109,9 +109,9 @@ console.log(data);
               <td className="border border-gray-300 p-2">Rp{new Intl.NumberFormat("id-ID").format(item.barang.harga)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_masuk)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_laku)}</td>
-              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi.komisi_hunter}</td>
-              <td className="border border-gray-300 p-2">Rp</td>
-              <td className="border border-gray-300 p-2">Rp</td>
+              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? item.barang.detail_transaksi.komisi_hunter: "Belum ada"}</td>
+              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? item.barang.detail_transaksi.komisi_reusemart: "Belum ada"}</td>
+              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? item.barang.detail_transaksi.komisi_penitip: "Belum ada"}</td>
             </tr>
           ))}
           {/* <tr className="bg-gray-200">
