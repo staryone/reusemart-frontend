@@ -17,11 +17,18 @@ export async function getListPenitipan(
   return await GET(`/penitipan/lists?${params}`, accessToken);
 }
 
+export async function getLaporanKomisi(
+  params?: URLSearchParams,
+  accessToken?: string
+): Promise<[DetailPenitipan[], number]> {
+  return await GET(`/penitipan/laporan-komisi?${params}`, accessToken);
+}
+
 export async function getLaporanPenjualanBulanan(
   params?: URLSearchParams,
   accessToken?: string
 ): Promise<[LaporanPenjualanBulanan[], number]> {
-  return await GET(`/penitipan/laporan?${params}`, accessToken);
+  return await GET(`/penitipan/laporan-penjualan?${params}`, accessToken);
 }
 
 export async function updatePenitipan(

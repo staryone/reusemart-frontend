@@ -1,3 +1,4 @@
+import { DetailTransaksi } from "./detail-transaksi.interface";
 import { Penitip } from "./penitip.interface";
 
 export interface Barang {
@@ -14,6 +15,7 @@ export interface Barang {
   updatedAt: string;
   penitip: Penitip;
   errors?: string;
+  detail_transaksi: DetailTransaksi;
 }
 
 export interface Gambar {

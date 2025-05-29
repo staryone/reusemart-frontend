@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { getListPenitipan } from "@/lib/api/penitipan.api";
+import { getLaporanKomisi } from "@/lib/api/penitipan.api";
 import useSWR from "swr";
 import { useUser } from "@/hooks/use-user";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getListPenitipan(params, token);
+  await getLaporanKomisi(params, token);
 
 export default function LaporanKomisi() {
   // const [data] = useState([
@@ -57,6 +57,8 @@ export default function LaporanKomisi() {
       return data[0];
     }, [data]);
   
+console.log(data);
+
   const todaysDate = (): string => {
     const date = new Date();
     return date.toLocaleDateString("id-ID", {
@@ -107,7 +109,7 @@ export default function LaporanKomisi() {
               <td className="border border-gray-300 p-2">Rp{new Intl.NumberFormat("id-ID").format(item.barang.harga)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_masuk)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_laku)}</td>
-              <td className="border border-gray-300 p-2">Rp</td>
+              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi.komisi_hunter}</td>
               <td className="border border-gray-300 p-2">Rp</td>
               <td className="border border-gray-300 p-2">Rp</td>
             </tr>
