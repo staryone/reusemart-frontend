@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { getLaporanKomisi } from "@/lib/api/penitipan.api";
 import useSWR from "swr";
 import { useUser } from "@/hooks/use-user";
@@ -10,41 +10,47 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getLaporanKomisi(params, token);
 
 export default function LaporanKomisi() {
-  // const [data] = useState([
-  //   { 
-  //     code: "K201", 
-  //     name: "Kompor Tanam 3 tungku", 
-  //     price: 2000000, 
-  //     entryDate: "5/1/2025", 
-  //     saleDate: "7/1/2025", 
-  //     hunterCommission: 100000, 
-  //     reuseMartCommission: 260000, 
-  //     bonus: 40000 
-  //   },
-  //   { 
-  //     code: "R95", 
-  //     name: "Rak Buku 5 tingkat", 
-  //     price: 500000, 
-  //     entryDate: "5/1/2025", 
-  //     saleDate: "9/2/2025", 
-  //     hunterCommission: 0, 
-  //     reuseMartCommission: 137500, 
-  //     bonus: 0 
-  //   },
-  // ]);
-
   const currentUser = useUser();
   const token = currentUser !== null ? currentUser.token : "";
 
+  // State for month and year selection
+  const [selectedMonth, setSelectedMonth] = useState("1"); // Default to January
+  const [selectedYear, setSelectedYear] = useState("2025"); // Default to 2025
+
+  // List of months
+  const months = [
+    { value: "1", label: "Januari" },
+    { value: "2", label: "Februari" },
+    { value: "3", label: "Maret" },
+    { value: "4", label: "April" },
+    { value: "5", label: "Mei" },
+    { value: "6", label: "Juni" },
+    { value: "7", label: "Juli" },
+    { value: "8", label: "Agustus" },
+    { value: "9", label: "September" },
+    { value: "10", label: "Oktober" },
+    { value: "11", label: "November" },
+    { value: "12", label: "Desember" },
+  ];
+
+  // Generate years (current year and previous 5 years)
+  const years = Array.from({ length: 6 }, (_, i) => (new Date().getFullYear() - i).toString());
+
+  // Update queryParams based on selected month and year
   const queryParams = useMemo(() => {
-      const params = new URLSearchParams({
-        sortField: "tanggal_masuk",
-        sortOrder: "desc",
-      });
-      params.append("status", "TERJUAL"); 
-      params.append("all", "true");
-      return params;
-    }, []);
+    const startDate = `${selectedYear}-${selectedMonth.padStart(2, "0")}-01`;
+    const endDate = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).toISOString().split("T")[0];
+
+    const params = new URLSearchParams({
+      sortField: "tanggal_masuk",
+      sortOrder: "desc",
+      status: "TERJUAL",
+      all: "true",
+      startDate,
+      endDate,
+    });
+    return params;
+  }, [selectedMonth, selectedYear]);
 
   const { data, error, isLoading } = useSWR([queryParams, token], fetcher, {
     revalidateIfStale: false,
@@ -53,27 +59,18 @@ export default function LaporanKomisi() {
   });
 
   const barangData: DetailPenitipan[] = useMemo(() => {
-      if (!data || !Array.isArray(data[0])) return [];
-      return data[0];
-    }, [data]);
-  
-console.log(data);
+    if (!data || !Array.isArray(data[0])) return [];
+    return data[0];
+  }, [data]);
 
-  const todaysDate = (): string => {
-    const date = new Date();
-    return date.toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  };
+  console.log(data);
 
   const formatDate = (dateString: string | undefined): string => {
-    if (!dateString) return "N/A"; // Handle missing dates
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date"; // Handle invalid dates
+    if (isNaN(date.getTime())) return "Invalid Date";
     const day = String(date.getDate());
-    const month = String(date.getMonth() + 1); // Months are 0-based
+    const month = String(date.getMonth() + 1);
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
@@ -84,8 +81,45 @@ console.log(data);
   return (
     <div className="container mx-auto p-4 ml-52">
       <h1 className="text-2xl font-bold mb-4">Laporan Komisi Bulanan</h1>
-      <p className="mb-2">Bulan: Januari Tahun: 2025</p>
-      <p className="mb-2">Tanggal cetak: {todaysDate()}</p>
+      
+      {/* Dropdown for Month and Year */}
+      <div className="mb-4 flex gap-4">
+        <div>
+          <label htmlFor="month" className="mr-2">Bulan:</label>
+          <select
+            id="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="border border-gray-300 rounded p-2"
+          >
+            {months.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="year" className="mr-2">Tahun:</label>
+          <select
+            id="year"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="border border-gray-300 rounded p-2"
+          >
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <p className="mb-2">
+        Bulan: {months.find(m => m.value === selectedMonth)?.label} <br />
+        Tahun: {selectedYear}
+      </p>
       <p className="mb-4">ReUse Mart, Jl. Green Eco Park No. 456 Yogyakarta</p>
 
       <table className="w-full border-collapse border border-gray-300">
@@ -109,23 +143,13 @@ console.log(data);
               <td className="border border-gray-300 p-2">Rp{new Intl.NumberFormat("id-ID").format(item.barang.harga)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_masuk)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_laku)}</td>
-              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? item.barang.detail_transaksi.komisi_hunter: "Belum ada"}</td>
-              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? item.barang.detail_transaksi.komisi_reusemart: "Belum ada"}</td>
-              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? item.barang.detail_transaksi.komisi_penitip: "Belum ada"}</td>
+              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_hunter) : "Belum ada"}</td>
+              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_reusemart) : "Belum ada"}</td>
+              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_penitip) : "Belum ada"}</td>
             </tr>
           ))}
-          {/* <tr className="bg-gray-200">
-            <td className="border border-gray-300 p-2" colSpan={2}>Total</td>
-            <td className="border border-gray-300 p-2">{data.reduce((sum, item) => sum + item.price, 0).toLocaleString()}</td>
-            <td className="border border-gray-300 p-2"></td>
-            <td className="border border-gray-300 p-2"></td>
-            <td className="border border-gray-300 p-2">{data.reduce((sum, item) => sum + item.hunterCommission, 0).toLocaleString()}</td>
-            <td className="border border-gray-300 p-2">{data.reduce((sum, item) => sum + item.reuseMartCommission, 0).toLocaleString()}</td>
-            <td className="border border-gray-300 p-2">{data.reduce((sum, item) => sum + item.bonus, 0).toLocaleString()}</td>
-          </tr> */}
         </tbody>
       </table>
     </div>
   );
 };
-
