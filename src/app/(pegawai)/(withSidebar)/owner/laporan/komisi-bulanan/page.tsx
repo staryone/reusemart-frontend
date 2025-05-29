@@ -5,6 +5,8 @@ import { getLaporanKomisi } from "@/lib/api/penitipan.api";
 import useSWR from "swr";
 import { useUser } from "@/hooks/use-user";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getLaporanKomisi(params, token);
@@ -65,6 +67,15 @@ export default function LaporanKomisi() {
 
   console.log(data);
 
+  const todaysDate = (): string => {
+    const date = new Date();
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -75,13 +86,66 @@ export default function LaporanKomisi() {
     return `${day}/${month}/${year}`;
   };
 
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const monthLabel = months.find((m) => m.value === selectedMonth)?.label || "Unknown";
+
+    // Add header
+    doc.setFontSize(16);
+    doc.text("Laporan Komisi Bulanan", 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Bulan: ${monthLabel}`, 14, 30);
+    doc.text(`Tahun: ${selectedYear}`, 14, 38);
+    doc.text(`Tanggal Cetak: ${todaysDate()}`, 14, 46);
+    doc.text("ReUse Mart, Jl. Green Eco Park No. 456 Yogyakarta", 14, 54);
+
+    // Add table
+    autoTable(doc, {
+      startY: 60,
+      head: [
+        [
+          "Kode Produk",
+          "Nama Produk",
+          "Harga Jual",
+          "Tanggal Masuk",
+          "Tanggal Laku",
+          "Komisi Hunter",
+          "Komisi ReUseMart",
+          "Bonus Penitip",
+        ],
+      ],
+      body: barangData.map((item) => [
+        item.barang.id_barang,
+        item.barang.nama_barang,
+        `Rp${new Intl.NumberFormat("id-ID").format(item.barang.harga)}`,
+        formatDate(item.tanggal_masuk),
+        formatDate(item.tanggal_laku),
+        item.barang.detail_transaksi
+          ? `Rp${new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_hunter)}`
+          : "Belum ada",
+        item.barang.detail_transaksi
+          ? `Rp${new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_reusemart)}`
+          : "Belum ada",
+        item.barang.detail_transaksi
+          ? `Rp${new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_penitip)}`
+          : "Belum ada",
+      ]),
+      theme: "grid",
+      headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0] },
+      styles: { fontSize: 10 },
+    });
+
+    // Save the PDF
+    doc.save(`Laporan_Komisi_${monthLabel}_${selectedYear}.pdf`);
+  };
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading data</div>;
 
   return (
     <div className="container mx-auto p-4 ml-52">
       <h1 className="text-2xl font-bold mb-4">Laporan Komisi Bulanan</h1>
-      
+
       {/* Dropdown for Month and Year */}
       <div className="mb-4 flex gap-4">
         <div>
@@ -114,13 +178,25 @@ export default function LaporanKomisi() {
             ))}
           </select>
         </div>
+        
       </div>
-
-      <p className="mb-2">
-        Bulan: {months.find(m => m.value === selectedMonth)?.label} <br />
-        Tahun: {selectedYear}
-      </p>
-      <p className="mb-4">ReUse Mart, Jl. Green Eco Park No. 456 Yogyakarta</p>
+      
+      <div className="flex justify-between">
+        <div>
+          <p className="mb-2">
+            Bulan: {months.find((m) => m.value === selectedMonth)?.label} <br />
+            Tahun: {selectedYear}
+          </p>
+          <p className="mb-2">Tanggal Cetak: {todaysDate()}</p>
+          <p className="mb-4">ReUse Mart, Jl. Green Eco Park No. 456 Yogyakarta</p>
+        </div>
+        <button
+          onClick={generatePDF}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 h-3/4"
+        >
+          Download PDF
+        </button>
+      </div>
 
       <table className="w-full border-collapse border border-gray-300">
         <thead>
@@ -143,9 +219,15 @@ export default function LaporanKomisi() {
               <td className="border border-gray-300 p-2">Rp{new Intl.NumberFormat("id-ID").format(item.barang.harga)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_masuk)}</td>
               <td className="border border-gray-300 p-2">{formatDate(item.tanggal_laku)}</td>
-              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_hunter) : "Belum ada"}</td>
-              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_reusemart) : "Belum ada"}</td>
-              <td className="border border-gray-300 p-2">Rp{item.barang.detail_transaksi ? new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_penitip) : "Belum ada"}</td>
+              <td className="border border-gray-300 p-2">
+                {item.barang.detail_transaksi ? "Rp"+ new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_hunter) : "Belum ada"}
+              </td>
+              <td className="border border-gray-300 p-2">
+                {item.barang.detail_transaksi ? "Rp"+ new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_reusemart) : "Belum ada"}
+              </td>
+              <td className="border border-gray-300 p-2">
+                {item.barang.detail_transaksi ? "Rp"+ new Intl.NumberFormat("id-ID").format(item.barang.detail_transaksi.komisi_penitip) : "Belum ada"}
+              </td>
             </tr>
           ))}
         </tbody>
