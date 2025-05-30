@@ -22,8 +22,7 @@ import {
   createPenitipan,
   getListPenitipan,
   updatePenitipan,
-} from "@/lib/api/penitipan.api"
-
+} from "@/lib/api/penitipan.api";
 import { useUser } from "@/hooks/use-user";
 import { getListPegawai } from "@/lib/api/pegawai.api";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
@@ -100,27 +99,29 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPenitipan(params, token);
 
 // Component to render the receipt for PDF generation
-const PenitipanReceipt = ({
-  penitipan,
-  onGeneratePDF,
-}: {
-  penitipan: DetailPenitipan;
-  onGeneratePDF: () => void;
-}) => {
-  const formatDate = (dateString: string | undefined): string => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Tanggal tidak valid";
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+const generatePenitipanPDF = (formData: FormDataState, nomorNota: string) => {
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
 
-  const formatDateWithTime = (dateString: string | undefined): string => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Tanggal tidak valid";
+  // Set font and styles
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(16);
+
+  // Title
+  pdf.text("NOTA PENITIPAN BARANG", 105, 20, { align: "center" });
+
+  // Store Info
+  pdf.setFontSize(12);
+  pdf.text("REUse Mart", 20, 40);
+  pdf.text("Jl. Green Eco Park No. 456 Yogyakarta", 20, 45);
+  pdf.line(20, 50, 190, 50); // Horizontal line
+
+  // Receipt Details
+  const tanggalMasuk = new Date();
+  const formatDateWithTime = (date: Date): string => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
@@ -129,100 +130,69 @@ const PenitipanReceipt = ({
     const seconds = String(date.getSeconds()).padStart(2, "0");
     return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   };
-
-  const handleGeneratePDF = () => {
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    // Set font and styles
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(16);
-
-    // Title
-    pdf.text("NOTA PENITIPAN BARANG", 105, 20, { align: "center" });
-
-    // Store Info
-    pdf.setFontSize(12);
-    pdf.text("REUse Mart", 20, 40);
-    pdf.text("Jl. Green Eco Park No. 456 Yogyakarta", 20, 45);
-    pdf.line(20, 50, 190, 50); // Horizontal line
-
-    // Receipt Details
-    pdf.text(`No Nota: ${penitipan.nomorNota}`, 20, 60);
-    pdf.text(
-      `Tanggal penitipan: ${formatDateWithTime(penitipan.tanggal_masuk)}`,
-      20,
-      65
-    );
-    pdf.text(
-      `Masa penitipan sampai: ${formatDate(penitipan.tanggal_akhir)}`,
-      20,
-      70
-    );
-    pdf.line(20, 75, 190, 75); // Horizontal line
-
-    // Penitip Info
-    pdf.setFontSize(12);
-    pdf.setFont("helvetica", "bold");
-    pdf.text(
-      `PENITIP: ${penitipan.penitipan.penitip.id_penitip} / ${penitipan.penitipan.penitip.nama}`,
-      20,
-      85
-    );
-    pdf.setFont("helvetica", "normal");
-    pdf.text(`${penitipan.penitipan.penitip.alamat}`, 20, 90);
-
-    // Item Details
-    const hargaFormatted = new Intl.NumberFormat("id-ID").format(
-      penitipan.barang.harga
-    );
-    const itemLine = `${penitipan.barang.nama_barang}`;
-    const hargaLine = `${hargaFormatted}`;
-    pdf.text(itemLine, 20, 110);
-    pdf.text(hargaLine, 190 - pdf.getTextWidth(hargaLine), 110); // Right-align harga
-
-    let yPosition = 115;
-    if (penitipan.barang.garansi) {
-      pdf.text(
-        `Garansi ON ${new Date(penitipan.barang.garansi).toLocaleString(
-          "id-ID",
-          { month: "long", year: "numeric" }
-        )}`,
-        20,
-        yPosition
-      );
-      yPosition += 5;
-    }
-    pdf.text(`Berat barang: ${penitipan.barang.berat} kg`, 20, yPosition);
-    yPosition += 5;
-
-    // QC Info
-    pdf.setFont("helvetica", "italic");
-    pdf.text("Diterima dan QC oleh:", 20, yPosition);
-    pdf.setFont("helvetica", "normal");
-    pdf.line(20, yPosition + 2, 190, yPosition + 2); // Horizontal line
-    pdf.text(
-      `P${penitipan.penitipan.pegawai_qc.id_pegawai} - ${penitipan.penitipan.pegawai_qc.nama}`,
-      20,
-      yPosition + 7
-    );
-
-    // Save the PDF
-    pdf.save(`nota_penitipan_${penitipan.id_dtl_penitipan}.pdf`);
-    if (onGeneratePDF) onGeneratePDF();
+  const formatDate = (date: Date): string => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
-  useEffect(() => {
-    if (penitipan) {
-      handleGeneratePDF();
-    }
-  }, [penitipan]);
+  pdf.text(`No Nota: ${nomorNota}`, 20, 60);
+  pdf.text(`Tanggal penitipan: ${formatDateWithTime(tanggalMasuk)}`, 20, 65);
+  pdf.text(
+    `Masa penitipan sampai: ${formatDate(
+      new Date(computeTanggalAkhir(tanggalMasuk))
+    )}`,
+    20,
+    70
+  );
+  pdf.line(20, 75, 190, 75); // Horizontal line
 
-  // Since we're not rendering to the DOM, return null
-  return null;
+  // Penitip Info
+  pdf.setFontSize(12);
+  pdf.setFont("helvetica", "bold");
+  pdf.text(
+    `PENITIP: ${formData.penitipanData.penitip?.id_penitip} / ${formData.penitipanData.penitip?.nama}`,
+    20,
+    85
+  );
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`${formData.penitipanData.penitip?.alamat || "N/A"}`, 20, 90);
+
+  // Item Details
+  let yPosition = 110;
+  pdf.setFont("helvetica", "bold");
+  pdf.text("Daftar Barang:", 20, yPosition);
+  pdf.setFont("helvetica", "normal");
+  yPosition += 5;
+
+  formData.barangData.forEach((barang, index) => {
+    const hargaFormatted = new Intl.NumberFormat("id-ID").format(
+      Number(barang.harga)
+    );
+    const itemLine = `${index + 1}. ${barang.nama_barang}`;
+    const hargaLine = `${hargaFormatted}`;
+    pdf.text(itemLine, 20, yPosition);
+    pdf.text(hargaLine, 190 - pdf.getTextWidth(hargaLine), yPosition);
+    yPosition += 5;
+
+    pdf.text(`Berat barang: ${barang.berat} kg`, 25, yPosition);
+    yPosition += 5;
+  });
+
+  // QC Info
+  pdf.setFont("helvetica", "italic");
+  pdf.text("Diterima dan QC oleh:", 20, yPosition);
+  pdf.setFont("helvetica", "normal");
+  pdf.line(20, yPosition + 2, 190, yPosition + 2); // Horizontal line
+  pdf.text(
+    `P${formData.penitipanData.pegawai_qc?.id_pegawai} - ${formData.penitipanData.pegawai_qc?.nama}`,
+    20,
+    yPosition + 7
+  );
+
+  // Save the PDF
+  pdf.save(`nota_penitipan_${nomorNota}.pdf`);
 };
 
 export default function PenitipanMaster() {
@@ -246,11 +216,9 @@ export default function PenitipanMaster() {
   const [openDetailModal, setOpenDetailModal] = useState<boolean>(false);
   const [selectedPenitipan, setSelectedPenitipan] =
     useState<DetailPenitipan | null>(null);
-  const [pdfPenitipan, setPdfPenitipan] = useState<DetailPenitipan | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
-  // New state for date range
-  const [startDate, setStartDate] = useState<string>("2025-03-01");
-  const [endDate, setEndDate] = useState<string>("2025-04-30");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
   const [formData, setFormData] = useState<FormDataState>({
     barangData: [
@@ -698,6 +666,9 @@ export default function PenitipanMaster() {
       const res = await createPenitipan(formDataToSend, token);
       if (!res.errors) {
         setCreateSuccess("Penitipan created successfully");
+        // Generate PDF with a unique nomorNota
+        const nomorNota = `PN${Date.now()}`; // Simple unique identifier
+        generatePenitipanPDF(formData, nomorNota);
         mutate();
         setTimeout(() => {
           onCloseCreateModal();
@@ -853,10 +824,6 @@ export default function PenitipanMaster() {
   const handleOpenDetailModal = (penitipan: DetailPenitipan): void => {
     setSelectedPenitipan(penitipan);
     setOpenDetailModal(true);
-  };
-
-  const handleGeneratePDF = (penitipan: DetailPenitipan) => {
-    setPdfPenitipan(penitipan);
   };
 
   const filteredPenitip = semuaPenitip.filter(
@@ -1486,13 +1453,6 @@ export default function PenitipanMaster() {
       {renderModal(false)}
       {renderModal(true)}
 
-      {pdfPenitipan && (
-        <PenitipanReceipt
-          penitipan={pdfPenitipan}
-          onGeneratePDF={() => setPdfPenitipan(null)}
-        />
-      )}
-
       <Modal
         show={openDetailModal}
         size="3xl"
@@ -1631,14 +1591,6 @@ export default function PenitipanMaster() {
               </div>
             )}
             <div className="flex justify-end mt-4 space-x-2">
-              <Button
-                color="blue"
-                onClick={() =>
-                  selectedPenitipan && handleGeneratePDF(selectedPenitipan)
-                }
-              >
-                Download PDF
-              </Button>
               <Button color="gray" onClick={() => setOpenDetailModal(false)}>
                 Tutup
               </Button>

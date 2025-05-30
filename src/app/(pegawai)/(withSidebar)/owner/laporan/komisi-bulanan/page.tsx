@@ -15,9 +15,21 @@ export default function LaporanKomisi() {
   const currentUser = useUser();
   const token = currentUser !== null ? currentUser.token : "";
 
-  // State for month and year selection
-  const [selectedMonth, setSelectedMonth] = useState("1"); // Default to January
-  const [selectedYear, setSelectedYear] = useState("2025"); // Default to 2025
+  const todaysMonth = (): string => {
+    const date = new Date();
+    return date.toLocaleDateString("id-ID", {
+      month: "numeric",
+    });
+  };
+  const todaysYear = (): string => {
+    const date = new Date();
+    return date.toLocaleDateString("id-ID", {
+      year: "numeric",
+    });
+  };
+  
+  const [selectedMonth, setSelectedMonth] = useState(todaysMonth()); 
+  const [selectedYear, setSelectedYear] = useState(todaysYear());
 
   // List of months
   const months = [

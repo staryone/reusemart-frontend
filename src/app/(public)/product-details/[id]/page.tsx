@@ -165,7 +165,7 @@ export default function ProductDetails() {
                 </div>
                 <div className="flex justify-center items-center">
                   <HiStar className="text-2xl text-yellow-300" />
-                  {barang?.penitip.rating}/5
+                  {barang?.penitip.rating.toFixed(1)}/5
                 </div>
               </div>
             </div>
