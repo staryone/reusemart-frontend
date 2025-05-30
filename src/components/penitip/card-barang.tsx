@@ -4,7 +4,7 @@ import { format, differenceInSeconds } from "date-fns";
 import { id } from "date-fns/locale";
 import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
 import { useState, useEffect } from "react";
-import { extendPenitipan } from "@/lib/api/penitip.api";
+import { extendPenitipan, updateBarangStatus } from "@/lib/api/penitip.api";
 import { useUser } from "@/hooks/use-user";
 import toast from "react-hot-toast";
 
@@ -99,9 +99,34 @@ export default function CardBarang({
     }
   };
 
+  // const handlePickupItem = async () => {
+  //   try {
+  //     // Implement your pickup logic here
+  //     toast.success("Barang berhasil diambil!");
+  //     setIsPickupModalOpen(false);
+  //   } catch (error: any) {
+  //     console.error("Error picking up item:", error);
+  //     toast.error(
+  //       "Gagal mengambil barang: " + (error.message || "Unknown error")
+  //     );
+  //   }
+  // };
   const handlePickupItem = async () => {
     try {
-      // Implement your pickup logic here
+      // Prepare the data for updateBarangStatus
+      const data = {
+        id_barang: penitipan.barang.id_barang,
+        status: "MENUNGGU_KEMBALI",
+      };
+
+      // Convert data to FormData
+      const formData = new FormData();
+      formData.append("id_barang", data.id_barang);
+      formData.append("status", data.status);
+
+      // Call updateBarangStatus with FormData
+      await updateBarangStatus(data, accessToken); // Ensure accessToken is defined in your scope
+
       toast.success("Barang berhasil diambil!");
       setIsPickupModalOpen(false);
     } catch (error: any) {

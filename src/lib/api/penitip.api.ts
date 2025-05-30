@@ -71,6 +71,16 @@ export async function extendPenitipan(
   );
 }
 
+export async function updateBarangStatus(
+  data: { id_barang: string; status: string },
+  accessToken?: string
+): Promise<ResponseAPI> {
+  const formData = new FormData();
+  formData.append("id_barang", data.id_barang);
+  formData.append("status", data.status);
+  return await PATCH(`/barang/status`, formData, accessToken);
+}
+
 // export async function resetPasswordPenitip(
 //   id: string,
 //   accessToken?: string
