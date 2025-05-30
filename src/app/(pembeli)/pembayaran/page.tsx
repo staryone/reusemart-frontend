@@ -92,14 +92,16 @@ const PaymentPage: React.FC = () => {
 
   // Countdown logic
   useEffect(() => {
-    if (timeLeft <= 0 || hasExpired) return;
+    if (hasExpired) {
+      handleExpiry();
+      return;
+    }
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        if (prev < 1) {
           clearInterval(timer);
           if (!hasExpired) {
-            handleExpiry();
             setHasExpired(true);
           }
           return 0;
