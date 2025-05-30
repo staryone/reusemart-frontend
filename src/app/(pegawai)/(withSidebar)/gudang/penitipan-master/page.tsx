@@ -22,7 +22,8 @@ import {
   createPenitipan,
   getListPenitipan,
   updatePenitipan,
-} from "@/lib/api/penitipan.api";
+} from "@/lib/api/penitipan.api"
+
 import { useUser } from "@/hooks/use-user";
 import { getListPegawai } from "@/lib/api/pegawai.api";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
@@ -173,7 +174,6 @@ const PenitipanReceipt = ({
     );
     pdf.setFont("helvetica", "normal");
     pdf.text(`${penitipan.penitipan.penitip.alamat}`, 20, 90);
-    // pdf.text("Caturunggl, Depok, Sleman", 20, 95);
 
     // Item Details
     const hargaFormatted = new Intl.NumberFormat("id-ID").format(
@@ -224,6 +224,7 @@ const PenitipanReceipt = ({
   // Since we're not rendering to the DOM, return null
   return null;
 };
+
 export default function PenitipanMaster() {
   const [openCreateModal, setOpenCreateModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
@@ -245,10 +246,12 @@ export default function PenitipanMaster() {
   const [openDetailModal, setOpenDetailModal] = useState<boolean>(false);
   const [selectedPenitipan, setSelectedPenitipan] =
     useState<DetailPenitipan | null>(null);
-  const [pdfPenitipan, setPdfPenitipan] = useState<DetailPenitipan | null>(
-    null
-  );
+  const [pdfPenitipan, setPdfPenitipan] = useState<DetailPenitipan | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
+  // New state for date range
+  const [startDate, setStartDate] = useState<string>("2025-03-01");
+  const [endDate, setEndDate] = useState<string>("2025-04-30");
+
   const [formData, setFormData] = useState<FormDataState>({
     barangData: [
       {
@@ -283,7 +286,6 @@ export default function PenitipanMaster() {
     { value: "TERSEDIA", label: "Tersedia" },
     { value: "TERJUAL", label: "Terjual" },
     { value: "DIDONASIKAN", label: "Didonasikan" },
-    // Add other possible statuses based on your data model
   ];
 
   const queryParams = useMemo(() => {
@@ -297,10 +299,16 @@ export default function PenitipanMaster() {
       params.append("search", searchQuery);
     }
     if (statusFilter) {
-      params.append("status", statusFilter); // Add status to query params
+      params.append("status", statusFilter);
+    }
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+    if (endDate) {
+      params.append("endDate", endDate);
     }
     return params;
-  }, [page, searchQuery, limit, statusFilter]);
+  }, [page, searchQuery, limit, statusFilter, startDate, endDate]);
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -369,7 +377,6 @@ export default function PenitipanMaster() {
   }, [paramsHunter, paramsQC, paramsPenitip, token]);
 
   const resetForm = () => {
-    // Revoke existing object URLs
     formData.barangData.forEach((barang) => {
       barang.gambar.forEach((item) => {
         if (item instanceof File) {
@@ -462,12 +469,10 @@ export default function PenitipanMaster() {
       return;
     }
 
-    // Compute existingFiles outside the setFormData callback
     const existingFiles = formData.barangData[index].gambar.filter(
-      (item) => !(item instanceof File) // Keep existing server images
+      (item) => !(item instanceof File)
     );
 
-    // Filter out duplicates by file name and size
     const newFiles = fileArray.filter(
       (newFile) =>
         !existingFiles.some(
@@ -478,14 +483,12 @@ export default function PenitipanMaster() {
         )
     );
 
-    // Update formData with new and existing files
     setFormData((prev) => {
       const newData = { ...prev };
       newData.barangData[index].gambar = [...existingFiles, ...newFiles];
       return newData;
     });
 
-    // Update form errors based on total images
     setFormErrors((prev) => ({
       ...prev,
       [`barangData_${index}_gambar`]:
@@ -494,7 +497,6 @@ export default function PenitipanMaster() {
           : "",
     }));
 
-    // Reset file input
     const fileInput = document.getElementById(
       `gambar_${index}`
     ) as HTMLInputElement;
@@ -505,7 +507,6 @@ export default function PenitipanMaster() {
 
   useEffect(() => {
     return () => {
-      // Clean up all object URLs when component unmounts or modal closes
       formData.barangData.forEach((barang) => {
         barang.gambar.forEach((item) => {
           if (item instanceof File) {
@@ -748,8 +749,6 @@ export default function PenitipanMaster() {
         },
       ],
     });
-    console.log("Penitipan data", penitipan);
-    console.log("Form data", formData);
     setOpenEditModal(true);
   };
 
@@ -793,8 +792,6 @@ export default function PenitipanMaster() {
       JSON.stringify(formData.detailPenitipanData)
     );
 
-    console.log(formData.barangData);
-
     formData.barangData.forEach((barang, index) => {
       const existingImages: { id_gambar: number }[] = [];
       barang.gambar.forEach((item) => {
@@ -836,8 +833,12 @@ export default function PenitipanMaster() {
     const formData = new FormData(e.currentTarget);
     const search = formData.get("search-penitipan") as string;
     const status = formData.get("status-filter") as string;
+    const start = formData.get("start-date") as string;
+    const end = formData.get("end-date") as string;
     setSearchQuery(search);
     setStatusFilter(status);
+    setStartDate(start || "");
+    setEndDate(end || "");
     setPage(1);
   };
 
@@ -1303,35 +1304,63 @@ export default function PenitipanMaster() {
       <div className="flex-1 p-4 ml-64">
         <h1 className="text-4xl font-bold mt-12 mb-4">Data Penitipan</h1>
         <div className="flex justify-between items-center my-5">
-          <form className="flex gap-3" onSubmit={handleSearch}>
-            <input
-              type="text"
-              name="search-penitipan"
-              id="search-penitipan"
-              className="border rounded-md p-2 w-72"
-              placeholder="Cari penitipan"
-            />
-            <Select
-              name="status-filter"
-              id="status-filter"
-              value={statusFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setStatusFilter(e.target.value)
-              }
-              className="w-48"
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-            <button
-              type="submit"
-              className="p-3 bg-blue-500 text-white rounded-md"
-            >
+          <form className="flex flex-col gap-3" onSubmit={handleSearch}>
+            <div className="flex gap-3">
+              <TextInput
+                type="text"
+                name="search-penitipan"
+                id="search-penitipan"
+                className="w-72"
+                placeholder="Cari penitipan"
+              />
+              <Select
+                name="status-filter"
+                id="status-filter"
+                value={statusFilter}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setStatusFilter(e.target.value)
+                }
+                className="w-48"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex flex-col gap-4 w-1/2 mt-3">
+              <div>Rentang Tanggal</div>
+              <div className="flex justify-between items-center gap-3">
+                <div>Dari</div>
+                <TextInput
+                  type="date"
+                  name="start-date"
+                  id="start-date"
+                  value={startDate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setStartDate(e.target.value)
+                  }
+                  className="w-40"
+                />
+              </div>
+              <div className="flex justify-between items-center gap-3">
+                <div>Sampai</div>
+                <TextInput
+                  type="date"
+                  name="end-date"
+                  id="end-date"
+                  value={endDate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setEndDate(e.target.value)
+                  }
+                  className="w-40"
+                />
+              </div>
+            <Button type="submit" className="p-3 bg-blue-500 text-white">
               <HiSearch />
-            </button>
+            </Button>
+            </div>
           </form>
           <Button
             onClick={() => setOpenCreateModal(true)}
