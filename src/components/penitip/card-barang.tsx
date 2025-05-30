@@ -21,6 +21,8 @@ export default function CardBarang({
 }: Props) {
   const [penitipan, setPenitipan] = useState<DetailPenitipan>(dtlPenitipan);
   const [countdown, setCountdown] = useState<string>("");
+  const [isExtendModalOpen, setIsExtendModalOpen] = useState(false);
+  const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
   const currentUser = useUser();
   const token = accessToken || (currentUser !== null ? currentUser.token : "");
 
@@ -57,14 +59,19 @@ export default function CardBarang({
       setCountdown(formatCountdown(secondsLeft));
     };
 
-    updateCountdown(); // Initial call
-    const interval = setInterval(updateCountdown, 1000); // Update every second
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, [penitipan.tanggal_akhir]);
 
   const remainingSeconds = differenceInSeconds(
     new Date(penitipan.tanggal_akhir),
+    new Date()
+  );
+
+  const remainingPickupSeconds = differenceInSeconds(
+    new Date(penitipan.batas_ambil),
     new Date()
   );
 
@@ -92,8 +99,85 @@ export default function CardBarang({
     }
   };
 
+  const handlePickupItem = async () => {
+    try {
+      // Implement your pickup logic here
+      toast.success("Barang berhasil diambil!");
+      setIsPickupModalOpen(false);
+    } catch (error: any) {
+      console.error("Error picking up item:", error);
+      toast.error(
+        "Gagal mengambil barang: " + (error.message || "Unknown error")
+      );
+    }
+  };
+
   return (
     <>
+      {/* Extend Confirmation Modal */}
+      {isExtendModalOpen && (
+        <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-semibold mb-4">
+              Konfirmasi Perpanjangan Penitipan
+            </h2>
+            <p className="mb-6">
+              Apakah Anda yakin ingin memperpanjang penitipan untuk{" "}
+              <span className="font-semibold">
+                {penitipan.barang.nama_barang}
+              </span>
+              ?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                onClick={() => setIsExtendModalOpen(false)}
+              >
+                Batal
+              </button>
+              <button
+                className="px-4 py-2 rounded-lg bg-[#72C678] hover:bg-[#008E6D] text-white"
+                onClick={handleExtendPenitipan}
+              >
+                Konfirmasi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pickup Confirmation Modal */}
+      {isPickupModalOpen && (
+        <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">
+              Konfirmasi Pengambilan Barang
+            </h2>
+            <p className="mb-6">
+              Apakah Anda yakin ingin mengambil{" "}
+              <span className="font-semibold">
+                {penitipan.barang.nama_barang}
+              </span>
+              ?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                onClick={() => setIsPickupModalOpen(false)}
+              >
+                Batal
+              </button>
+              <button
+                className="px-4 py-2 rounded-lg bg-[#72C678] hover:bg-[#008E6D] text-white"
+                onClick={handlePickupItem}
+              >
+                Konfirmasi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-5 items-start border rounded-xl p-4 mb-4 bg-white shadow-sm">
         <div className="w-3/12">
           <Image
@@ -159,7 +243,15 @@ export default function CardBarang({
                 </span>{" "}
               </p>
               <div className="flex gap-2">
-                <button className="bg-[#72C678] text-white px-4 py-2 rounded-lg hover:bg-[#008E6D] transition-colors">
+                <button
+                  className={`px-4 py-2 rounded-lg text-white transition-colors ${
+                    remainingPickupSeconds > 0
+                      ? "bg-[#72C678] hover:bg-[#008E6D]"
+                      : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                  disabled={remainingPickupSeconds <= 0}
+                  onClick={() => setIsPickupModalOpen(true)}
+                >
                   Ambil Barang
                 </button>
                 <button
@@ -169,7 +261,7 @@ export default function CardBarang({
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
                   disabled={penitipan.is_perpanjang || remainingSeconds <= 0}
-                  onClick={handleExtendPenitipan}
+                  onClick={() => setIsExtendModalOpen(true)}
                 >
                   Perpanjang Penitipan
                 </button>
