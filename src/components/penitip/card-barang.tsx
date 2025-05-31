@@ -22,7 +22,8 @@ export default function CardBarang({
   onPickupSuccess,
 }: Props) {
   const [penitipan, setPenitipan] = useState<DetailPenitipan>(dtlPenitipan);
-  const [countdown, setCountdown] = useState<string>("");
+  const [penitipanCountdown, setPenitipanCountdown] = useState<string>("");
+  const [pickupCountdown, setPickupCountdown] = useState<string>("");
   const [isExtendModalOpen, setIsExtendModalOpen] = useState(false);
   const [isPickupModalOpen, setIsPickupModalOpen] = useState(false);
   const currentUser = useUser();
@@ -54,18 +55,29 @@ export default function CardBarang({
   };
 
   useEffect(() => {
-    const updateCountdown = () => {
+    const updatePenitipanCountdown = () => {
       const now = new Date();
       const endDate = new Date(penitipan.tanggal_akhir);
       const secondsLeft = differenceInSeconds(endDate, now);
-      setCountdown(formatCountdown(secondsLeft));
+      setPenitipanCountdown(formatCountdown(secondsLeft));
     };
 
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
+    const updatePickupCountdown = () => {
+      const now = new Date();
+      const pickupDate = new Date(penitipan.batas_ambil);
+      const secondsLeft = differenceInSeconds(pickupDate, now);
+      setPickupCountdown(formatCountdown(secondsLeft));
+    };
+
+    updatePenitipanCountdown();
+    updatePickupCountdown();
+    const interval = setInterval(() => {
+      updatePenitipanCountdown();
+      updatePickupCountdown();
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [penitipan.tanggal_akhir]);
+  }, [penitipan.tanggal_akhir, penitipan.batas_ambil]);
 
   const remainingSeconds = differenceInSeconds(
     new Date(penitipan.tanggal_akhir),
@@ -232,35 +244,42 @@ export default function CardBarang({
                 {formatRupiah(dtlPenitipan.barang.harga)}
               </span>
             </p>
-            <p className="text-sm">
+            <p className="text-md">
               Tanggal masuk:{" "}
               <span className="text-[#72C678] font-semibold">
                 {formatTanggal(dtlPenitipan.tanggal_masuk)}
               </span>
             </p>
-            <p className="text-sm">
+            <p className="text-md">
               Batas penitipan:{" "}
               <span className="text-[#72C678] font-semibold">
                 {formatTanggal(dtlPenitipan.tanggal_akhir)}
               </span>
             </p>
-            <p className="text-sm">
+            <p className="text-md">
               Batas ambil:{" "}
               <span className="text-[#72C678] font-semibold">
                 {formatTanggal(dtlPenitipan.batas_ambil)}
               </span>
             </p>
             <div className="flex justify-between">
-              <p className="text-md">
-                Sisa waktu:{" "}
-                <span className="text-[#e80505] font-semibold">
-                  {countdown}
-                </span>{" "}
-              </p>
+              <div>
+                <p className="text-md">
+                  {remainingSeconds > 0
+                    ? "Waktu Penitipan"
+                    : "Waktu Pengambilan"}{" "}
+                  <span className="text-[#e80505] font-semibold">
+                    {remainingSeconds > 0
+                      ? penitipanCountdown
+                      : pickupCountdown}
+                  </span>
+                </p>
+              </div>
               <div className="flex gap-2">
                 <button
                   className={`px-4 py-2 rounded-lg text-white transition-colors ${
                     remainingPickupSeconds > 0 &&
+                    remainingSeconds <= 0 &&
                     dtlPenitipan.barang.status === "TERSEDIA"
                       ? "bg-[#72C678] hover:bg-[#008E6D]"
                       : "bg-gray-400 cursor-not-allowed"
