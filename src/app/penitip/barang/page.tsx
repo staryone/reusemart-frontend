@@ -89,6 +89,7 @@ export default function TransaksiPenitip() {
               dtlPenitipan={trx}
               accessToken={currentUser?.token || ""}
               onExtendSuccess={() => mutate()}
+              onPickupSuccess={() => mutate()}
             />
           ))
         )}

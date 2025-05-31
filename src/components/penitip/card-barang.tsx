@@ -12,12 +12,14 @@ interface Props {
   dtlPenitipan: DetailPenitipan;
   accessToken: string;
   onExtendSuccess: () => void;
+  onPickupSuccess: () => void;
 }
 
 export default function CardBarang({
   dtlPenitipan,
   accessToken,
   onExtendSuccess,
+  onPickupSuccess,
 }: Props) {
   const [penitipan, setPenitipan] = useState<DetailPenitipan>(dtlPenitipan);
   const [countdown, setCountdown] = useState<string>("");
@@ -85,7 +87,7 @@ export default function CardBarang({
   const handleExtendPenitipan = async () => {
     try {
       const updatedPenitipan = await extendPenitipan(
-        penitipan.id_dtl_penitipan,
+        dtlPenitipan.id_dtl_penitipan,
         token
       );
       setPenitipan(updatedPenitipan);
@@ -93,41 +95,27 @@ export default function CardBarang({
       toast.success("Penitipan berhasil diperpanjang!");
     } catch {
       toast.error("Gagal memperpanjang penitipan: " + "Unknown error");
+    } finally {
+      setIsExtendModalOpen(false);
     }
   };
 
-  // const handlePickupItem = async () => {
-  //   try {
-  //     // Implement your pickup logic here
-  //     toast.success("Barang berhasil diambil!");
-  //     setIsPickupModalOpen(false);
-  //   } catch (error: any) {
-  //     console.error("Error picking up item:", error);
-  //     toast.error(
-  //       "Gagal mengambil barang: " + (error.message || "Unknown error")
-  //     );
-  //   }
-  // };
   const handlePickupItem = async () => {
     try {
-      // Prepare the data for updateBarangStatus
       const data = {
-        id_barang: penitipan.barang.id_barang,
+        id_barang: dtlPenitipan.barang.id_barang,
         status: "MENUNGGU_KEMBALI",
       };
-
-      // Convert data to FormData
-      console.log(penitipan);
       const formData = new FormData();
       formData.append("id_barang", data.id_barang);
       formData.append("status", data.status);
-
-      const result = await updateBarangStatus(data, accessToken); // Ensure accessToken is defined in your scope
+      const result = await updateBarangStatus(data, accessToken);
 
       if (result.errors) {
         toast.error("Barang gagal diambil! " + result.errors);
       } else {
         toast.success("Barang berhasil diambil!");
+        onPickupSuccess();
         setIsPickupModalOpen(false);
       }
     } catch {
@@ -147,7 +135,7 @@ export default function CardBarang({
             <p className="mb-6">
               Apakah Anda yakin ingin memperpanjang penitipan untuk{" "}
               <span className="font-semibold">
-                {penitipan.barang.nama_barang}
+                {dtlPenitipan.barang.nama_barang}
               </span>
               ?
             </p>
@@ -227,10 +215,14 @@ export default function CardBarang({
                     ? "bg-purple-500"
                     : dtlPenitipan.barang.status === "KEMBALI"
                     ? "bg-red-500"
+                    : dtlPenitipan.barang.status === "MENUNGGU_KEMBALI"
+                    ? "bg-yellow-500"
                     : "bg-gray-500"
                 }`}
               >
-                {dtlPenitipan.barang.status}
+                {dtlPenitipan.barang.status === "MENUNGGU_KEMBALI"
+                  ? "MENUNGGU DIAMBIL"
+                  : dtlPenitipan.barang.status}
               </span>
             </div>
 
@@ -268,11 +260,15 @@ export default function CardBarang({
               <div className="flex gap-2">
                 <button
                   className={`px-4 py-2 rounded-lg text-white transition-colors ${
-                    remainingPickupSeconds > 0
+                    remainingPickupSeconds > 0 &&
+                    dtlPenitipan.barang.status === "TERSEDIA"
                       ? "bg-[#72C678] hover:bg-[#008E6D]"
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
-                  disabled={remainingPickupSeconds <= 0}
+                  disabled={
+                    remainingPickupSeconds <= 0 ||
+                    dtlPenitipan.barang.status !== "TERSEDIA"
+                  }
                   onClick={() => setIsPickupModalOpen(true)}
                 >
                   Ambil Barang
