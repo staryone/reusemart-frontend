@@ -61,6 +61,12 @@ export default function SideBar() {
           <SidebarItem href="/gudang/pengiriman" icon={HiBriefcase} as={Link}>
             Pengiriman
           </SidebarItem>
+          <SidebarItem href="/gudang/pengiriman" icon={HiBriefcase} as={Link}>
+            Pengambilan
+          </SidebarItem>
+          <SidebarItem href="/gudang/pengiriman" icon={HiBriefcase} as={Link}>
+            Barang Kembali
+          </SidebarItem>
           {/* <SidebarItem href="/admin/organisasi-master" icon={HiOfficeBuilding} as={Link}>
             Organisasi
           </SidebarItem>
