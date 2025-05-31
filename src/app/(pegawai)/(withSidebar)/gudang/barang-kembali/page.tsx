@@ -87,6 +87,7 @@ export default function BarangKembali() {
         );
         setOpenConfirmModal(false);
         setSelectedBarang(null);
+        mutate();
       }
     } catch {
       toast.error("Gagal mengambil barang: " + "Unknown error");

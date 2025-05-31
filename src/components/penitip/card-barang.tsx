@@ -38,6 +38,7 @@ export default function CardBarang({
   };
 
   const formatTanggal = (date: string) => {
+    console.log("formatTanggal", date);
     return format(new Date(date), "dd MMMM yyyy, HH:mm", { locale: id });
   };
 
@@ -265,11 +266,15 @@ export default function CardBarang({
             <div className="flex justify-between">
               <div>
                 <p className="text-md">
-                  {remainingSeconds > 0
+                  {dtlPenitipan.barang.status === "KEMBALI"
+                    ? "Tanggal Kembali:"
+                    : remainingSeconds > 0
                     ? "Waktu Penitipan"
                     : "Waktu Pengambilan"}{" "}
                   <span className="text-[#e80505] font-semibold">
-                    {remainingSeconds > 0
+                    {dtlPenitipan.barang.status === "KEMBALI"
+                      ? formatTanggal(dtlPenitipan.barang.updatedAt)
+                      : remainingSeconds > 0
                       ? penitipanCountdown
                       : pickupCountdown}
                   </span>

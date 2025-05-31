@@ -56,5 +56,5 @@ export async function updateBarangStatus(
   const formData = new FormData();
   formData.append("id_barang", data.id_barang);
   formData.append("status", data.status);
-  return await PATCH(`/pegawai/status`, formData, accessToken);
+  return await PATCH(`/pegawai/status-barang`, formData, accessToken);
 }
