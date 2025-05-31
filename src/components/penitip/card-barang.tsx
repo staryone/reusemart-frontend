@@ -91,11 +91,8 @@ export default function CardBarang({
       setPenitipan(updatedPenitipan);
       onExtendSuccess();
       toast.success("Penitipan berhasil diperpanjang!");
-    } catch (error: any) {
-      console.error("Error extending penitipan:", error);
-      toast.error(
-        "Gagal memperpanjang penitipan: " + (error.message || "Unknown error")
-      );
+    } catch {
+      toast.error("Gagal memperpanjang penitipan: " + "Unknown error");
     }
   };
 
@@ -120,20 +117,21 @@ export default function CardBarang({
       };
 
       // Convert data to FormData
+      console.log(penitipan);
       const formData = new FormData();
       formData.append("id_barang", data.id_barang);
       formData.append("status", data.status);
 
-      // Call updateBarangStatus with FormData
-      await updateBarangStatus(data, accessToken); // Ensure accessToken is defined in your scope
+      const result = await updateBarangStatus(data, accessToken); // Ensure accessToken is defined in your scope
 
-      toast.success("Barang berhasil diambil!");
-      setIsPickupModalOpen(false);
-    } catch (error: any) {
-      console.error("Error picking up item:", error);
-      toast.error(
-        "Gagal mengambil barang: " + (error.message || "Unknown error")
-      );
+      if (result.errors) {
+        toast.error("Barang gagal diambil! " + result.errors);
+      } else {
+        toast.success("Barang berhasil diambil!");
+        setIsPickupModalOpen(false);
+      }
+    } catch {
+      toast.error("Gagal mengambil barang: " + "Unknown error");
     }
   };
 

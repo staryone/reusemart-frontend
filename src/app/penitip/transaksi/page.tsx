@@ -104,7 +104,9 @@ export default function Home() {
   const isItemSold = (barang: Barang): boolean => {
     return (
       !!barang.detail_transaksi &&
-      barang.detail_transaksi.transaksi.pengiriman?.status_pengiriman ===
+      !!barang.detail_transaksi.transaksi &&
+      !!barang.detail_transaksi.transaksi.pengiriman &&
+      barang.detail_transaksi.transaksi.pengiriman.status_pengiriman ===
         "SUDAH_DITERIMA"
     );
   };
