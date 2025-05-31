@@ -2,6 +2,7 @@
 
 import { useUser } from "@/hooks/use-user";
 import { getListBarang } from "@/lib/api/barang.api";
+import { updateBarangStatus } from "@/lib/api/pegawai.api";
 import { Barang } from "@/lib/interface/barang.interface";
 import {
   Table,
@@ -76,17 +77,17 @@ export default function BarangKembali() {
       const formData = new FormData();
       formData.append("id_barang", data.id_barang);
       formData.append("status", data.status);
-      // const result = await updateBarangStatus(data, token);
+      const result = await updateBarangStatus(data, token);
 
-      // if (result.errors) {
-      //   toast.error("Barang gagal diambil! " + result.errors);
-      // } else {
-      //   toast.success(
-      //     `Pengambilan barang ${selectedBarang.nama_barang} confirmed!`
-      //   );
-      //   setOpenConfirmModal(false);
-      //   setSelectedBarang(null);
-      // }
+      if (result.errors) {
+        toast.error("Barang gagal diambil! " + result.errors);
+      } else {
+        toast.success(
+          `Pengambilan barang ${selectedBarang.nama_barang} confirmed!`
+        );
+        setOpenConfirmModal(false);
+        setSelectedBarang(null);
+      }
     } catch {
       toast.error("Gagal mengambil barang: " + "Unknown error");
     }
