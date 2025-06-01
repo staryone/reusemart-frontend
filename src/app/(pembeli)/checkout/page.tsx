@@ -32,6 +32,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
   );
   const [pointsToUse, setPointsToUse] = useState<number>(0);
   const [isClient, setIsClient] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const currentUser = useUser();
   const token = currentUser?.token || null;
@@ -155,6 +156,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
     } catch {
       toast.error("Internal server error");
     }
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const confirmCheckout = () => {
+    setIsModalOpen(false);
+    handleCheckout();
   };
 
   if (!isClient || !token) {
@@ -398,7 +412,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
           </div>
 
           <button
-            onClick={handleCheckout}
+            onClick={openModal}
             disabled={
               keranjangItems.length === 0 ||
               (deliveryMethod === "DIKIRIM" && !primaryAddress) ||
@@ -411,6 +425,33 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
           </button>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0  bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-xl font-semibold mb-4">Konfirmasi Checkout</h2>
+            <p className="text-gray-600 mb-6">
+              Apakah Anda yakin ingin melanjutkan checkout untuk{" "}
+              {keranjangItems.length} barang dengan total tagihan Rp
+              {finalTotal.toLocaleString()}?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={closeModal}
+                className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmCheckout}
+                className="bg-[#72C678] text-white py-2 px-4 rounded-lg hover:bg-[#008E6D]"
+              >
+                Konfirmasi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

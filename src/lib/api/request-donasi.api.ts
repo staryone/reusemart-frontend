@@ -1,3 +1,4 @@
+import { RekapRequestDonasi } from "@/app/(pegawai)/(withSidebar)/owner/laporan/rekap-req-donasi/page";
 import { RequestDonasi } from "../interface/request-donasi.interface";
 import { ResponseAPI } from "../interface/response.interface";
 import { GET, POST, PATCH, DELETE } from "./fetch";
@@ -21,6 +22,13 @@ export async function getAllListRequestDonasi(
   accessToken?: string
 ): Promise<[RequestDonasi[], number]> {
   return await GET(`/request-donasi/allLists?${params}`, accessToken);
+}
+
+export async function getRekapRequestDonasi(
+  params?: URLSearchParams,
+  accessToken?: string
+): Promise<[RekapRequestDonasi[], number]> {
+  return await GET(`/request-donasi/getRekap?${params}`, accessToken);
 }
 
 export async function createRequestDonasi(

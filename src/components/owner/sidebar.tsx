@@ -56,14 +56,40 @@ export default function SideBar() {
             Riwayat Donasi
           </SidebarItem>
           <SidebarCollapse icon={HiNewspaper} label="Laporan">
-            <SidebarItem href="/owner/laporan/penjualan-bulanan" as={Link}>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/penjualan-bulanan"
+              as={Link}
+            >
               Laporan Penjualan
             </SidebarItem>
-            <SidebarItem href="/owner/laporan/komisi-bulanan" as={Link}>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/komisi-bulanan"
+              as={Link}
+            >
               Laporan Komisi
             </SidebarItem>
-            <SidebarItem href="/owner/laporan/stok-gudang" as={Link}>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/stok-gudang"
+              as={Link}
+            >
               Laporan Stok Gudang
+            </SidebarItem>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/donasi-barang"
+              as={Link}
+            >
+              Laporan Donasi Barang
+            </SidebarItem>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/rekap-req-donasi"
+              as={Link}
+            >
+              Laporan Request Donasi
             </SidebarItem>
           </SidebarCollapse>
           <hr />
