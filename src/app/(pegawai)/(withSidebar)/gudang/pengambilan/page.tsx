@@ -33,7 +33,7 @@ import { format } from "date-fns";
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPengiriman(params, token);
 
-export default function PengirimanMaster() {
+export default function PengambilanMaster() {
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [editPengirimanId, setEditPengirimanId] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
@@ -312,7 +312,7 @@ export default function PengirimanMaster() {
 
   return (
     <div className="flex-1 p-4 ml-64">
-      <h1 className="text-4xl font-bold mt-12 mb-4">Data Pengiriman</h1>
+      <h1 className="text-4xl font-bold mt-12 mb-4">Data Pengambilan</h1>
       <div className="flex justify-between items-center my-5">
         <form className="flex gap-3" onSubmit={handleSearch}>
           <TextInput
@@ -347,9 +347,8 @@ export default function PengirimanMaster() {
               <TableHeadCell>No.</TableHeadCell>
               <TableHeadCell>Nomor Transaksi</TableHeadCell>
               <TableHeadCell>Tanggal Transaksi</TableHeadCell>
-              <TableHeadCell>Tanggal Pengiriman</TableHeadCell>
+              <TableHeadCell>Tanggal Pengambilan</TableHeadCell>
               <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Kurir</TableHeadCell>
               <TableHeadCell>
                 <span className="sr-only">Edit</span>
               </TableHeadCell>
@@ -393,13 +392,12 @@ export default function PengirimanMaster() {
                       ? "Menunggu Diambil"
                       : pengiriman.status_pengiriman}
                   </TableCell>
-                  <TableCell>{pengiriman.kurir?.nama}</TableCell>
                   <TableCell>
                     <button
                       className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
                       onClick={() => handleOpenEditModal(pengiriman)}
                     >
-                      Atur Pengiriman
+                      Atur Pengambilan
                     </button>
                   </TableCell>
                 </TableRow>

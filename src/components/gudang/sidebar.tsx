@@ -9,9 +9,9 @@ import {
 import {
   HiChartPie,
   HiBriefcase,
-  HiUser,
-  HiOfficeBuilding,
-  HiGift,
+  HiArrowCircleRight,
+  HiTruck,
+  HiHand,
   HiOutlineLogout,
 } from "react-icons/hi";
 import toast from "react-hot-toast";
@@ -58,15 +58,15 @@ export default function SideBar() {
           >
             Penitipan
           </SidebarItem>
-          <SidebarItem href="/gudang/pengiriman" icon={HiBriefcase} as={Link}>
+          <SidebarItem href="/gudang/pengiriman" icon={HiTruck} as={Link}>
             Pengiriman
           </SidebarItem>
-          <SidebarItem href="/gudang/pengiriman" icon={HiBriefcase} as={Link}>
+          <SidebarItem href="/gudang/pengambilan" icon={HiHand} as={Link}>
             Pengambilan
           </SidebarItem>
           <SidebarItem
             href="/gudang/barang-kembali"
-            icon={HiBriefcase}
+            icon={HiArrowCircleRight}
             as={Link}
           >
             Barang Kembali

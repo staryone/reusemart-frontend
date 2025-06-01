@@ -43,9 +43,7 @@ export async function getListKurir(
   params?: URLSearchParams,
   accessToken?: string
 ): Promise<[Pegawai[], number]> {
-  // Create a new URLSearchParams instance, starting with the provided params (if any)
   const query = new URLSearchParams(params);
-  // Append the id_jabatan parameter
   query.append("id_jabatan", "5");
   return await GET(`/pegawai/lists?${query}`, accessToken);
 }

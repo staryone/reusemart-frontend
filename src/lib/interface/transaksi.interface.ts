@@ -6,7 +6,7 @@ export interface Transaksi {
   tanggal_transaksi: string;
   total_harga: number;
   status_Pembayaran: string;
-  tanggal_pembayaran: string;
+  tanggal_pembayaran?: string;
   batas_pembayaran: string;
   bukti_transfer: string;
   potongan_poin: number;
