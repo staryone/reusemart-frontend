@@ -1,6 +1,6 @@
 import { Pembeli } from "../interface/pembeli.interface";
 import { ResponseAPI } from "../interface/response.interface";
-import { GET, POST, DELETE } from "./fetch";
+import { GET, POST, DELETE, PATCH } from "./fetch";
 
 // export async function getPegawai(
 //   id: string,
@@ -39,6 +39,13 @@ export async function deletePembeli(
   accessToken?: string
 ): Promise<ResponseAPI> {
   return await DELETE(`/pembeli/logout`, accessToken);
+}
+
+export async function tambahPoin(
+  data: FormData,
+  accessToken?: string
+): Promise<ResponseAPI> {
+  return await PATCH(`/pembeli/tambah-poin`, data, accessToken);
 }
 
 // export async function resetPasswordPembeli(
