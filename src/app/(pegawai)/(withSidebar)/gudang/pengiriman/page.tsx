@@ -26,9 +26,11 @@ import { useUser } from "@/hooks/use-user";
 import { Pengiriman } from "@/lib/interface/pengiriman.interface";
 import { Pegawai } from "@/lib/interface/pegawai.interface";
 import { Transaksi } from "@/lib/interface/transaksi.interface";
+import { DetailTransaksi } from "@/lib/interface/detail-transaksi.interface";
 import useSWR from "swr";
 import { tr, id } from "date-fns/locale";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPengiriman(params, token);
@@ -195,6 +197,231 @@ export default function PengirimanMaster() {
     const year = format(date, "yyyy", { locale: id });
     const month = format(date, "MM", { locale: id });
     return `${year}.${month}.${transaksi.id_transaksi}`;
+  };
+
+  const generatePDF = (pengiriman: Pengiriman) => {
+    try {
+      // Validate input data
+      if (!pengiriman || !pengiriman.transaksi) {
+        throw new Error(
+          "Invalid pengiriman data: Missing pengiriman or transaksi object"
+        );
+      }
+
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      // Set font and size for the document
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+
+      // Header: Store Name and Address
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("ReUse Mart", 10, 20, { align: "left" });
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("Jl. Green Eco Park No. 456 Yogyakarta", 10, 25, {
+        align: "left",
+      });
+
+      // Order Details (No Nota, Tanggal Pesan, Tanggal Kirim)
+      doc.setFontSize(10);
+      const noNota = formattedNomorTransaksi(pengiriman.transaksi) || "";
+      doc.text(`No Nota`, 10, 35);
+      doc.text(`: ${noNota}`, 40, 35);
+      const tanggalPesan = pengiriman.transaksi.tanggal_transaksi
+        ? formatDate(pengiriman.transaksi.tanggal_transaksi)
+        : "";
+      doc.text(`Tanggal pesan`, 10, 40);
+      doc.text(`: ${tanggalPesan}`, 40, 40);
+      const tanggalPembayaran = pengiriman.tanggal
+        ? formatDate(pengiriman.transaksi.tanggal_pembayaran)
+        : "";
+      doc.text(`Lunas pada`, 10, 45);
+      doc.text(`: ${tanggalPembayaran}`, 40, 45);
+      const tanggalKirim = pengiriman.tanggal
+        ? formatDate(pengiriman.tanggal)
+        : "";
+      doc.text(`Tanggal kirim`, 10, 50);
+      doc.text(`: ${tanggalKirim}`, 40, 50);
+
+      // Separator Line
+      doc.setLineWidth(0.5);
+      doc.line(10, 55, 200, 55);
+
+      // Buyer Information (Static for now, replace with dynamic data if available)
+      doc.setFont("helvetica", "bold");
+      doc.text(`PEMBELI :`, 10, 60);
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        `${pengiriman.transaksi.pembeli.email} / ${pengiriman.transaksi.pembeli.nama}`,
+        30,
+        60
+      );
+      doc.setFont("helvetica", "normal");
+      doc.text(`${pengiriman.transaksi.alamat.detail_alamat}`, 10, 65);
+      const kurirNama = pengiriman.kurir?.nama || "";
+      doc.text(`Delivery: Kurir ReUseMart (${kurirNama})`, 10, 70);
+
+      // Items Section (Using detail_transaksi if available, otherwise static)
+      let currentY = 80;
+      doc.setFont("helvetica", "bold");
+      let totalItemsPrice = 0;
+
+      if (
+        pengiriman.transaksi.detail_transaksi &&
+        pengiriman.transaksi.detail_transaksi.length > 0
+      ) {
+        pengiriman.transaksi.detail_transaksi.forEach(
+          (item: DetailTransaksi) => {
+            doc.setFont("helvetica", "normal");
+            doc.text(`${item.barang.nama_barang || ""}`, 10, currentY);
+            const subtotal = item.barang.harga || 0;
+            doc.text(`${subtotal.toLocaleString()}`, 200, currentY, {
+              align: "right",
+            });
+            totalItemsPrice += subtotal;
+            currentY += 5;
+          }
+        );
+      }
+
+      currentY += 5;
+
+      // Total Items Price
+      doc.setFont("helvetica", "normal");
+      doc.text("Total", 10, currentY);
+      doc.text(`${totalItemsPrice.toLocaleString()}`, 200, currentY, {
+        align: "right",
+      });
+      currentY += 5;
+
+      // Shipping Cost
+      doc.setFont("helvetica", "normal");
+      const ongkosKirim = pengiriman.transaksi.ongkos_kirim || 0;
+      doc.text("Ongkos Kirim", 10, currentY);
+      doc.text(`${ongkosKirim.toLocaleString()}`, 200, currentY, {
+        align: "right",
+      });
+      currentY += 5;
+
+      // Total Kirim
+      const totalKirim = totalItemsPrice + ongkosKirim;
+      doc.setFont("helvetica", "normal");
+      doc.text("Total", 10, currentY);
+      doc.text(`${totalKirim.toLocaleString()}`, 200, currentY, {
+        align: "right",
+      });
+      currentY += 5;
+
+      // Discount
+      doc.setFont("helvetica", "normal");
+      const potonganPoin = pengiriman.transaksi.potongan_poin || 0;
+      const potonganValue = potonganPoin * 0.01 * 10000;
+      doc.text(`Potongan ${potonganPoin} poin`, 10, currentY);
+      doc.text(`- ${potonganValue.toLocaleString()}`, 200, currentY, {
+        align: "right",
+      });
+      currentY += 5;
+
+      // Final Total
+      const totalAkhir =
+        pengiriman.transaksi.total_akhir || totalKirim - potonganValue;
+      doc.setFont("helvetica", "normal");
+      doc.text("Total", 10, currentY);
+      doc.text(`${totalAkhir.toLocaleString()}`, 200, currentY, {
+        align: "right",
+      });
+      currentY += 10;
+
+      // Points Information (Static for now, adjust with dynamic data if available)
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        `Poin dari pesanan ini: ${pengiriman.transaksi.total_poin}`,
+        10,
+        currentY
+      );
+      currentY += 5;
+      doc.text(
+        `Total poin customer: ${pengiriman.transaksi.pembeli.poin_loyalitas}`,
+        10,
+        currentY
+      );
+      currentY += 10;
+
+      // QC Information
+      // doc.text("QC oleh: Farida (P18)", 10, currentY);
+      // currentY += 5;
+      doc.setFont("helvetica", "normal");
+      doc.text("QC oleh:", 10, currentY);
+      currentY += 5;
+      if (
+        pengiriman.transaksi.detail_transaksi &&
+        pengiriman.transaksi.detail_transaksi.length > 0
+      ) {
+        pengiriman.transaksi.detail_transaksi.forEach(
+          (item: DetailTransaksi) => {
+            doc.setFont("helvetica", "normal");
+            doc.text(
+              `${item.barang.nama_qc} (${item.barang.id_qc})`,
+              10,
+              currentY
+            );
+            currentY += 5;
+          }
+        );
+      }
+
+      currentY += 10;
+
+      // Accepted By
+      doc.text("Diterima oleh:", 20, currentY);
+      currentY += 25;
+      doc.text("(............................................)", 10, currentY);
+      currentY += 5;
+      doc.text("Tanggal: ...............................", 10, currentY);
+
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Attempt to open the PDF in a new tab for preview
+      try {
+        const newWindow = window.open(pdfUrl, "_blank");
+        if (!newWindow) {
+          throw new Error(
+            "Failed to open new window. Popups may be blocked or there may be a network issue."
+          );
+        }
+        // Clean up the URL object after a delay to ensure the window has time to load
+        setTimeout(() => URL.revokeObjectURL(pdfUrl), 5000);
+      } catch (previewError) {
+        console.warn("Preview failed:", previewError);
+        // Fallback: Trigger a direct download if the preview fails
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = `Nota_Pengiriman_${pengiriman.id_pengiriman}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        // Clean up the URL object
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+        alert(
+          "Unable to preview the PDF due to a network issue or popup blocking. The PDF has been downloaded instead."
+        );
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      console.error("Error generating PDF:", errorMessage, error);
+      alert(
+        `An error occurred while generating the PDF: ${errorMessage}. Please check the console for more details and try again.`
+      );
+    }
   };
 
   const renderEditModal = () => (
@@ -384,14 +611,30 @@ export default function PengirimanMaster() {
                   <TableCell>
                     <button
                       className={`font-medium ${
-                        pengiriman.status_pengiriman === "DIPROSES"
+                        pengiriman.status_pengiriman === "DIPROSES" ||
+                        pengiriman.status_pengiriman === "SEDANG_DIKIRIM"
                           ? "text-cyan-600 hover:underline dark:text-cyan-500"
                           : "text-gray-400 cursor-not-allowed"
                       }`}
-                      onClick={() => handleOpenEditModal(pengiriman)}
-                      disabled={pengiriman.status_pengiriman !== "DIPROSES"}
+                      onClick={() => {
+                        if (pengiriman.status_pengiriman === "DIPROSES") {
+                          handleOpenEditModal(pengiriman);
+                        } else if (
+                          pengiriman.status_pengiriman === "SEDANG_DIKIRIM"
+                        ) {
+                          generatePDF(pengiriman);
+                        }
+                      }}
+                      disabled={
+                        pengiriman.status_pengiriman !== "DIPROSES" &&
+                        pengiriman.status_pengiriman !== "SEDANG_DIKIRIM"
+                      }
                     >
-                      Atur Pengiriman
+                      {pengiriman.status_pengiriman === "DIPROSES"
+                        ? "Atur Pengiriman"
+                        : pengiriman.status_pengiriman === "SEDANG_DIKIRIM"
+                        ? "Cetak Nota"
+                        : ""}
                     </button>
                   </TableCell>
                 </TableRow>
