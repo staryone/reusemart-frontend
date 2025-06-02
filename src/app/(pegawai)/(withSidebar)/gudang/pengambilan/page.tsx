@@ -18,7 +18,7 @@ import {
 } from "flowbite-react";
 import { HiSearch, HiX } from "react-icons/hi";
 import {
-  getListPengiriman,
+  getListPengirimanDiambil,
   updatePengiriman,
   getListKurir,
 } from "@/lib/api/pengiriman.api";
@@ -31,9 +31,9 @@ import { tr, id } from "date-fns/locale";
 import { format } from "date-fns";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getListPengiriman(params, token);
+  await getListPengirimanDiambil(params, token);
 
-export default function PengambilanMaster() {
+export default function PengirimanMaster() {
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [editPengirimanId, setEditPengirimanId] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export default function PengambilanMaster() {
   const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalItems, setTotalItems] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("DIPROSES");
   const [allKurir, setAllKurir] = useState<Pegawai[]>([]);
 
   const [formData, setFormData] = useState({
@@ -56,14 +56,6 @@ export default function PengambilanMaster() {
   const currentUser = useUser();
   const token = currentUser !== null ? currentUser.token : "";
 
-  const statusOptions = [
-    { value: "", label: "All Status" },
-    { value: "DIPROSES", label: "Diproses" },
-    { value: "SIAP_DIAMBIL", label: "Siap Diambil" },
-    { value: "SEDANG_DIKIRIM", label: "Sedang Dikirim" },
-    { value: "SUDAH_DITERIMA", label: "Sudah Diterima" },
-  ];
-
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -72,10 +64,29 @@ export default function PengambilanMaster() {
       sortOrder: "desc",
     });
     if (searchQuery) params.append("search", searchQuery);
-    if (statusFilter) params.append("status_pengiriman", statusFilter);
-    params.append("metode_pengiriman", "DIKIRIM");
+    if (statusFilter) params.append("status", statusFilter);
     return params;
   }, [page, searchQuery, limit, statusFilter]);
+
+  const statusOptions = [
+    { value: "", label: "All Status" },
+    { value: "DIPROSES", label: "Diproses" },
+    { value: "SIAP_DIAMBIL", label: "Menunggu Diambil" },
+    { value: "SUDAH_DITERIMA", label: "Diterima" },
+  ];
+
+  // const queryParams = useMemo(() => {
+  //   const params = new URLSearchParams({
+  //     page: page.toString(),
+  //     limit: limit.toString(),
+  //     sortField: "tanggal",
+  //     sortOrder: "desc",
+  //   });
+  //   if (searchQuery) params.append("search", searchQuery);
+  //   if (statusFilter) params.append("status_pengiriman", statusFilter);
+  //   params.append("metode_pengiriman", "DIKIRIM");
+  //   return params;
+  // }, [page, searchQuery, limit, statusFilter]);
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -170,13 +181,22 @@ export default function PengambilanMaster() {
     setOpenEditModal(true);
   };
 
+  // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   const formData = new FormData(e.currentTarget);
+  //   const search = formData.get("search-pengiriman") as string;
+  //   const status = formData.get("status-filter") as string;
+  //   setSearchQuery(search);
+  //   setStatusFilter(status);
+  //   setPage(1);
+  // };
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const search = formData.get("search-pengiriman") as string;
     const status = formData.get("status-filter") as string;
     setSearchQuery(search);
-    setStatusFilter(status);
+    setStatusFilter(status || "DIPROSES"); // Fallback to "DIPROSES"
     setPage(1);
   };
 

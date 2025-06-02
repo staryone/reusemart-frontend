@@ -14,7 +14,14 @@ export async function getListPengiriman(
   params?: URLSearchParams,
   accessToken?: string
 ): Promise<[Pengiriman[], number]> {
-  return await GET(`/pengiriman/lists?${params}`, accessToken);
+  return await GET(`/pengiriman/lists-dikirim?${params}`, accessToken);
+}
+
+export async function getListPengirimanDiambil(
+  params?: URLSearchParams,
+  accessToken?: string
+): Promise<[Pengiriman[], number]> {
+  return await GET(`/pengiriman/lists-diambil?${params}`, accessToken);
 }
 
 export async function createPengiriman(

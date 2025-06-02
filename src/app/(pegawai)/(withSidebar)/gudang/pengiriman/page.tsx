@@ -43,7 +43,7 @@ export default function PengirimanMaster() {
   const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalItems, setTotalItems] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("DIPROSES");
   const [allKurir, setAllKurir] = useState<Pegawai[]>([]);
 
   const [formData, setFormData] = useState({
@@ -56,14 +56,6 @@ export default function PengirimanMaster() {
   const currentUser = useUser();
   const token = currentUser !== null ? currentUser.token : "";
 
-  const statusOptions = [
-    { value: "", label: "All Status" },
-    { value: "DIPROSES", label: "Diproses" },
-    { value: "SIAP_DIAMBIL", label: "Siap Diambil" },
-    { value: "SEDANG_DIKIRIM", label: "Sedang Dikirim" },
-    { value: "SUDAH_DITERIMA", label: "Sudah Diterima" },
-  ];
-
   const queryParams = useMemo(() => {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -72,10 +64,16 @@ export default function PengirimanMaster() {
       sortOrder: "desc",
     });
     if (searchQuery) params.append("search", searchQuery);
-    if (statusFilter) params.append("status_pengiriman", statusFilter);
-    params.append("metode_pengiriman", "DIKIRIM");
+    if (statusFilter) params.append("status", statusFilter);
     return params;
   }, [page, searchQuery, limit, statusFilter]);
+
+  const statusOptions = [
+    { value: "", label: "All Status" },
+    { value: "DIPROSES", label: "Diproses" },
+    { value: "SEDANG_DIKIRIM", label: "Sedang Dikirim" },
+    { value: "SUDAH_DITERIMA", label: "Diterima" },
+  ];
 
   const { data, error, isLoading, mutate } = useSWR(
     [queryParams, token],
@@ -176,7 +174,7 @@ export default function PengirimanMaster() {
     const search = formData.get("search-pengiriman") as string;
     const status = formData.get("status-filter") as string;
     setSearchQuery(search);
-    setStatusFilter(status);
+    setStatusFilter(status || "DIPROSES");
     setPage(1);
   };
 
@@ -395,9 +393,20 @@ export default function PengirimanMaster() {
                   </TableCell>
                   <TableCell>{pengiriman.kurir?.nama}</TableCell>
                   <TableCell>
-                    <button
+                    {/* <button
                       className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
                       onClick={() => handleOpenEditModal(pengiriman)}
+                    >
+                      Atur Pengiriman
+                    </button> */}
+                    <button
+                      className={`font-medium ${
+                        pengiriman.status_pengiriman === "DIPROSES"
+                          ? "text-cyan-600 hover:underline dark:text-cyan-500"
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                      onClick={() => handleOpenEditModal(pengiriman)}
+                      disabled={pengiriman.status_pengiriman !== "DIPROSES"}
                     >
                       Atur Pengiriman
                     </button>
