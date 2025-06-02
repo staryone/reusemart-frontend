@@ -7,7 +7,7 @@ import { Barang, Gambar } from "@/lib/interface/barang.interface";
 import { getListByBarangId, createDiskusi } from "@/lib/api/diskusi.api";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { HiStar } from "react-icons/hi";
+import { HiStar, HiBadgeCheck } from "react-icons/hi";
 import { createKeranjang } from "@/lib/api/keranjang.api";
 import toast from "react-hot-toast";
 import { useUser } from "@/hooks/use-user";
@@ -167,6 +167,13 @@ export default function ProductDetails() {
                   <HiStar className="text-2xl text-yellow-300" />
                   {barang?.penitip.rating.toFixed(1)}/5
                 </div>
+                {barang?.penitip.is_top_seller ? 
+                <div className="flex justify-center gap-2 items-center rounded-lg bg-indigo-300 text-indigo-700 px-2 text-sm font-bold py-1">
+                  <div>Top Seller</div>
+                  <HiBadgeCheck />
+                </div>
+                : <></>
+                }
               </div>
             </div>
             <div className="text-4xl font-semibold">
