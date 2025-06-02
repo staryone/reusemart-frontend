@@ -36,6 +36,7 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 export default function PengirimanMaster() {
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [editPengirimanId, setEditPengirimanId] = useState<string | null>(null);
+  const [pengiriman, setPengiriman] = useState<Pengiriman | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [editSuccess, setEditSuccess] = useState<string | null>(null);
   const [kurirSearch, setKurirSearch] = useState<string>("");
@@ -131,16 +132,12 @@ export default function PengirimanMaster() {
     if (!validateForm() || !editPengirimanId) return;
 
     const formDataToSend = new FormData();
+    formDataToSend.append("id_pengiriman", editPengirimanId);
     formDataToSend.append("tanggal", formData.tanggal);
-    formDataToSend.append("status_pengiriman", formData.status_pengiriman);
     formDataToSend.append("id_kurir", formData.id_kurir);
 
     try {
-      const res = await updatePengiriman(
-        editPengirimanId,
-        formDataToSend,
-        token
-      );
+      const res = await updatePengiriman(formDataToSend, token);
       if (!res.errors) {
         setEditSuccess("Pengiriman updated successfully");
         mutate();
@@ -160,6 +157,7 @@ export default function PengirimanMaster() {
 
   const handleOpenEditModal = (pengiriman: Pengiriman) => {
     setEditPengirimanId(pengiriman.id_pengiriman);
+    setPengiriman(pengiriman);
     setFormData({
       tanggal: pengiriman.tanggal ?? "",
       status_pengiriman: pengiriman.status_pengiriman,
@@ -210,7 +208,7 @@ export default function PengirimanMaster() {
       <ModalBody>
         <form className="space-y-6" onSubmit={handleUpdate}>
           <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-            Edit Pengiriman
+            Atur Pengiriman
           </h3>
           {editError && (
             <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
@@ -223,7 +221,7 @@ export default function PengirimanMaster() {
             </div>
           )}
           <div className="space-y-4">
-            <div>
+            {/* <div>
               <Label htmlFor="tanggal">Tanggal Pengiriman</Label>
               <TextInput
                 id="tanggal"
@@ -238,30 +236,37 @@ export default function PengirimanMaster() {
                   {formErrors["tanggal"]}
                 </p>
               )}
-            </div>
+            </div> */}
             <div>
-              <Label htmlFor="status_pengiriman">Status Pengiriman</Label>
-              <Select
-                id="status_pengiriman"
-                value={formData.status_pengiriman}
-                onChange={(e) =>
-                  handleInputChange("status_pengiriman", e.target.value)
-                }
+              <Label htmlFor="tanggal">Tanggal Pengiriman</Label>
+              <TextInput
+                id="tanggal"
+                type="datetime-local"
+                value={formData.tanggal}
+                onChange={(e) => handleInputChange("tanggal", e.target.value)}
                 required
-                color={formErrors["status_pengiriman"] ? "failure" : undefined}
-              >
-                <option value="">Pilih Status</option>
-                {statusOptions
-                  .filter((opt) => opt.value)
-                  .map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-              </Select>
-              {formErrors["status_pengiriman"] && (
+                color={formErrors["tanggal"] ? "failure" : undefined}
+                min={
+                  pengiriman?.transaksi?.tanggal_transaksi &&
+                  new Date(pengiriman.transaksi.tanggal_transaksi).getHours() >=
+                    16
+                    ? new Date(
+                        new Date(
+                          pengiriman.transaksi.tanggal_transaksi
+                        ).setDate(
+                          new Date(
+                            pengiriman.transaksi.tanggal_transaksi
+                          ).getDate() + 1
+                        )
+                      )
+                        .toISOString()
+                        .slice(0, 16)
+                    : new Date().toISOString().slice(0, 16)
+                }
+              />
+              {formErrors["tanggal"] && (
                 <p className="mt-1 text-sm text-red-600">
-                  {formErrors["status_pengiriman"]}
+                  {formErrors["tanggal"]}
                 </p>
               )}
             </div>
@@ -300,7 +305,7 @@ export default function PengirimanMaster() {
               type="submit"
               className="bg-[#1980e6] hover:bg-[#1980e6]/80"
             >
-              Update Pengiriman
+              Atur Pengiriman
             </Button>
           </div>
         </form>
