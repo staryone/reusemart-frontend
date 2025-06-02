@@ -16,7 +16,7 @@ import {
   Label,
   Select,
 } from "flowbite-react";
-import { HiSearch, HiX } from "react-icons/hi";
+import { HiSearch } from "react-icons/hi";
 import {
   getListPengiriman,
   updatePengiriman,
@@ -28,7 +28,7 @@ import { Pegawai } from "@/lib/interface/pegawai.interface";
 import { Transaksi } from "@/lib/interface/transaksi.interface";
 import { DetailTransaksi } from "@/lib/interface/detail-transaksi.interface";
 import useSWR from "swr";
-import { tr, id } from "date-fns/locale";
+import { id } from "date-fns/locale";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 
@@ -194,7 +194,7 @@ export default function PengirimanMaster() {
 
   const formattedNomorTransaksi = (transaksi: Transaksi): string => {
     const date = new Date(transaksi.tanggal_transaksi);
-    const year = format(date, "yyyy", { locale: id });
+    const year = format(date, "yy", { locale: id });
     const month = format(date, "MM", { locale: id });
     return `${year}.${month}.${transaksi.id_transaksi}`;
   };
@@ -353,9 +353,6 @@ export default function PengirimanMaster() {
       );
       currentY += 10;
 
-      // QC Information
-      // doc.text("QC oleh: Farida (P18)", 10, currentY);
-      // currentY += 5;
       doc.setFont("helvetica", "normal");
       doc.text("QC oleh:", 10, currentY);
       currentY += 5;
