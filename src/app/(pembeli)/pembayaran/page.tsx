@@ -12,7 +12,7 @@ import {
 } from "@/lib/api/transaksi.api";
 import { useUser } from "@/hooks/use-user";
 import { TransaksiPayment } from "@/lib/interface/transaksi.interface";
-import { tambahPoin } from "@/lib/api/pembeli.api";
+// import { tambahPoin } from "@/lib/api/pembeli.api";
 
 // Fetcher for useSWR
 const fetcherTransaksi = async ([idTransaksi, token]: [
@@ -176,23 +176,23 @@ const PaymentPage: React.FC = () => {
       toast.error("Terjadi kesalahan saat mengunggah bukti pembayaran.");
     }
 
-    const formDataPoin = new FormData();
-    formDataPoin.append(
-      "poin",
-      sessionStorage.getItem("finalPointsEarned") || "0"
-    );
+    // const formDataPoin = new FormData();
+    // formDataPoin.append(
+    //   "poin",
+    //   sessionStorage.getItem("finalPointsEarned") || "0"
+    // );
 
-    try {
-      const res = await tambahPoin(formDataPoin, token);
-      if (res.errors) {
-        toast.error(res.errors || "Gagal menambahkan poin.");
-      } else {
-        toast.success("Poin berhasil ditambahkan ke akun Anda!");
-        console.log("Poin berhasil ditambahkan:", res.data);
-      }
-    } catch {
-      toast.error("Terjadi kesalahan saat menambahkan poin.");
-    }
+    // try {
+    //   const res = await tambahPoin(formDataPoin, token);
+    //   if (res.errors) {
+    //     toast.error(res.errors || "Gagal menambahkan poin.");
+    //   } else {
+    //     toast.success("Poin berhasil ditambahkan ke akun Anda!");
+    //     console.log("Poin berhasil ditambahkan:", res.data);
+    //   }
+    // } catch {
+    //   toast.error("Terjadi kesalahan saat menambahkan poin.");
+    // }
   };
 
   // Format time

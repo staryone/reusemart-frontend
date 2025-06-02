@@ -13,7 +13,6 @@ import { getProfilPembeli } from "@/lib/api/pembeli.api";
 import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { createTransaksi } from "@/lib/api/transaksi.api";
-import { fi } from "date-fns/locale";
 
 interface CheckoutPageProps {
   keranjangItemsInitial?: Keranjang[];
