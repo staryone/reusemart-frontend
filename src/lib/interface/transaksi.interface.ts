@@ -1,12 +1,14 @@
 import { DetailTransaksi } from "./detail-transaksi.interface";
+import { Pembeli } from "./pembeli.interface";
 import { Pengiriman } from "./pengiriman.interface";
+import { Alamat } from "./alamat.interface";
 
 export interface Transaksi {
   id_transaksi: number;
   tanggal_transaksi: string;
   total_harga: number;
   status_Pembayaran: string;
-  tanggal_pembayaran: string;
+  tanggal_pembayaran?: string;
   batas_pembayaran: string;
   bukti_transfer: string;
   potongan_poin: number;
@@ -15,6 +17,9 @@ export interface Transaksi {
   total_akhir: number;
   detail_transaksi: DetailTransaksi[];
   pengiriman: Pengiriman;
+  pembeli: Pembeli;
+  alamat: Alamat;
+  total_poin: number;
   errors?: string;
 }
 

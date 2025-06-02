@@ -18,41 +18,40 @@ import {
 } from "flowbite-react";
 import { HiSearch } from "react-icons/hi";
 import {
-  getListPengiriman,
-  updatePengiriman,
-  getListKurir,
+  getListPengirimanDiambil,
+  updatePengambilan,
+  konfirmasiPengambilan,
 } from "@/lib/api/pengiriman.api";
 import { useUser } from "@/hooks/use-user";
 import { Pengiriman } from "@/lib/interface/pengiriman.interface";
-import { Pegawai } from "@/lib/interface/pegawai.interface";
-import { Transaksi } from "@/lib/interface/transaksi.interface";
 import { DetailTransaksi } from "@/lib/interface/detail-transaksi.interface";
+import { Transaksi } from "@/lib/interface/transaksi.interface";
 import useSWR from "swr";
 import { id } from "date-fns/locale";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
-  await getListPengiriman(params, token);
+  await getListPengirimanDiambil(params, token);
 
-export default function PengirimanMaster() {
+export default function PengambilanMaster() {
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+  const [openConfirmModal, setOpenConfirmModal] = useState<boolean>(false);
   const [editPengirimanId, setEditPengirimanId] = useState<string | null>(null);
-  const [pengiriman, setPengiriman] = useState<Pengiriman | null>(null);
+  const [pengambilan, setPengambilan] = useState<Pengiriman>();
   const [editError, setEditError] = useState<string | null>(null);
   const [editSuccess, setEditSuccess] = useState<string | null>(null);
-  const [kurirSearch, setKurirSearch] = useState<string>("");
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [confirmSuccess, setConfirmSuccess] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("DIPROSES");
-  const [allKurir, setAllKurir] = useState<Pegawai[]>([]);
 
   const [formData, setFormData] = useState({
     tanggal: "",
     status_pengiriman: "",
-    id_kurir: "",
   });
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
@@ -74,7 +73,7 @@ export default function PengirimanMaster() {
   const statusOptions = [
     { value: "", label: "All Status" },
     { value: "DIPROSES", label: "Diproses" },
-    { value: "SEDANG_DIKIRIM", label: "Sedang Dikirim" },
+    { value: "SIAP_DIAMBIL", label: "Menunggu Diambil" },
     { value: "SUDAH_DITERIMA", label: "Diterima" },
   ];
 
@@ -94,29 +93,11 @@ export default function PengirimanMaster() {
     }
   }, [data]);
 
-  useEffect(() => {
-    async function fetchKurir() {
-      try {
-        const params = new URLSearchParams({ all: "true" });
-        const response = await getListKurir(params, token);
-        if (response[0]) {
-          setAllKurir(response[0]);
-        } else {
-          throw new Error("Tidak ada kurir tersedia");
-        }
-      } catch (error) {
-        console.error("Gagal memuat kurir:", error);
-      }
-    }
-    fetchKurir();
-  }, [token]);
-
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.tanggal) newErrors["tanggal"] = "Tanggal is required";
     if (!formData.status_pengiriman)
       newErrors["status_pengiriman"] = "Status is required";
-    if (!formData.id_kurir) newErrors["id_kurir"] = "Kurir is required";
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -136,12 +117,11 @@ export default function PengirimanMaster() {
     const formDataToSend = new FormData();
     formDataToSend.append("id_pengiriman", editPengirimanId);
     formDataToSend.append("tanggal", formData.tanggal);
-    formDataToSend.append("id_kurir", formData.id_kurir);
 
     try {
-      const res = await updatePengiriman(formDataToSend, token);
+      const res = await updatePengambilan(formDataToSend, token);
       if (!res.errors) {
-        setEditSuccess("Pengiriman updated successfully");
+        setEditSuccess("Pengambilan updated successfully");
         mutate();
         setTimeout(() => setOpenEditModal(false), 2000);
       } else {
@@ -157,15 +137,53 @@ export default function PengirimanMaster() {
     }
   };
 
+  const handleConfirm = async () => {
+    setConfirmError(null);
+    setConfirmSuccess(null);
+
+    if (!editPengirimanId) return;
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("id_pengiriman", editPengirimanId);
+    formDataToSend.append("tanggal", formData.tanggal);
+
+    try {
+      const res = await konfirmasiPengambilan(formDataToSend, token);
+      if (!res.errors) {
+        setConfirmSuccess("Pengambilan berhasil dikonfirmasi");
+        mutate();
+        setTimeout(() => setOpenConfirmModal(false), 2000);
+      } else {
+        throw new Error(res.errors || "Gagal mengkonfirmasi pengambilan");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat mengkonfirmasi pengambilan";
+      setConfirmError(errorMessage);
+      console.error("Error confirming pengambilan:", error);
+    }
+  };
+
   const handleOpenEditModal = (pengiriman: Pengiriman) => {
     setEditPengirimanId(pengiriman.id_pengiriman);
-    setPengiriman(pengiriman);
+    setPengambilan(pengiriman);
     setFormData({
       tanggal: pengiriman.tanggal ?? "",
       status_pengiriman: pengiriman.status_pengiriman,
-      id_kurir: pengiriman.kurir?.id_pegawai ?? "",
     });
     setOpenEditModal(true);
+  };
+
+  const handleOpenConfirmModal = (pengiriman: Pengiriman) => {
+    setEditPengirimanId(pengiriman.id_pengiriman);
+    setPengambilan(pengiriman);
+    setFormData({
+      tanggal: pengiriman.tanggal ?? "",
+      status_pengiriman: pengiriman.status_pengiriman,
+    });
+    setOpenConfirmModal(true);
   };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -185,12 +203,6 @@ export default function PengirimanMaster() {
     const date = new Date(dateString);
     return format(new Date(date), "dd MMMM yyyy, HH:mm", { locale: id });
   };
-
-  const filteredKurir = allKurir.filter(
-    (kurir) =>
-      kurir.nama.toLowerCase().includes(kurirSearch.toLowerCase()) ||
-      kurir.email.toLowerCase().includes(kurirSearch.toLowerCase())
-  );
 
   const formattedNomorTransaksi = (transaksi: Transaksi): string => {
     const date = new Date(transaksi.tanggal_transaksi);
@@ -246,7 +258,7 @@ export default function PengirimanMaster() {
       const tanggalKirim = pengiriman.tanggal
         ? formatDate(pengiriman.tanggal)
         : "";
-      doc.text(`Tanggal kirim`, 10, 50);
+      doc.text(`Tanggal ambil`, 10, 50);
       doc.text(`: ${tanggalKirim}`, 40, 50);
 
       // Separator Line
@@ -263,12 +275,9 @@ export default function PengirimanMaster() {
         60
       );
       doc.setFont("helvetica", "normal");
-      doc.text(`${pengiriman.transaksi.alamat.detail_alamat}`, 10, 65);
-      const kurirNama = pengiriman.kurir?.nama || "";
-      doc.text(`Delivery: Kurir ReUseMart (${kurirNama})`, 10, 70);
+      doc.text(`Delivery: - (diambil sendiri)`, 10, 65);
 
-      // Items Section (Using detail_transaksi if available, otherwise static)
-      let currentY = 80;
+      let currentY = 75;
       doc.setFont("helvetica", "bold");
       let totalItemsPrice = 0;
 
@@ -302,18 +311,16 @@ export default function PengirimanMaster() {
 
       // Shipping Cost
       doc.setFont("helvetica", "normal");
-      const ongkosKirim = pengiriman.transaksi.ongkos_kirim || 0;
       doc.text("Ongkos Kirim", 10, currentY);
-      doc.text(`${ongkosKirim.toLocaleString()}`, 200, currentY, {
+      doc.text(`0`, 200, currentY, {
         align: "right",
       });
       currentY += 5;
 
       // Total Kirim
-      const totalKirim = totalItemsPrice + ongkosKirim;
       doc.setFont("helvetica", "normal");
       doc.text("Total", 10, currentY);
-      doc.text(`${totalKirim.toLocaleString()}`, 200, currentY, {
+      doc.text(`${totalItemsPrice}`, 200, currentY, {
         align: "right",
       });
       currentY += 5;
@@ -330,7 +337,7 @@ export default function PengirimanMaster() {
 
       // Final Total
       const totalAkhir =
-        pengiriman.transaksi.total_akhir || totalKirim - potonganValue;
+        pengiriman.transaksi.total_akhir || totalItemsPrice - potonganValue;
       doc.setFont("helvetica", "normal");
       doc.text("Total", 10, currentY);
       doc.text(`${totalAkhir.toLocaleString()}`, 200, currentY, {
@@ -432,7 +439,7 @@ export default function PengirimanMaster() {
       <ModalBody>
         <form className="space-y-6" onSubmit={handleUpdate}>
           <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-            Atur Pengiriman
+            Atur Pengambilan
           </h3>
           {editError && (
             <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
@@ -455,15 +462,16 @@ export default function PengirimanMaster() {
                 required
                 color={formErrors["tanggal"] ? "failure" : undefined}
                 min={
-                  pengiriman?.transaksi?.tanggal_transaksi &&
-                  new Date(pengiriman.transaksi.tanggal_transaksi).getHours() >=
-                    16
+                  pengambilan?.transaksi?.tanggal_transaksi &&
+                  new Date(
+                    pengambilan.transaksi.tanggal_transaksi
+                  ).getHours() >= 16
                     ? new Date(
                         new Date(
-                          pengiriman.transaksi.tanggal_transaksi
+                          pengambilan.transaksi.tanggal_transaksi
                         ).setDate(
                           new Date(
-                            pengiriman.transaksi.tanggal_transaksi
+                            pengambilan.transaksi.tanggal_transaksi
                           ).getDate() + 1
                         )
                       )
@@ -478,42 +486,13 @@ export default function PengirimanMaster() {
                 </p>
               )}
             </div>
-            <div>
-              <Label htmlFor="id_kurir">Kurir</Label>
-              <TextInput
-                id="kurir_search"
-                placeholder="Cari kurir (nama atau email)..."
-                value={kurirSearch}
-                onChange={(e) => setKurirSearch(e.target.value)}
-                className="mb-2"
-              />
-              <Select
-                id="id_kurir"
-                value={formData.id_kurir}
-                onChange={(e) => handleInputChange("id_kurir", e.target.value)}
-                required
-                color={formErrors["id_kurir"] ? "failure" : undefined}
-              >
-                <option value="">Pilih Kurir</option>
-                {filteredKurir.map((kurir) => (
-                  <option key={kurir.id_pegawai} value={kurir.id_pegawai}>
-                    {`${kurir.nama} (${kurir.email})`}
-                  </option>
-                ))}
-              </Select>
-              {formErrors["id_kurir"] && (
-                <p className="mt-1 text-sm text-red-600">
-                  {formErrors["id_kurir"]}
-                </p>
-              )}
-            </div>
           </div>
           <div className="flex justify-end">
             <Button
               type="submit"
               className="bg-[#1980e6] hover:bg-[#1980e6]/80"
             >
-              Atur Pengiriman
+              Atur Pengambilan
             </Button>
           </div>
         </form>
@@ -521,9 +500,51 @@ export default function PengirimanMaster() {
     </Modal>
   );
 
+  const renderConfirmModal = () => (
+    <Modal
+      show={openConfirmModal}
+      size="md"
+      onClose={() => setOpenConfirmModal(false)}
+      popup
+    >
+      <ModalHeader />
+      <ModalBody>
+        <div className="space-y-6">
+          <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+            Konfirmasi Pengambilan
+          </h3>
+          <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+            Apakah Anda yakin ingin mengkonfirmasi pengambilan ini?
+          </p>
+          {confirmError && (
+            <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50">
+              {confirmError}
+            </div>
+          )}
+          {confirmSuccess && (
+            <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50">
+              {confirmSuccess}
+            </div>
+          )}
+          <div className="flex justify-end gap-4">
+            <Button color="gray" onClick={() => setOpenConfirmModal(false)}>
+              Batal
+            </Button>
+            <Button
+              className="bg-[#1980e6] hover:bg-[#1980e6]/80"
+              onClick={handleConfirm}
+            >
+              Konfirmasi
+            </Button>
+          </div>
+        </div>
+      </ModalBody>
+    </Modal>
+  );
+
   return (
     <div className="flex-1 p-4 ml-64">
-      <h1 className="text-4xl font-bold mt-12 mb-4">Data Pengiriman</h1>
+      <h1 className="text-4xl font-bold mt-12 mb-4">Data Pengambilan</h1>
       <div className="flex justify-between items-center my-5">
         <form className="flex gap-3" onSubmit={handleSearch}>
           <TextInput
@@ -558,9 +579,8 @@ export default function PengirimanMaster() {
               <TableHeadCell>No.</TableHeadCell>
               <TableHeadCell>Nomor Transaksi</TableHeadCell>
               <TableHeadCell>Tanggal Transaksi</TableHeadCell>
-              <TableHeadCell>Tanggal Pengiriman</TableHeadCell>
+              <TableHeadCell>Tanggal Pengambilan</TableHeadCell>
               <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Kurir</TableHeadCell>
               <TableHeadCell>
                 <span className="sr-only">Edit</span>
               </TableHeadCell>
@@ -594,9 +614,7 @@ export default function PengirimanMaster() {
                   </TableCell>
                   <TableCell>{formatDate(pengiriman.tanggal)}</TableCell>
                   <TableCell>
-                    {pengiriman.status_pengiriman === "SEDANG_DIKIRIM"
-                      ? "Dalam Pengiriman"
-                      : pengiriman.status_pengiriman === "DIPROSES"
+                    {pengiriman.status_pengiriman === "DIPROSES"
                       ? "Diproses"
                       : pengiriman.status_pengiriman === "SUDAH_DITERIMA"
                       ? "Diterima"
@@ -604,34 +622,28 @@ export default function PengirimanMaster() {
                       ? "Menunggu Diambil"
                       : pengiriman.status_pengiriman}
                   </TableCell>
-                  <TableCell>{pengiriman.kurir?.nama}</TableCell>
                   <TableCell>
                     <button
-                      className={`font-medium ${
-                        pengiriman.status_pengiriman === "DIPROSES" ||
-                        pengiriman.status_pengiriman === "SEDANG_DIKIRIM"
-                          ? "text-cyan-600 hover:underline dark:text-cyan-500"
-                          : "text-gray-400 cursor-not-allowed"
-                      }`}
+                      className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
                       onClick={() => {
                         if (pengiriman.status_pengiriman === "DIPROSES") {
                           handleOpenEditModal(pengiriman);
                         } else if (
-                          pengiriman.status_pengiriman === "SEDANG_DIKIRIM"
+                          pengiriman.status_pengiriman === "SIAP_DIAMBIL"
+                        ) {
+                          handleOpenConfirmModal(pengiriman);
+                        } else if (
+                          pengiriman.status_pengiriman === "SUDAH_DITERIMA"
                         ) {
                           generatePDF(pengiriman);
                         }
                       }}
-                      disabled={
-                        pengiriman.status_pengiriman !== "DIPROSES" &&
-                        pengiriman.status_pengiriman !== "SEDANG_DIKIRIM"
-                      }
                     >
                       {pengiriman.status_pengiriman === "DIPROSES"
-                        ? "Atur Pengiriman"
-                        : pengiriman.status_pengiriman === "SEDANG_DIKIRIM"
-                        ? "Cetak Nota"
-                        : ""}
+                        ? "Atur Pengambilan"
+                        : pengiriman.status_pengiriman === "SIAP_DIAMBIL"
+                        ? "Konfirmasi"
+                        : "Cetak Nota"}
                     </button>
                   </TableCell>
                 </TableRow>
@@ -673,6 +685,7 @@ export default function PengirimanMaster() {
         </div>
       </div>
       {renderEditModal()}
+      {renderConfirmModal()}
     </div>
   );
 

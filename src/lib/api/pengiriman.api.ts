@@ -3,49 +3,75 @@ import { ResponseAPI } from "../interface/response.interface";
 import { Pegawai } from "../interface/pegawai.interface";
 import { GET, POST, PATCH, DELETE } from "./fetch";
 
-export async function getPengiriman(
-  id: string,
-  accessToken?: string
-): Promise<Pengiriman> {
-  return await GET(`/pengiriman/${id}`, accessToken);
-}
+// export async function getPengiriman(
+//   id: string,
+//   accessToken?: string
+// ): Promise<Pengiriman> {
+//   return await GET(`/pengiriman/${id}`, accessToken);
+// }
 
 export async function getListPengiriman(
   params?: URLSearchParams,
   accessToken?: string
 ): Promise<[Pengiriman[], number]> {
-  return await GET(`/pengiriman/lists?${params}`, accessToken);
+  return await GET(`/pengiriman/lists-dikirim?${params}`, accessToken);
 }
 
-export async function createPengiriman(
-  data: FormData,
+export async function getListPengirimanDiambil(
+  params?: URLSearchParams,
   accessToken?: string
-): Promise<ResponseAPI> {
-  return await POST(`/pengiriman`, data, accessToken);
+): Promise<[Pengiriman[], number]> {
+  return await GET(`/pengiriman/lists-diambil?${params}`, accessToken);
 }
 
 export async function updatePengiriman(
-  id: string,
   data: FormData,
   accessToken?: string
 ): Promise<ResponseAPI> {
-  return await PATCH(`/pengiriman/${id}`, data, accessToken);
+  return await POST(`/pengiriman/atur-pengiriman`, data, accessToken);
 }
 
-export async function deletePengiriman(
-  id: string,
+export async function updatePengambilan(
+  data: FormData,
   accessToken?: string
 ): Promise<ResponseAPI> {
-  return await DELETE(`/pengiriman/${id}`, accessToken);
+  return await POST(`/pengiriman/atur-pengambilan`, data, accessToken);
 }
+
+export async function konfirmasiPengambilan(
+  data: FormData,
+  accessToken?: string
+): Promise<ResponseAPI> {
+  return await POST(`/pengiriman/konfirmasi-pengambilan`, data, accessToken);
+}
+
+// export async function createPengiriman(
+//   data: FormData,
+//   accessToken?: string
+// ): Promise<ResponseAPI> {
+//   return await POST(`/pengiriman`, data, accessToken);
+// }
+
+// export async function updatePengiriman(
+//   id: string,
+//   data: FormData,
+//   accessToken?: string
+// ): Promise<ResponseAPI> {
+//   return await PATCH(`/pengiriman/${id}`, data, accessToken);
+// }
+
+// export async function deletePengiriman(
+//   id: string,
+//   accessToken?: string
+// ): Promise<ResponseAPI> {
+//   return await DELETE(`/pengiriman/${id}`, accessToken);
+// }
 
 export async function getListKurir(
   params?: URLSearchParams,
   accessToken?: string
 ): Promise<[Pegawai[], number]> {
-  // Create a new URLSearchParams instance, starting with the provided params (if any)
   const query = new URLSearchParams(params);
-  // Append the id_jabatan parameter
   query.append("id_jabatan", "5");
   return await GET(`/pegawai/lists?${query}`, accessToken);
 }
