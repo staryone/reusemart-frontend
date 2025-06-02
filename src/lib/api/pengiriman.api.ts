@@ -31,6 +31,20 @@ export async function updatePengiriman(
   return await POST(`/pengiriman/atur-pengiriman`, data, accessToken);
 }
 
+export async function updatePengambilan(
+  data: FormData,
+  accessToken?: string
+): Promise<ResponseAPI> {
+  return await POST(`/pengiriman/atur-pengambilan`, data, accessToken);
+}
+
+export async function konfirmasiPengambilan(
+  data: FormData,
+  accessToken?: string
+): Promise<ResponseAPI> {
+  return await POST(`/pengiriman/konfirmasi-pengambilan`, data, accessToken);
+}
+
 // export async function createPengiriman(
 //   data: FormData,
 //   accessToken?: string

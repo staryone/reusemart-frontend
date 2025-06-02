@@ -221,22 +221,6 @@ export default function PengirimanMaster() {
             </div>
           )}
           <div className="space-y-4">
-            {/* <div>
-              <Label htmlFor="tanggal">Tanggal Pengiriman</Label>
-              <TextInput
-                id="tanggal"
-                type="datetime-local"
-                value={formData.tanggal}
-                onChange={(e) => handleInputChange("tanggal", e.target.value)}
-                required
-                color={formErrors["tanggal"] ? "failure" : undefined}
-              />
-              {formErrors["tanggal"] && (
-                <p className="mt-1 text-sm text-red-600">
-                  {formErrors["tanggal"]}
-                </p>
-              )}
-            </div> */}
             <div>
               <Label htmlFor="tanggal">Tanggal Pengiriman</Label>
               <TextInput
@@ -398,12 +382,6 @@ export default function PengirimanMaster() {
                   </TableCell>
                   <TableCell>{pengiriman.kurir?.nama}</TableCell>
                   <TableCell>
-                    {/* <button
-                      className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                      onClick={() => handleOpenEditModal(pengiriman)}
-                    >
-                      Atur Pengiriman
-                    </button> */}
                     <button
                       className={`font-medium ${
                         pengiriman.status_pengiriman === "DIPROSES"
