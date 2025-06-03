@@ -31,6 +31,7 @@ import useSWR from "swr";
 import { id } from "date-fns/locale";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
+import DetailPengirimanModal from "@/components/gudang/detail-pengiriman-modal";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPengiriman(params, token);
@@ -38,6 +39,9 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 export default function PengirimanMaster() {
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [editPengirimanId, setEditPengirimanId] = useState<string | null>(null);
+  const [openDetailModal, setOpenDetailModal] = useState<boolean>(false);
+  const [selectedPengiriman, setSelectedPengiriman] =
+    useState<Pengiriman | null>(null);
   const [pengiriman, setPengiriman] = useState<Pengiriman | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [editSuccess, setEditSuccess] = useState<string | null>(null);
@@ -176,6 +180,11 @@ export default function PengirimanMaster() {
     setSearchQuery(search);
     setStatusFilter(status || "DIPROSES");
     setPage(1);
+  };
+
+  const handleOpenDetailModal = (pengiriman: Pengiriman) => {
+    setSelectedPengiriman(pengiriman);
+    setOpenDetailModal(true);
   };
 
   const totalPages = Math.ceil(totalItems / limit);
@@ -634,6 +643,14 @@ export default function PengirimanMaster() {
                         : ""}
                     </button>
                   </TableCell>
+                  <TableCell>
+                    <button
+                      className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                      onClick={() => handleOpenDetailModal(pengiriman)}
+                    >
+                      Lihat Detail
+                    </button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
@@ -673,6 +690,11 @@ export default function PengirimanMaster() {
         </div>
       </div>
       {renderEditModal()}
+      <DetailPengirimanModal
+        isOpen={openDetailModal}
+        onClose={() => setOpenDetailModal(false)}
+        pengiriman={selectedPengiriman}
+      />
     </div>
   );
 

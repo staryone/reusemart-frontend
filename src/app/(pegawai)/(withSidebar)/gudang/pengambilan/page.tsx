@@ -30,6 +30,7 @@ import useSWR from "swr";
 import { id } from "date-fns/locale";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
+import DetailPengambilanModal from "@/components/gudang/detail-pengambilan-modal";
 
 const fetcher = async ([params, token]: [URLSearchParams, string]) =>
   await getListPengirimanDiambil(params, token);
@@ -37,7 +38,10 @@ const fetcher = async ([params, token]: [URLSearchParams, string]) =>
 export default function PengambilanMaster() {
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [openConfirmModal, setOpenConfirmModal] = useState<boolean>(false);
+  const [openDetailModal, setOpenDetailModal] = useState<boolean>(false);
   const [editPengirimanId, setEditPengirimanId] = useState<string | null>(null);
+  const [selectedPengiriman, setSelectedPengiriman] =
+    useState<Pengiriman | null>(null);
   const [pengambilan, setPengambilan] = useState<Pengiriman>();
   const [editError, setEditError] = useState<string | null>(null);
   const [editSuccess, setEditSuccess] = useState<string | null>(null);
@@ -184,6 +188,11 @@ export default function PengambilanMaster() {
       status_pengiriman: pengiriman.status_pengiriman,
     });
     setOpenConfirmModal(true);
+  };
+
+  const handleOpenDetailModal = (pengiriman: Pengiriman) => {
+    setSelectedPengiriman(pengiriman);
+    setOpenDetailModal(true);
   };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -647,7 +656,10 @@ export default function PengambilanMaster() {
                     </button>
                   </TableCell>
                   <TableCell>
-                    <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
+                    <button
+                      className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                      onClick={() => handleOpenDetailModal(pengiriman)}
+                    >
                       Lihat Detail
                     </button>
                   </TableCell>
@@ -691,6 +703,11 @@ export default function PengambilanMaster() {
       </div>
       {renderEditModal()}
       {renderConfirmModal()}
+      <DetailPengambilanModal
+        isOpen={openDetailModal}
+        onClose={() => setOpenDetailModal(false)}
+        pengiriman={selectedPengiriman}
+      />
     </div>
   );
 
