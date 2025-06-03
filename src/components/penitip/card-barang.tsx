@@ -13,6 +13,7 @@ interface Props {
   accessToken: string;
   onExtendSuccess: () => void;
   onPickupSuccess: () => void;
+  onCardClick: (penitipan: DetailPenitipan) => void;
 }
 
 export default function CardBarang({
@@ -20,6 +21,7 @@ export default function CardBarang({
   accessToken,
   onExtendSuccess,
   onPickupSuccess,
+  onCardClick,
 }: Props) {
   const [penitipan, setPenitipan] = useState<DetailPenitipan>(dtlPenitipan);
   const [penitipanCountdown, setPenitipanCountdown] = useState<string>("");
@@ -202,7 +204,10 @@ export default function CardBarang({
         </div>
       )}
 
-      <div className="flex gap-5 items-start border rounded-xl p-4 mb-4 bg-white shadow-sm">
+      <div
+        className="flex gap-5 items-start border rounded-xl p-4 mb-4 bg-white shadow-sm"
+        onClick={() => onCardClick(dtlPenitipan)}
+      >
         <div className="w-3/12">
           <Image
             src={getPrimaryGambar(dtlPenitipan.barang.gambar)}

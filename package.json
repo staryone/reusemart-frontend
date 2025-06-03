@@ -26,6 +26,7 @@
     "jose": "^6.0.11",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.488.0",
     "next": "15.2.4",
     "postcss": "^8.5.3",

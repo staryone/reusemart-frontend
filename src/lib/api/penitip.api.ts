@@ -11,6 +11,8 @@ export async function getPegawai(
 }
 
 export async function getProfilPenitip(accessToken: string): Promise<Penitip> {
+  const response = await GET(`/penitip/current`, accessToken);
+  console.log("getProfilPenitip response:", response);
   return await GET(`/penitip/current`, accessToken);
 }
 
@@ -49,17 +51,6 @@ export async function deletePenitip(
   return await DELETE(`/penitip/${id}`, accessToken);
 }
 
-// export async function extendPenitipan(
-//   id_dtl_penitipan: number,
-//   accessToken: string
-// ): Promise<DetailPenitipan> {
-//   const response = await PATCH(
-//     `/api/penitipan/extend/${id_dtl_penitipan}`,
-//     undefined,
-//     accessToken
-//   );
-//   return response.data.detailPenitipan;
-// }
 export async function extendPenitipan(
   id_dtl_penitipan: number,
   accessToken?: string

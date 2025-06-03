@@ -646,6 +646,11 @@ export default function PengambilanMaster() {
                         : "Cetak Nota"}
                     </button>
                   </TableCell>
+                  <TableCell>
+                    <button className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
+                      Lihat Detail
+                    </button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (

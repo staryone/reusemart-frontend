@@ -6,15 +6,21 @@ import Sidebar from "@/components/penitip/sidebar";
 import { getProfilPenitip } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import useSWR from "swr";
 import { useUser } from "@/hooks/use-user";
 import { HiSearch } from "react-icons/hi";
+
+import DetailBarangModal from "@/components/penitip/modal-barang";
+import { DetailPenitipan } from "@/lib/interface/detail-penitipan.interface";
 
 export default function TransaksiPenitip() {
   const [penitip, setPenitip] = useState<Penitip | null>(null);
   const currentUser = useUser();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPenitipan, setSelectedPenitipan] =
+    useState<DetailPenitipan | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const penitipFetcher = async (token: string) => {
     if (!token) return null;
@@ -43,8 +49,16 @@ export default function TransaksiPenitip() {
     : [];
 
   const filteredPenitipanList = searchQuery
-    ? detailPenitipanList.filter((trx) =>
-        trx.barang.nama_barang.toLowerCase().includes(searchQuery.toLowerCase())
+    ? detailPenitipanList.filter(
+        (trx) =>
+          trx.barang.nama_barang
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          trx.barang.harga.toString().includes(searchQuery) ||
+          trx.barang.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          trx.barang.kategori.nama_kategori
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
       )
     : detailPenitipanList;
 
@@ -53,6 +67,11 @@ export default function TransaksiPenitip() {
     const formData = new FormData(e.currentTarget);
     const search = formData.get("search-barang") as string;
     setSearchQuery(search.trim());
+  };
+
+  const handleCardClick = (penitipan: DetailPenitipan) => {
+    setSelectedPenitipan(penitipan);
+    setIsDetailModalOpen(true);
   };
 
   return (
@@ -90,9 +109,15 @@ export default function TransaksiPenitip() {
               accessToken={currentUser?.token || ""}
               onExtendSuccess={() => mutate()}
               onPickupSuccess={() => mutate()}
+              onCardClick={handleCardClick}
             />
           ))
         )}
+        <DetailBarangModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          penitipan={selectedPenitipan}
+        />
       </div>
     </div>
   );
