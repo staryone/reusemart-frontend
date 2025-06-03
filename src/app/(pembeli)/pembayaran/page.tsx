@@ -93,7 +93,7 @@ const PaymentPage: React.FC = () => {
 
   // Countdown logic
   useEffect(() => {
-    if (hasExpired) {
+    if (hasExpired && !isSuccess) {
       handleExpiry();
       return;
     }
@@ -175,24 +175,6 @@ const PaymentPage: React.FC = () => {
     } catch {
       toast.error("Terjadi kesalahan saat mengunggah bukti pembayaran.");
     }
-
-    // const formDataPoin = new FormData();
-    // formDataPoin.append(
-    //   "poin",
-    //   sessionStorage.getItem("finalPointsEarned") || "0"
-    // );
-
-    // try {
-    //   const res = await tambahPoin(formDataPoin, token);
-    //   if (res.errors) {
-    //     toast.error(res.errors || "Gagal menambahkan poin.");
-    //   } else {
-    //     toast.success("Poin berhasil ditambahkan ke akun Anda!");
-    //     console.log("Poin berhasil ditambahkan:", res.data);
-    //   }
-    // } catch {
-    //   toast.error("Terjadi kesalahan saat menambahkan poin.");
-    // }
   };
 
   // Format time
