@@ -309,7 +309,10 @@ export default function CardBarang({
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
                   disabled={penitipan.is_perpanjang || remainingSeconds <= 0}
-                  onClick={() => setIsExtendModalOpen(true)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent the click event from bubbling up to the parent div
+                    setIsExtendModalOpen(true);
+                  }}
                 >
                   Perpanjang Penitipan
                 </button>

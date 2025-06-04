@@ -21,6 +21,10 @@ export default function TransaksiPenitip() {
   const [selectedPenitipan, setSelectedPenitipan] =
     useState<DetailPenitipan | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [searchDate, setSearchDate] = useState<string>(""); // New state for date
+  const [dateField, setDateField] = useState<
+    "tanggal_masuk" | "tanggal_akhir" | "batas_ambil"
+  >("tanggal_masuk"); // New state for date field type
 
   const penitipFetcher = async (token: string) => {
     if (!token) return null;
@@ -48,25 +52,57 @@ export default function TransaksiPenitip() {
     ? penitip.penitipan.flatMap((penitipan) => penitipan.detail_penitipan)
     : [];
 
-  const filteredPenitipanList = searchQuery
-    ? detailPenitipanList.filter(
-        (trx) =>
-          trx.barang.nama_barang
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          trx.barang.harga.toString().includes(searchQuery) ||
-          trx.barang.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          trx.barang.kategori.nama_kategori
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())
-      )
-    : detailPenitipanList;
+  // const filteredPenitipanList = searchQuery
+  //   ? detailPenitipanList.filter(
+  //       (trx) =>
+  //         trx.barang.nama_barang
+  //           .toLowerCase()
+  //           .includes(searchQuery.toLowerCase()) ||
+  //         trx.barang.harga.toString().includes(searchQuery) ||
+  //         trx.barang.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //         trx.barang.kategori.nama_kategori
+  //           .toLowerCase()
+  //           .includes(searchQuery.toLowerCase())
+  //     )
+  //   : detailPenitipanList;
+
+  // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   const formData = new FormData(e.currentTarget);
+  //   const search = formData.get("search-barang") as string;
+  //   setSearchQuery(search.trim());
+  // };
+  const filteredPenitipanList = detailPenitipanList.filter((trx) => {
+    const matchesText = searchQuery
+      ? trx.barang.nama_barang
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        trx.barang.harga.toString().includes(searchQuery) ||
+        trx.barang.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        trx.barang.kategori.nama_kategori
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      : true;
+
+    const matchesDate = searchDate
+      ? new Date(trx[dateField]).toISOString().slice(0, 10) === searchDate
+      : true;
+
+    return matchesText && matchesDate;
+  });
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const search = formData.get("search-barang") as string;
+    const date = formData.get("search-date") as string;
+    const field = formData.get("date-field") as
+      | "tanggal_masuk"
+      | "tanggal_akhir"
+      | "batas_ambil";
     setSearchQuery(search.trim());
+    setSearchDate(date);
+    setDateField(field || "tanggal_masuk");
   };
 
   const handleCardClick = (penitipan: DetailPenitipan) => {
@@ -89,6 +125,23 @@ export default function TransaksiPenitip() {
               placeholder="Cari barang"
               defaultValue={searchQuery}
             />
+            <input
+              type="date"
+              name="search-date"
+              id="search-date"
+              className="border rounded-md p-2 w-40"
+              defaultValue={searchDate}
+            />
+            <select
+              name="date-field"
+              id="date-field"
+              className="border rounded-md p-2"
+              defaultValue={dateField}
+            >
+              <option value="tanggal_masuk">Tanggal Masuk</option>
+              <option value="tanggal_akhir">Batas Penitipan</option>
+              <option value="batas_ambil">Batas Ambil</option>
+            </select>
             <button
               type="submit"
               className="bg-[#72C678] text-white px-4 py-2 rounded-lg hover:bg-[#008E6D]"
