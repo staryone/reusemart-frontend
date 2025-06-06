@@ -186,7 +186,7 @@ const generatePenitipanPDF = (formData: FormDataState, nomorNota: string) => {
   pdf.setFont("helvetica", "normal");
   pdf.line(20, yPosition + 2, 190, yPosition + 2); // Horizontal line
   pdf.text(
-    `P${formData.penitipanData.pegawai_qc?.id_pegawai} - ${formData.penitipanData.pegawai_qc?.nama}`,
+    `${formData.penitipanData.pegawai_qc?.id_pegawai} - ${formData.penitipanData.pegawai_qc?.nama}`,
     20,
     yPosition + 7
   );
@@ -667,7 +667,11 @@ export default function PenitipanMaster() {
       if (!res.errors) {
         setCreateSuccess("Penitipan created successfully");
         // Generate PDF with a unique nomorNota
-        const nomorNota = `PN${Date.now()}`; // Simple unique identifier
+        const date= new Date();
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const nomorUrut = totalItems + 1;
+        const nomorNota = `${year}.${month}.${nomorUrut}`;
         generatePenitipanPDF(formData, nomorNota);
         mutate();
         setTimeout(() => {
@@ -1335,6 +1339,7 @@ export default function PenitipanMaster() {
           >
             Tambah Penitipan
           </Button>
+          
         </div>
         <div className="w-full overflow-x-auto">
           <Table hoverable className="w-full border-1">
