@@ -4,6 +4,7 @@ import {
   TransaksiVerif,
 } from "@/lib/interface/transaksi.interface";
 import { DELETE, GET, PATCH, POST } from "./fetch";
+import { LaporanTransaksi } from "@/app/(pegawai)/(withSidebar)/owner/laporan/laporan-penitip/page";
 
 export async function createTransaksi(
   data: FormData,
@@ -17,6 +18,16 @@ export async function getTransaksi(
   accessToken?: string
 ): Promise<TransaksiPayment> {
   return await GET(`/transaksi/${idTransaksi}`, accessToken);
+}
+
+export async function getLaporanTransaksiPenitip(
+  params?: URLSearchParams,
+  accessToken?: string
+): Promise<LaporanTransaksi> {
+  return await GET(
+    `/transaksi/getLaporanTransaksiPenitip?${params}`,
+    accessToken
+  );
 }
 
 export async function expiredTransaksi(

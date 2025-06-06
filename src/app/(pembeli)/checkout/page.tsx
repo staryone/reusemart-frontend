@@ -115,6 +115,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   const pointsDeduction = pointsToUse * 100;
   const finalTotal = totalPrice + shippingCost - pointsDeduction;
+  const remainingPoints = (pembeli?.poin_loyalitas || 0) - pointsToUse;
 
   const handleCheckout = async () => {
     if (deliveryMethod === "DIKIRIM" && !primaryAddress) {
@@ -377,6 +378,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
               Potongan: Rp{pointsDeduction.toLocaleString()} ({pointsToUse}{" "}
               poin)
             </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Estimasi Sisa Poin: {remainingPoints} poin
+            </p>
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow">
@@ -428,7 +432,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0  bg-black/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h2 className="text-xl font-semibold mb-4">Konfirmasi Checkout</h2>
             <p className="text-gray-600 mb-6">

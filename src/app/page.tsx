@@ -106,7 +106,7 @@ export default function Home() {
             <div className="text-center w-full text-red-500">
               Error memuat data
             </div>
-          ) : data && data[0].length > 0 ? (
+          ) : data && Array.isArray(data[0]) && data[0].length > 0 ? (
             data[0]
               .sort((a: Barang, b: Barang) => {
                 return (
@@ -189,7 +189,7 @@ export default function Home() {
             <div className="col-span-full text-center text-red-500">
               Error memuat data
             </div>
-          ) : data && data[0].length > 0 ? (
+          ) : data && Array.isArray(data[0]) && data[0].length > 0 ? (
             data[0].map((barang: Barang) => (
               <div
                 className="bg-white border border-gray-200 rounded-lg shadow-sm w-full"
