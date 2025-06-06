@@ -91,6 +91,13 @@ export default function SideBar() {
             >
               Laporan Request Donasi
             </SidebarItem>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/laporan-penitip"
+              as={Link}
+            >
+              Laporan untuk Penitip
+            </SidebarItem>
           </SidebarCollapse>
           <hr />
           <SidebarItem
