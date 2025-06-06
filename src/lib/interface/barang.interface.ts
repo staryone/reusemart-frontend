@@ -16,10 +16,10 @@ export interface Barang {
   updatedAt: string;
   penitip: Penitip;
   errors?: string;
-  detail_transaksi: DetailTransaksi;
-  detail_penitipan: DetailPenitipan;
-  id_qc: string;
-  nama_qc: string;
+  detail_transaksi?: DetailTransaksi;
+  detail_penitipan?: DetailPenitipan;
+  id_qc?: string;
+  nama_qc?: string;
 }
 
 export interface Gambar {
