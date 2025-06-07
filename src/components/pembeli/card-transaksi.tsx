@@ -274,17 +274,17 @@ function TransactionDetailModal({ transaksi, onClose }: ModalProps) {
   }
 
   let formattedDatePengiriman = "-";
-  if (transaksi.pengiriman?.tanggal_pengiriman) {
+  if (transaksi.pengiriman?.tanggal) {
     try {
       formattedDatePengiriman = `${format(
-        new Date(transaksi.pengiriman.tanggal_pengiriman),
+        new Date(transaksi.pengiriman.tanggal),
         "dd MMMM yyyy, HH:mm",
         { locale: id }
       )} WIB`;
     } catch (error) {
       console.warn(
         "Invalid tanggal_pengiriman:",
-        transaksi.pengiriman.tanggal_pengiriman,
+        transaksi.pengiriman.tanggal,
         error
       );
       formattedDatePengiriman = "Tanggal tidak valid";

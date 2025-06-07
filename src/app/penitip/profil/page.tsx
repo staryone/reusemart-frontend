@@ -7,6 +7,7 @@ import { getProfilPenitip } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { HiBadgeCheck } from "react-icons/hi";
 
 export default function ProfilePage() {
   const [penitip, setPenitip] = useState<Penitip | null>(null);
@@ -45,9 +46,10 @@ export default function ProfilePage() {
                   ⭐ {penitip?.rating?.toFixed(1) || "0"} / 5
                 </p>
                 {penitip?.is_top_seller && (
-                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 rounded-full">
-                    Top Seller
-                  </span>
+                  <div className="flex justify-center gap-2 items-center rounded-lg bg-indigo-300 text-indigo-700 px-2 text-sm font-bold py-1">
+                    <div>Top Seller</div>
+                    <HiBadgeCheck className="text-xl"/>
+                  </div>
                 )}
               </div>
             </div>
