@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import useSWR from "swr";
 
 import { Pembeli } from "@/lib/interface/pembeli.interface";
@@ -229,7 +229,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   return (
     <div className="w-full p-4 bg-gray-100 min-h-screen pt-16 mt-10 px-10">
-      <Toaster position="top-center" reverseOrder={false} />
       <h1 className="text-2xl font-bold mb-6">Checkout</h1>
 
       <div className="flex flex-col lg:flex-row lg:space-x-6">

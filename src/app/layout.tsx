@@ -30,7 +30,13 @@ export default async function RootLayout({
         className={`${poppins.variable} antialiased`}
         style={{ fontFamily: "var(--font-poppins), sans-serif" }}
       >
-        <Toaster position="top-center" reverseOrder={false} />
+        <Toaster
+          position="top-center"
+          containerStyle={{
+            top: 80,
+          }}
+          reverseOrder={false}
+        />
         <UserProvider user={user}>{children}</UserProvider>
       </body>
     </html>
