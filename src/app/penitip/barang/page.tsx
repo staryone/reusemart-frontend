@@ -6,7 +6,7 @@ import Sidebar from "@/components/penitip/sidebar";
 import { getProfilPenitip } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useUser } from "@/hooks/use-user";
 import { HiSearch } from "react-icons/hi";
