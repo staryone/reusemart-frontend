@@ -1,3 +1,4 @@
+import { Kategori } from "../interface/barang.interface";
 import { Pegawai } from "../interface/pegawai.interface";
 import { ResponseAPI } from "../interface/response.interface";
 import { GET, POST, PATCH, DELETE } from "./fetch";
@@ -57,4 +58,17 @@ export async function updateBarangStatus(
   formData.append("id_barang", data.id_barang);
   formData.append("status", data.status);
   return await PATCH(`/pegawai/status-barang`, formData, accessToken);
+}
+
+export async function getCategoryStats(
+  year?: number,
+  accessToken?: string
+): Promise<Kategori[]> {
+  const params = year
+    ? new URLSearchParams({ year: year.toString() })
+    : undefined;
+  return await GET(
+    `/owner/get-category-stats${params ? `?${params}` : ""}`,
+    accessToken
+  );
 }

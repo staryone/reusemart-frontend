@@ -32,4 +32,6 @@ export interface Gambar {
 export interface Kategori {
   id_kategori: number;
   nama_kategori: string;
+  total_sold: number;
+  total_unsold: number;
 }
