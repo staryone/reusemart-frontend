@@ -72,3 +72,7 @@ export async function getCategoryStats(
     accessToken
   );
 }
+
+export async function getExpiredItems(accessToken?: string): Promise<any[]> {
+  return await GET(`/owner/get-expired-items`, accessToken);
+}

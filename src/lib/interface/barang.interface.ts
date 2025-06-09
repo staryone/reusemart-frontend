@@ -20,6 +20,7 @@ export interface Barang {
   detail_penitipan?: DetailPenitipan;
   id_qc?: string;
   nama_qc?: string;
+  kode_produk: string;
 }
 
 export interface Gambar {
