@@ -14,7 +14,7 @@ import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { createTransaksi } from "@/lib/api/transaksi.api";
 
-interface CheckoutPageProps {
+export interface CheckoutPageProps {
   keranjangItemsInitial?: Keranjang[];
 }
 
