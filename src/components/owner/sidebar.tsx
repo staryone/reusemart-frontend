@@ -98,6 +98,20 @@ export default function SideBar() {
             >
               Laporan untuk Penitip
             </SidebarItem>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/kategori-stats"
+              as={Link}
+            >
+              Laporan Kategori Barang
+            </SidebarItem>
+            <SidebarItem
+              className="text-sm"
+              href="/owner/laporan/penitipan-habis"
+              as={Link}
+            >
+              Laporan Penitipan Habis
+            </SidebarItem>
           </SidebarCollapse>
           <hr />
           <SidebarItem
