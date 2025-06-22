@@ -14,7 +14,7 @@ import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { createTransaksi } from "@/lib/api/transaksi.api";
 
-export interface CheckoutPageProps {
+interface CheckoutPageProps {
   keranjangItemsInitial?: Keranjang[];
 }
 
@@ -23,7 +23,7 @@ const fetcherPembeli = async (token: string): Promise<Pembeli> => {
 };
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({
-  keranjangItemsInitial,
+  keranjangItemsInitial = [],
 }) => {
   const router = useRouter();
   const [keranjangItems, setKeranjangItems] = useState<Keranjang[]>([]);
