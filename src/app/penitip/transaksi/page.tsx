@@ -123,8 +123,8 @@ export default function Home() {
   const soldItems =
     data?.penitipan
       ?.flatMap((penitipan: Penitipan) => penitipan.detail_penitipan)
-      .filter((detail) => isItemSold(detail.barang))
-      .map((detail) => detail.barang) || [];
+      .filter((detail: DetailPenitipan) => isItemSold(detail.barang))
+      .map((detail: DetailPenitipan) => detail.barang) || [];
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
