@@ -28,7 +28,6 @@ export default function BarangKembali() {
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBarang, setSelectedBarang] = useState<Barang | null>(null);
 
@@ -94,6 +93,7 @@ export default function BarangKembali() {
     }
   };
 
+  const totalItems = data?.[1] || 0;
   const totalPages = Math.ceil(totalItems / limit);
 
   const handlePageChange = (newPage: number) => {
@@ -167,7 +167,9 @@ export default function BarangKembali() {
                     {barang.penitip.nama}
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                    {formatTanggal(barang.detail_penitipan.batas_ambil)}
+                    {barang.detail_penitipan?.batas_ambil
+                      ? formatTanggal(barang.detail_penitipan.batas_ambil)
+                      : "-"}
                   </TableCell>
                   <TableCell>
                     <button
@@ -253,19 +255,29 @@ export default function BarangKembali() {
               <div>
                 <Label>Tanggal Masuk</Label>
                 <p className="text-gray-900">
-                  {formatTanggal(selectedBarang.detail_penitipan.tanggal_masuk)}
+                  {selectedBarang.detail_penitipan?.tanggal_masuk
+                    ? formatTanggal(
+                        selectedBarang.detail_penitipan.tanggal_masuk
+                      )
+                    : "-"}
                 </p>
               </div>
               <div>
                 <Label>Batas Penitipan</Label>
                 <p className="text-gray-900">
-                  {formatTanggal(selectedBarang.detail_penitipan.tanggal_akhir)}
+                  {selectedBarang.detail_penitipan?.tanggal_akhir
+                    ? formatTanggal(
+                        selectedBarang.detail_penitipan.tanggal_akhir
+                      )
+                    : "-"}
                 </p>
               </div>
               <div>
                 <Label>Batas Ambil</Label>
                 <p className="text-gray-900">
-                  {formatTanggal(selectedBarang.detail_penitipan.batas_ambil)}
+                  {selectedBarang.detail_penitipan?.batas_ambil
+                    ? formatTanggal(selectedBarang.detail_penitipan.batas_ambil)
+                    : "-"}
                 </p>
               </div>
               <div>
