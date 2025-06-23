@@ -14,17 +14,11 @@ import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { createTransaksi } from "@/lib/api/transaksi.api";
 
-interface CheckoutPageProps {
-  keranjangItemsInitial?: Keranjang[];
-}
-
 const fetcherPembeli = async (token: string): Promise<Pembeli> => {
   return getProfilPembeli(token);
 };
 
-const CheckoutPage: React.FC<CheckoutPageProps> = ({
-  keranjangItemsInitial = [],
-}) => {
+const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const [keranjangItems, setKeranjangItems] = useState<Keranjang[]>([]);
   const [deliveryMethod, setDeliveryMethod] = useState<"DIAMBIL" | "DIKIRIM">(
@@ -62,16 +56,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
     if (loadedItems.length > 0) {
       setKeranjangItems(loadedItems);
-    } else if (keranjangItemsInitial && keranjangItemsInitial.length > 0) {
-      setKeranjangItems(keranjangItemsInitial);
-      toast.error("Memuat item keranjang dari data awal (props).");
     } else {
       toast.error(
         "Tidak ada item untuk di-checkout. Silakan pilih dari keranjang."
       );
       router.push("/cart");
     }
-  }, [isClient, router, keranjangItemsInitial, currentUser, token]);
+  }, [isClient, router, currentUser, token]);
 
   const {
     data: pembeli,
