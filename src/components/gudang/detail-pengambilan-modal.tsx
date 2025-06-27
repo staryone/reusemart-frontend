@@ -28,8 +28,6 @@ export default function DetailPengambilanModal({
     }).format(value);
   };
 
-  console.log("pengiriman", pengiriman);
-
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return "-";
     return format(new Date(dateString), "dd MMMM yyyy, HH:mm", { locale: id });

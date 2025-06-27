@@ -77,8 +77,6 @@ export default function LaporanKomisi() {
     return data[0];
   }, [data]);
 
-  console.log(data);
-
   const todaysDate = (): string => {
     const date = new Date();
     return date.toLocaleDateString("id-ID", {

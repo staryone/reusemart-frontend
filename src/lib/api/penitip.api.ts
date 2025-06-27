@@ -11,8 +11,6 @@ export async function getPegawai(
 }
 
 export async function getProfilPenitip(accessToken: string): Promise<Penitip> {
-  const response = await GET(`/penitip/current`, accessToken);
-  console.log("getProfilPenitip response:", response);
   return await GET(`/penitip/current`, accessToken);
 }
 

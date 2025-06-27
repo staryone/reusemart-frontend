@@ -40,7 +40,6 @@ export default function CardBarang({
   };
 
   const formatTanggal = (date: string) => {
-    console.log("formatTanggal", date);
     return format(new Date(date), "dd MMMM yyyy, HH:mm", { locale: id });
   };
 

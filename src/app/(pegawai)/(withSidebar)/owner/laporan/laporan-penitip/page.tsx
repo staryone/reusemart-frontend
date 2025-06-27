@@ -142,11 +142,8 @@ export default function LaporanTransaksiPenitip() {
     }
   );
 
-  console.log(data);
-
   const transaksiData: TransaksiPenitip[] = useMemo(() => {
     if (!data || !Array.isArray(data.transaksi)) return [];
-    console.log(data);
     return data.transaksi;
   }, [data]);
 
