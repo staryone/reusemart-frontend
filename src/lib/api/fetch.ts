@@ -6,7 +6,7 @@ export async function GET(path: string, accessToken?: string) {
       method: "GET",
       headers: accessToken
         ? {
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}`,
           }
         : {},
     });
