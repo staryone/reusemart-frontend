@@ -24,21 +24,7 @@ export async function getListPenitip(
 export async function getListHistoryPenjualan(
   accessToken: string
 ): Promise<any> {
-  console.log("=== API DEBUG ===");
-  console.log(
-    "Calling getListHistoryPenjualan with token:",
-    accessToken ? "Available" : "Not available"
-  );
-  console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
-
-  try {
-    const result = await GET(`/penitip/history-penjualan`, accessToken);
-    console.log("API Response:", result);
-    return result;
-  } catch (error) {
-    console.error("API Error:", error);
-    throw error;
-  }
+  return await GET(`/penitip/history-penjualan`, accessToken);
 }
 
 export async function createPenitip(

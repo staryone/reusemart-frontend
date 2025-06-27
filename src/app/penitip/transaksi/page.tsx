@@ -71,50 +71,6 @@ export default function Home() {
     revalidateOnReconnect: true,
   });
 
-  // Debug logging
-  console.log("=== DEBUG PENITIP TRANSAKSI ===");
-  console.log("Token:", token ? "Available" : "Not available");
-  console.log("Raw data:", data);
-  console.log("Error:", error);
-  console.log("Is loading:", isLoading);
-  console.log("Environment API URL:", process.env.NEXT_PUBLIC_API_URL);
-  console.log("Current environment:", process.env.NODE_ENV);
-
-  // Detailed data structure debugging
-  if (data) {
-    console.log("=== DETAILED DATA STRUCTURE ===");
-    console.log("Data type:", typeof data);
-    console.log("Data keys:", Object.keys(data));
-    console.log("Penitipan array:", data.penitipan);
-    console.log("Penitipan length:", data.penitipan?.length);
-
-    if (data.penitipan && data.penitipan.length > 0) {
-      console.log("First penitipan:", data.penitipan[0]);
-      console.log(
-        "Detail penitipan length:",
-        data.penitipan[0]?.detail_penitipan?.length
-      );
-
-      if (
-        data.penitipan[0]?.detail_penitipan &&
-        data.penitipan[0].detail_penitipan.length > 0
-      ) {
-        console.log(
-          "First detail penitipan:",
-          data.penitipan[0].detail_penitipan[0]
-        );
-        console.log(
-          "First barang:",
-          data.penitipan[0].detail_penitipan[0]?.barang
-        );
-        console.log(
-          "Barang detail_transaksi:",
-          data.penitipan[0].detail_penitipan[0]?.barang?.detail_transaksi
-        );
-      }
-    }
-  }
-
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const pad = (num: number) => num.toString().padStart(2, "0");
@@ -145,83 +101,15 @@ export default function Home() {
   };
 
   const isItemSold = (barang: Barang): boolean => {
-    // Original logic
-    const hasDetailTransaksi = !!barang.detail_transaksi;
-    const hasDetailTransaksiLength = !!(
-      barang.detail_transaksi && barang.detail_transaksi.length > 0
-    );
-    const hasFirstDetail = !!(
-      barang.detail_transaksi && barang.detail_transaksi[0]
-    );
-    const hasTransaksi = !!(
-      barang.detail_transaksi &&
-      barang.detail_transaksi[0] &&
-      !!barang.detail_transaksi[0].transaksi
-    );
-    const hasPengiriman = !!(
-      barang.detail_transaksi &&
-      barang.detail_transaksi[0] &&
-      barang.detail_transaksi[0].transaksi &&
-      !!barang.detail_transaksi[0].transaksi.pengiriman
-    );
-    const isDelivered = !!(
-      barang.detail_transaksi &&
-      barang.detail_transaksi[0] &&
-      barang.detail_transaksi[0].transaksi &&
-      barang.detail_transaksi[0].transaksi.pengiriman &&
+    return (
+      !!barang.detail_transaksi &&
+      barang.detail_transaksi.length > 0 &&
+      !!barang.detail_transaksi[0] &&
+      !!barang.detail_transaksi[0].transaksi &&
+      !!barang.detail_transaksi[0].transaksi.pengiriman &&
       barang.detail_transaksi[0].transaksi.pengiriman.status_pengiriman ===
         "SUDAH_DITERIMA"
     );
-
-    console.log("=== DEBUG isItemSold ===");
-    console.log("Barang:", barang.nama_barang);
-    console.log("hasDetailTransaksi:", hasDetailTransaksi);
-    console.log("hasDetailTransaksiLength:", hasDetailTransaksiLength);
-    console.log("hasFirstDetail:", hasFirstDetail);
-    console.log("hasTransaksi:", hasTransaksi);
-    console.log("hasPengiriman:", hasPengiriman);
-    console.log("isDelivered:", isDelivered);
-    console.log("detail_transaksi:", barang.detail_transaksi);
-    console.log(
-      "pengiriman status:",
-      barang.detail_transaksi?.[0]?.transaksi?.pengiriman?.status_pengiriman
-    );
-
-    // Original strict logic
-    const originalResult =
-      hasDetailTransaksi &&
-      hasDetailTransaksiLength &&
-      hasFirstDetail &&
-      hasTransaksi &&
-      hasPengiriman &&
-      isDelivered;
-
-    // Fallback logic: Check if item has any transaction (less strict)
-    const hasAnyTransaction =
-      hasDetailTransaksi && hasDetailTransaksiLength && hasTransaksi;
-
-    // Alternative logic: Check for different status values
-    const alternativeStatuses = [
-      "SUDAH_DITERIMA",
-      "DITERIMA",
-      "DELIVERED",
-      "COMPLETED",
-      "FINISHED",
-    ];
-
-    const hasAlternativeStatus = !!(
-      barang.detail_transaksi?.[0]?.transaksi?.pengiriman?.status_pengiriman &&
-      alternativeStatuses.includes(
-        barang.detail_transaksi[0].transaksi.pengiriman.status_pengiriman
-      )
-    );
-
-    console.log("Original result:", originalResult);
-    console.log("Has any transaction:", hasAnyTransaction);
-    console.log("Has alternative status:", hasAlternativeStatus);
-
-    // Return true if any condition is met
-    return originalResult || (hasAnyTransaction && hasAlternativeStatus);
   };
 
   const openModal = (item: Barang) => {
@@ -238,38 +126,6 @@ export default function Home() {
       ?.flatMap((penitipan: Penitipan) => penitipan.detail_penitipan)
       .filter((detail: DetailPenitipan) => isItemSold(detail.barang))
       .map((detail: DetailPenitipan) => detail.barang) || [];
-
-  console.log("=== DEBUG soldItems ===");
-  console.log("Total sold items:", soldItems.length);
-  console.log("Sold items:", soldItems);
-
-  // Alternative approach: Show all items with transactions for debugging
-  const allItemsWithTransactions =
-    data?.penitipan
-      ?.flatMap((penitipan: Penitipan) => penitipan.detail_penitipan)
-      .filter(
-        (detail: DetailPenitipan) =>
-          detail.barang.detail_transaksi &&
-          detail.barang.detail_transaksi.length > 0
-      )
-      .map((detail: DetailPenitipan) => detail.barang) || [];
-
-  console.log("=== DEBUG allItemsWithTransactions ===");
-  console.log(
-    "Total items with transactions:",
-    allItemsWithTransactions.length
-  );
-  console.log("Items with transactions:", allItemsWithTransactions);
-
-  // Show all items for debugging
-  const allItems =
-    data?.penitipan
-      ?.flatMap((penitipan: Penitipan) => penitipan.detail_penitipan)
-      .map((detail: DetailPenitipan) => detail.barang) || [];
-
-  console.log("=== DEBUG allItems ===");
-  console.log("Total all items:", allItems.length);
-  console.log("All items:", allItems);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -290,17 +146,6 @@ export default function Home() {
         ) : !soldItems.length ? (
           <div className="text-center p-4">
             Tidak ada riwayat transaksi barang yang sudah terjual
-            {allItemsWithTransactions.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm text-gray-600">
-                  Debug: Ditemukan {allItemsWithTransactions.length} item dengan
-                  transaksi
-                </p>
-                <p className="text-sm text-gray-600">
-                  Total semua item: {allItems.length}
-                </p>
-              </div>
-            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -341,47 +186,6 @@ export default function Home() {
                 </div>
               </div>
             ))}
-
-            {/* Debug section - show all items with transactions */}
-            {soldItems.length === 0 && allItemsWithTransactions.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                  Debug: Semua Item dengan Transaksi
-                </h2>
-                <div className="space-y-4">
-                  {allItemsWithTransactions.map((item: Barang) => (
-                    <div
-                      key={item.id_barang}
-                      className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 shadow-sm"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800">
-                            {item.nama_barang}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Harga: {formatCurrency(item.harga)}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Pembeli:{" "}
-                            {item.detail_transaksi?.[0]?.transaksi.pembeli.nama}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Status Pengiriman:{" "}
-                            {item.detail_transaksi?.[0]?.transaksi.pengiriman
-                              ?.status_pengiriman || "Tidak ada pengiriman"}
-                          </p>
-                          <p className="text-sm text-yellow-600 mt-1">
-                            Debug: Memiliki transaksi tapi tidak terdeteksi
-                            sebagai terjual
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
