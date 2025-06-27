@@ -7,19 +7,24 @@ import { getListHistoryPenjualan } from "@/lib/api/penitip.api";
 import { HiX } from "react-icons/hi";
 import { useUser, useSWRWithNavigation } from "@/hooks/use-user";
 
-// TypeScript interfaces
+// TypeScript interfaces aligned with new backend response
 interface Pembeli {
   nama: string;
 }
 
 interface Pengiriman {
-  id_pengiriman: number;
   tanggal: string;
   status_pengiriman: string;
-  id_kurir: number;
-  id_transaksi: number;
-  createdAt: string;
-  updatedAt: string;
+}
+
+interface Barang {
+  id_barang: number;
+  nama_barang: string;
+  harga: number;
+  detail_penitipan: {
+    tanggal_masuk: string;
+    tanggal_laku: string | null;
+  };
 }
 
 interface Transaksi {
@@ -29,50 +34,39 @@ interface Transaksi {
   status_Pembayaran: string;
   total_akhir: number;
   pembeli: Pembeli;
-  pengiriman?: Pengiriman | null;
+  pengiriman: Pengiriman;
 }
 
 interface DetailTransaksi {
   id_dtl_transaksi: number;
   poin: number;
   komisi_penitip: number;
-  transaksi: Transaksi;
-}
-
-interface Barang {
-  id_barang: number;
-  nama_barang: string;
-  harga: number;
-  detail_transaksi?: DetailTransaksi[];
-}
-
-interface DetailPenitipan {
   barang: Barang;
-}
-
-interface Penitipan {
-  id_penitipan: number;
-  tanggal_masuk: string;
-  tanggal_laku: string | null;
-  detail_penitipan: DetailPenitipan[];
+  transaksi: Transaksi;
 }
 
 const fetcher = async (token: string) => await getListHistoryPenjualan(token);
 
 export default function Home() {
-  const [selectedItem, setSelectedItem] = useState<Barang | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<DetailTransaksi | null>(
+    null
+  );
   const currentUser = useUser();
+  const token = currentUser?.token ?? "";
 
-  const token = currentUser !== null ? currentUser.token : "";
-
-  const { data, error, isLoading } = useSWRWithNavigation(token, fetcher, {
-    revalidateIfStale: true,
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-  });
+  const { data, error, isLoading } = useSWRWithNavigation<DetailTransaksi[]>(
+    token ? token : null,
+    fetcher,
+    {
+      revalidateIfStale: true,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+    }
+  );
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "N/A";
     const pad = (num: number) => num.toString().padStart(2, "0");
     const months = [
       "Januari",
@@ -93,39 +87,16 @@ export default function Home() {
     } ${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number | null): string =>
+    amount != null
+      ? new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+        }).format(amount)
+      : "N/A";
 
-  const isItemSold = (barang: Barang): boolean => {
-    return (
-      !!barang.detail_transaksi &&
-      barang.detail_transaksi.length > 0 &&
-      !!barang.detail_transaksi[0] &&
-      !!barang.detail_transaksi[0].transaksi &&
-      !!barang.detail_transaksi[0].transaksi.pengiriman &&
-      barang.detail_transaksi[0].transaksi.pengiriman.status_pengiriman ===
-        "SUDAH_DITERIMA"
-    );
-  };
-
-  const openModal = (item: Barang) => {
-    setSelectedItem(item);
-  };
-
-  const closeModal = () => {
-    setSelectedItem(null);
-  };
-
-  // Flatten and filter sold items
-  const soldItems =
-    data?.penitipan
-      ?.flatMap((penitipan: Penitipan) => penitipan.detail_penitipan)
-      .filter((detail: DetailPenitipan) => isItemSold(detail.barang))
-      .map((detail: DetailPenitipan) => detail.barang) || [];
+  const openModal = (detail: DetailTransaksi) => setSelectedDetail(detail);
+  const closeModal = () => setSelectedDetail(null);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -143,35 +114,31 @@ export default function Home() {
           <div className="text-center p-4">Loading...</div>
         ) : error ? (
           <div className="text-center p-4 text-red-500">Error memuat data</div>
-        ) : !soldItems.length ? (
+        ) : !data?.length ? (
           <div className="text-center p-4">
             Tidak ada riwayat transaksi barang yang sudah terjual
           </div>
         ) : (
           <div className="space-y-4">
-            {soldItems.map((item: Barang) => (
+            {data.map((item) => (
               <div
-                key={item.id_barang}
+                key={item.id_dtl_transaksi}
                 className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">
-                      {item.nama_barang}
+                      {item.barang.nama_barang}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Harga: {formatCurrency(item.harga)}
+                      Harga: {formatCurrency(item.barang.harga)}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Pembeli:{" "}
-                      {item.detail_transaksi?.[0]?.transaksi.pembeli.nama}
+                      Pembeli: {item.transaksi.pembeli.nama ?? "N/A"}
                     </p>
                     <p className="text-sm text-gray-500">
                       Tanggal Transaksi:{" "}
-                      {formatDate(
-                        item.detail_transaksi?.[0]?.transaksi
-                          .tanggal_transaksi as string
-                      )}
+                      {formatDate(item.transaksi.tanggal_transaksi)}
                     </p>
                     <p className="text-sm text-green-600 mt-1">
                       Status: Terjual
@@ -189,8 +156,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Modal for Transaction Details */}
-        {selectedItem && selectedItem.detail_transaksi?.[0] && (
+        {selectedDetail && (
           <div className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-green-50/50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full border border-gray-200 shadow-xl">
               <div className="flex justify-between items-center mb-4">
@@ -207,99 +173,83 @@ export default function Home() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Nama Barang:</strong>
-                  <span>{selectedItem.nama_barang}</span>
+                  <span>{selectedDetail.barang.nama_barang}</span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Harga:</strong>
-                  <span>{formatCurrency(selectedItem.harga)}</span>
+                  <span>{formatCurrency(selectedDetail.barang.harga)}</span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Pembeli:</strong>
-                  <span>
-                    {selectedItem.detail_transaksi?.[0]?.transaksi.pembeli.nama}
-                  </span>
+                  <span>{selectedDetail.transaksi.pembeli.nama ?? "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Tanggal Transaksi:</strong>
                   <span>
+                    {formatDate(selectedDetail.transaksi.tanggal_transaksi)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Tanggal Masuk:</strong>
+                  <span>
                     {formatDate(
-                      selectedItem.detail_transaksi?.[0]?.transaksi
-                        .tanggal_transaksi as string
+                      selectedDetail.barang.detail_penitipan.tanggal_masuk
                     )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Tanggal Laku:</strong>
+                  <span>
+                    {selectedDetail.barang.detail_penitipan.tanggal_laku
+                      ? formatDate(
+                          selectedDetail.barang.detail_penitipan.tanggal_laku
+                        )
+                      : "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Total Harga:</strong>
                   <span>
-                    {formatCurrency(
-                      selectedItem.detail_transaksi?.[0]?.transaksi
-                        .total_harga as number
-                    )}
+                    {formatCurrency(selectedDetail.transaksi.total_harga)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Total Akhir:</strong>
                   <span>
-                    {formatCurrency(
-                      selectedItem.detail_transaksi?.[0]?.transaksi
-                        .total_akhir as number
-                    )}
+                    {formatCurrency(selectedDetail.transaksi.total_akhir)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Status Pembayaran:</strong>
                   <span
                     className={
-                      selectedItem.detail_transaksi?.[0]?.transaksi
-                        .status_Pembayaran === "DITERIMA"
+                      selectedDetail.transaksi.status_Pembayaran === "DITERIMA"
                         ? "text-green-600"
                         : "text-red-600"
                     }
                   >
-                    {
-                      selectedItem.detail_transaksi?.[0]?.transaksi
-                        .status_Pembayaran
-                    }
+                    {selectedDetail.transaksi.status_Pembayaran}
                   </span>
                 </div>
-                {selectedItem.detail_transaksi?.[0]?.transaksi.pengiriman && (
-                  <>
-                    <div className="flex justify-between">
-                      <strong className="text-gray-700">
-                        Status Pengiriman:
-                      </strong>
-                      <span className="text-green-600">
-                        {
-                          selectedItem.detail_transaksi?.[0].transaksi
-                            .pengiriman.status_pengiriman
-                        }
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <strong className="text-gray-700">
-                        Tanggal Pengiriman:
-                      </strong>
-                      <span>
-                        {formatDate(
-                          selectedItem.detail_transaksi?.[0].transaksi
-                            .pengiriman.tanggal
-                        )}
-                      </span>
-                    </div>
-                  </>
-                )}
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Status Pengiriman:</strong>
+                  <span className="text-green-600">
+                    {selectedDetail.transaksi.pengiriman.status_pengiriman}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <strong className="text-gray-700">Tanggal Pengiriman:</strong>
+                  <span>
+                    {formatDate(selectedDetail.transaksi.pengiriman.tanggal)}
+                  </span>
+                </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Poin:</strong>
-                  <span>{selectedItem.detail_transaksi?.[0]?.poin}</span>
+                  <span>{selectedDetail.poin ?? "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Komisi Penitip:</strong>
-                  <span>
-                    {formatCurrency(
-                      selectedItem.detail_transaksi?.[0]
-                        ?.komisi_penitip as number
-                    )}
-                  </span>
+                  <span>{formatCurrency(selectedDetail.komisi_penitip)}</span>
                 </div>
               </div>
               <button
