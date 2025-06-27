@@ -4,9 +4,8 @@ import { useState } from "react";
 import Head from "next/head";
 import Sidebar from "@/components/penitip/sidebar";
 import { getListHistoryPenjualan } from "@/lib/api/penitip.api";
-import useSWR from "swr";
 import { HiX } from "react-icons/hi";
-import { useUser } from "@/hooks/use-user";
+import { useUser, useSWRWithNavigation } from "@/hooks/use-user";
 
 // TypeScript interfaces
 interface Pembeli {
@@ -44,7 +43,7 @@ interface Barang {
   id_barang: number;
   nama_barang: string;
   harga: number;
-  detail_transaksi: DetailTransaksi | null;
+  detail_transaksi?: DetailTransaksi[];
 }
 
 interface DetailPenitipan {
@@ -66,10 +65,10 @@ export default function Home() {
 
   const token = currentUser !== null ? currentUser.token : "";
 
-  const { data, error, isLoading } = useSWR(token, fetcher, {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
+  const { data, error, isLoading } = useSWRWithNavigation(token, fetcher, {
+    revalidateIfStale: true,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
   });
 
   const formatDate = (dateString: string): string => {
@@ -104,9 +103,11 @@ export default function Home() {
   const isItemSold = (barang: Barang): boolean => {
     return (
       !!barang.detail_transaksi &&
-      !!barang.detail_transaksi.transaksi &&
-      !!barang.detail_transaksi.transaksi.pengiriman &&
-      barang.detail_transaksi.transaksi.pengiriman.status_pengiriman ===
+      barang.detail_transaksi.length > 0 &&
+      !!barang.detail_transaksi[0] &&
+      !!barang.detail_transaksi[0].transaksi &&
+      !!barang.detail_transaksi[0].transaksi.pengiriman &&
+      barang.detail_transaksi[0].transaksi.pengiriman.status_pengiriman ===
         "SUDAH_DITERIMA"
     );
   };
@@ -125,6 +126,8 @@ export default function Home() {
       ?.flatMap((penitipan: Penitipan) => penitipan.detail_penitipan)
       .filter((detail: DetailPenitipan) => isItemSold(detail.barang))
       .map((detail: DetailPenitipan) => detail.barang) || [];
+
+  console.log("soldItems", soldItems);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -162,12 +165,13 @@ export default function Home() {
                       Harga: {formatCurrency(item.harga)}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Pembeli: {item.detail_transaksi?.transaksi.pembeli.nama}
+                      Pembeli:{" "}
+                      {item.detail_transaksi?.[0]?.transaksi.pembeli.nama}
                     </p>
                     <p className="text-sm text-gray-500">
                       Tanggal Transaksi:{" "}
                       {formatDate(
-                        item.detail_transaksi?.transaksi
+                        item.detail_transaksi?.[0]?.transaksi
                           .tanggal_transaksi as string
                       )}
                     </p>
@@ -188,8 +192,8 @@ export default function Home() {
         )}
 
         {/* Modal for Transaction Details */}
-        {selectedItem && (
-          <div className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-green-50">
+        {selectedItem && selectedItem.detail_transaksi?.[0] && (
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-green-50/50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full border border-gray-200 shadow-xl">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800">
@@ -214,14 +218,14 @@ export default function Home() {
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Pembeli:</strong>
                   <span>
-                    {selectedItem.detail_transaksi?.transaksi.pembeli.nama}
+                    {selectedItem.detail_transaksi?.[0]?.transaksi.pembeli.nama}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Tanggal Transaksi:</strong>
                   <span>
                     {formatDate(
-                      selectedItem.detail_transaksi?.transaksi
+                      selectedItem.detail_transaksi?.[0]?.transaksi
                         .tanggal_transaksi as string
                     )}
                   </span>
@@ -230,7 +234,7 @@ export default function Home() {
                   <strong className="text-gray-700">Total Harga:</strong>
                   <span>
                     {formatCurrency(
-                      selectedItem.detail_transaksi?.transaksi
+                      selectedItem.detail_transaksi?.[0]?.transaksi
                         .total_harga as number
                     )}
                   </span>
@@ -239,7 +243,7 @@ export default function Home() {
                   <strong className="text-gray-700">Total Akhir:</strong>
                   <span>
                     {formatCurrency(
-                      selectedItem.detail_transaksi?.transaksi
+                      selectedItem.detail_transaksi?.[0]?.transaksi
                         .total_akhir as number
                     )}
                   </span>
@@ -248,16 +252,19 @@ export default function Home() {
                   <strong className="text-gray-700">Status Pembayaran:</strong>
                   <span
                     className={
-                      selectedItem.detail_transaksi?.transaksi
+                      selectedItem.detail_transaksi?.[0]?.transaksi
                         .status_Pembayaran === "DITERIMA"
                         ? "text-green-600"
                         : "text-red-600"
                     }
                   >
-                    {selectedItem.detail_transaksi?.transaksi.status_Pembayaran}
+                    {
+                      selectedItem.detail_transaksi?.[0]?.transaksi
+                        .status_Pembayaran
+                    }
                   </span>
                 </div>
-                {selectedItem.detail_transaksi?.transaksi.pengiriman && (
+                {selectedItem.detail_transaksi?.[0]?.transaksi.pengiriman && (
                   <>
                     <div className="flex justify-between">
                       <strong className="text-gray-700">
@@ -265,8 +272,8 @@ export default function Home() {
                       </strong>
                       <span className="text-green-600">
                         {
-                          selectedItem.detail_transaksi.transaksi.pengiriman
-                            .status_pengiriman
+                          selectedItem.detail_transaksi?.[0].transaksi
+                            .pengiriman.status_pengiriman
                         }
                       </span>
                     </div>
@@ -276,8 +283,8 @@ export default function Home() {
                       </strong>
                       <span>
                         {formatDate(
-                          selectedItem.detail_transaksi.transaksi.pengiriman
-                            .tanggal
+                          selectedItem.detail_transaksi?.[0].transaksi
+                            .pengiriman.tanggal
                         )}
                       </span>
                     </div>
@@ -285,13 +292,14 @@ export default function Home() {
                 )}
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Poin:</strong>
-                  <span>{selectedItem.detail_transaksi?.poin}</span>
+                  <span>{selectedItem.detail_transaksi?.[0]?.poin}</span>
                 </div>
                 <div className="flex justify-between">
                   <strong className="text-gray-700">Komisi Penitip:</strong>
                   <span>
                     {formatCurrency(
-                      selectedItem.detail_transaksi?.komisi_penitip as number
+                      selectedItem.detail_transaksi?.[0]
+                        ?.komisi_penitip as number
                     )}
                   </span>
                 </div>

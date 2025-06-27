@@ -92,7 +92,10 @@ export default function CardBarang({
     new Date()
   );
 
-  const getPrimaryGambar = (gambars: Gambar[]): string => {
+  const getPrimaryGambar = (gambars: Gambar[] | undefined): string => {
+    if (!gambars || !Array.isArray(gambars)) {
+      return "/product.png";
+    }
     const primaryGambar = gambars.find(
       (gambar: Gambar) => gambar.is_primary == true
     );

@@ -7,8 +7,7 @@ import { getProfilPenitip } from "@/lib/api/penitip.api";
 import { Penitip } from "@/lib/interface/penitip.interface";
 
 import { useState, useEffect } from "react";
-import useSWR from "swr";
-import { useUser } from "@/hooks/use-user";
+import { useUser, useSWRWithNavigation } from "@/hooks/use-user";
 import { HiSearch } from "react-icons/hi";
 
 import DetailBarangModal from "@/components/penitip/modal-barang";
@@ -36,11 +35,7 @@ export default function TransaksiPenitip() {
     error,
     isLoading,
     mutate,
-  } = useSWR(currentUser !== null ? currentUser.token : null, penitipFetcher, {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-  });
+  } = useSWRWithNavigation(currentUser?.token || null, penitipFetcher);
 
   useEffect(() => {
     if (penitipData) {
@@ -52,27 +47,17 @@ export default function TransaksiPenitip() {
     ? penitip.penitipan.flatMap((penitipan) => penitipan.detail_penitipan)
     : [];
 
-  // const filteredPenitipanList = searchQuery
-  //   ? detailPenitipanList.filter(
-  //       (trx) =>
-  //         trx.barang.nama_barang
-  //           .toLowerCase()
-  //           .includes(searchQuery.toLowerCase()) ||
-  //         trx.barang.harga.toString().includes(searchQuery) ||
-  //         trx.barang.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //         trx.barang.kategori.nama_kategori
-  //           .toLowerCase()
-  //           .includes(searchQuery.toLowerCase())
-  //     )
-  //   : detailPenitipanList;
-
-  // const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const formData = new FormData(e.currentTarget);
-  //   const search = formData.get("search-barang") as string;
-  //   setSearchQuery(search.trim());
-  // };
   const filteredPenitipanList = detailPenitipanList.filter((trx) => {
+    // Skip items with missing required data
+    if (
+      !trx ||
+      !trx.barang ||
+      !trx.barang.nama_barang ||
+      !trx.barang.kategori
+    ) {
+      return false;
+    }
+
     const matchesText = searchQuery
       ? trx.barang.nama_barang
           .toLowerCase()
@@ -155,9 +140,9 @@ export default function TransaksiPenitip() {
             {searchQuery ? "Tidak ada barang ditemukan" : "Tidak ada transaksi"}
           </p>
         ) : (
-          filteredPenitipanList.map((trx) => (
+          filteredPenitipanList.map((trx, index) => (
             <CardBarang
-              key={trx.id_dtl_penitipan}
+              key={`${trx.id_dtl_penitipan}-${index}`}
               dtlPenitipan={trx}
               accessToken={currentUser?.token || ""}
               onExtendSuccess={() => mutate()}
