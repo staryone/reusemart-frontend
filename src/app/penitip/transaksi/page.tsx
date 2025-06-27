@@ -127,8 +127,6 @@ export default function Home() {
       .filter((detail: DetailPenitipan) => isItemSold(detail.barang))
       .map((detail: DetailPenitipan) => detail.barang) || [];
 
-  console.log("soldItems", soldItems);
-
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <Sidebar />
